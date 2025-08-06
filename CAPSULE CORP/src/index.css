@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
 @import "tailwindcss";
 
-/* Orbitron for headings/logos only */
-.font-saiyan {
+body {
   font-family: 'Orbitron', monospace;
 }
