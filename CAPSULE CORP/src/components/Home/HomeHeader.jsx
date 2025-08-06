@@ -22,16 +22,18 @@ function HomeHeader({ cartCount }) {
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Find Dragon Balls..."
                 className="w-full px-4 py-3 bg-white/90 backdrop-blur border-2 border-white/20 rounded-xl pr-12 focus:outline-none focus:ring-2 focus:ring-[#FFD700] transition-all"
+                aria-label="Search"
               />
               <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3B4CCA] text-lg" />
             </div>
           </div>
           <div className="flex items-center space-x-6">
-            <Link to="/profile">
+            {/* Profile icon links to /auth for login/signup */}
+            <Link to="/auth" aria-label="Login or Signup">
               <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
             </Link>
             <div className="relative">
-              <Link to="/cart">
+              <Link to="/cart" aria-label="View Cart">
                 <FaShoppingCart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
                 <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
                   {cartCount}
@@ -46,3 +48,4 @@ function HomeHeader({ cartCount }) {
 }
 
 export default HomeHeader;
+// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\components\Home\HomeHeader.jsx
