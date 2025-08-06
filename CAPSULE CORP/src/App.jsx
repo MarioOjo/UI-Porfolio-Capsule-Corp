@@ -9,6 +9,7 @@ import BattleGear from "./pages/BattleGear";
 import Capsules from "./pages/Capsules";
 import Training from "./pages/Training";
 import Cart from "./pages/Cart";
+import AuthPage from "./pages/Auth/AuthPage"; 
 
 function App() {
   const [cartCount, setCartCount] = useState(3);
@@ -24,6 +25,7 @@ function App() {
         <Route path="/capsules" element={<Capsules />} />
         <Route path="/training" element={<Training />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/auth" element={<AuthPage />} /> 
       </Routes>
       <Footer />
     </>
@@ -31,3 +33,4 @@ function App() {
 }
 
 export default App;
+//
