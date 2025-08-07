@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function HeroSection() {
   return (
     <section className="bg-gradient-to-br from-[#FF9E00] via-orange-400 to-red-500 h-[600px] relative overflow-hidden">
@@ -12,12 +14,18 @@ function HeroSection() {
                 Power up your training with legendary gear! Up to 50% off battle equipment and capsule technology.
               </p>
               <div className="flex space-x-4">
-                <button className="bg-white text-[#3B4CCA] px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                <Link
+                  to="/products"
+                  className="bg-white text-[#3B4CCA] px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+                >
                   Shop Now
-                </button>
-                <button className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-[#3B4CCA] transition-all shadow-xl">
+                </Link>
+                <Link
+                  to="/battle-gear"
+                  className="border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-[#3B4CCA] transition-all shadow-xl"
+                >
                   View Collection
-                </button>
+                </Link>
               </div>
               <div className="flex items-center space-x-6 pt-6">
                 <div className="flex space-x-3">

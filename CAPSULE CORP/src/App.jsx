@@ -9,10 +9,10 @@ import BattleGear from "./pages/BattleGear";
 import Capsules from "./pages/Capsules";
 import Training from "./pages/Training";
 import Cart from "./pages/Cart";
-import AuthPage from "./pages/Auth/AuthPage"; 
+import AuthPage from "./pages/Auth/AuthPage";
 
 function App() {
-  const [cartCount, setCartCount] = useState(3);
+  const [cartCount, setCartCount] = useState(0);
 
   return (
     <>
@@ -20,7 +20,7 @@ function App() {
       <HomeNavigation />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
+        <Route path="/products" element={<Products cartCount={cartCount} setCartCount={setCartCount} />} />
         <Route path="/battle-gear" element={<BattleGear />} />
         <Route path="/capsules" element={<Capsules />} />
         <Route path="/training" element={<Training />} />
