@@ -1,5 +1,6 @@
 import "./Auth.css";
 import AuthTabs from "./AuthTabs";
+import "./Auth.css";
 import CapsuleLogo from "../../components/CapsuleLogo";
 import AuthFooter from "../../components/AuthFooter";
 

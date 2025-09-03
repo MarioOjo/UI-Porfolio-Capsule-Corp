@@ -18,3 +18,4 @@ function AuthFooter() {
   );
 }
 export default AuthFooter;
+// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\components\AuthFooter.jsx

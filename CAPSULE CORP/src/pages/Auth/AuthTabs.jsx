@@ -41,3 +41,4 @@ function AuthTabs() {
 }
 
 export default AuthTabs;
+// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\pages\Auth\AuthTabs.jsx

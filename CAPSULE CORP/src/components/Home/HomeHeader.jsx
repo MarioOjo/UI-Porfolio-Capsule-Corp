@@ -35,9 +35,11 @@ function HomeHeader({ cartCount }) {
             <div className="relative">
               <Link to="/cart" aria-label="View Cart">
                 <FaShoppingCart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
-                <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
-                  {cartCount}
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </div>
           </div>
