@@ -1,25 +1,24 @@
-// ...existing code...
+﻿// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\pages\Auth\Login.jsx
 import { useState } from "react";
 import { FaGlasses, FaEye } from "react-icons/fa";
-import { useAuth } from "../../AuthContext"; // add
-import { useNavigate } from "react-router-dom"; // add
+import { useAuth } from "../../AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function Login({ onSwitchTab }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // add
-  const { login } = useAuth(); // add
-  const navigate = useNavigate(); // add
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
   }
 
-  async function handleLogin(e) { // make async
+  async function handleLogin(e) {
     e.preventDefault();
-    setError("");
     if (!email || !password) {
       setError("Please enter both Scouter ID and Battle Password.");
       return;
@@ -28,13 +27,13 @@ function Login({ onSwitchTab }) {
       setError("Please enter a valid email address.");
       return;
     }
-
+    setError("");
     setLoading(true);
     try {
-      await login(email, password); // call backend via AuthContext
+      await login(email, password);
       navigate("/");
     } catch (err) {
-      setError(err?.message || "Login failed");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -112,4 +111,3 @@ function Login({ onSwitchTab }) {
 }
 
 export default Login;
-// ...existing code...

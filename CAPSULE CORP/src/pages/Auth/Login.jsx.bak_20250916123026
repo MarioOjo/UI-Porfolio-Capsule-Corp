@@ -1,25 +1,18 @@
-// ...existing code...
 import { useState } from "react";
 import { FaGlasses, FaEye } from "react-icons/fa";
-import { useAuth } from "../../AuthContext"; // add
-import { useNavigate } from "react-router-dom"; // add
 
 function Login({ onSwitchTab }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // add
-  const { login } = useAuth(); // add
-  const navigate = useNavigate(); // add
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
   }
 
-  async function handleLogin(e) { // make async
+  function handleLogin(e) {
     e.preventDefault();
-    setError("");
     if (!email || !password) {
       setError("Please enter both Scouter ID and Battle Password.");
       return;
@@ -28,16 +21,8 @@ function Login({ onSwitchTab }) {
       setError("Please enter a valid email address.");
       return;
     }
-
-    setLoading(true);
-    try {
-      await login(email, password); // call backend via AuthContext
-      navigate("/");
-    } catch (err) {
-      setError(err?.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
+    setError("");
+    alert("Logged in! (Frontend only)");
   }
 
   return (
@@ -54,7 +39,6 @@ function Login({ onSwitchTab }) {
             className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            required
           />
         </div>
       </div>
@@ -69,7 +53,6 @@ function Login({ onSwitchTab }) {
             className="w-full pl-4 pr-14 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            required
           />
           <button
             type="button"
@@ -87,9 +70,8 @@ function Login({ onSwitchTab }) {
       <button
         type="submit"
         className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
-        disabled={loading}
       >
-        {loading ? "Signing in..." : "POWER UP"}
+        POWER UP
       </button>
       <div className="text-center space-y-3">
         <div>
@@ -112,4 +94,3 @@ function Login({ onSwitchTab }) {
 }
 
 export default Login;
-// ...existing code...
