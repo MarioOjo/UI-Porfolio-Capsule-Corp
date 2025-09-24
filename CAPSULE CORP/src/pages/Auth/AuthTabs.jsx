@@ -1,14 +1,16 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Login from "./Login";
 import Signup from "./Signup";
 
-function AuthTabs() {
+export default function AuthTabs() {
   const [activeTab, setActiveTab] = useState("login");
 
   return (
     <div className="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-2xl capsule-shadow overflow-hidden border border-blue-600/20">
-      <div className="flex relative">
+      <div className="flex relative" role="tablist" aria-label="Authentication tabs">
         <button
+          role="tab"
+          aria-pressed={activeTab === "login"}
           className={`flex-1 py-5 px-6 text-center font-bold font-saiyan text-lg transition-all duration-300 ${
             activeTab === "login"
               ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ki-glow"
@@ -19,6 +21,8 @@ function AuthTabs() {
           LOGIN
         </button>
         <button
+          role="tab"
+          aria-pressed={activeTab === "signup"}
           className={`flex-1 py-5 px-6 text-center font-bold font-saiyan text-lg transition-all duration-300 ${
             activeTab === "signup"
               ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white ki-glow"
@@ -29,6 +33,7 @@ function AuthTabs() {
           SIGN UP
         </button>
       </div>
+
       <div className="p-8">
         {activeTab === "login" ? (
           <Login onSwitchTab={() => setActiveTab("signup")} />
@@ -39,6 +44,3 @@ function AuthTabs() {
     </div>
   );
 }
-
-export default AuthTabs;
-// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\pages\Auth\AuthTabs.jsx

@@ -1,5 +1,8 @@
+// ...existing code...
 import { useState } from "react";
 import { FaUser, FaGlasses, FaEye } from "react-icons/fa";
+import { useAuth } from "../../AuthContext"; // <<-- fixed path (was "../../../AuthContext")
+import { useNavigate } from "react-router-dom";
 
 function Signup({ onSwitchTab }) {
   const [name, setName] = useState("");
@@ -8,6 +11,10 @@ function Signup({ onSwitchTab }) {
   const [showPass, setShowPass] = useState(false);
   const [promo, setPromo] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { signup } = useAuth();
+  const navigate = useNavigate();
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
@@ -19,8 +26,9 @@ function Signup({ onSwitchTab }) {
     return "Strong";
   }
 
-  function handleSignup(e) {
+  async function handleSignup(e) {
     e.preventDefault();
+    setError("");
     if (!name || !email || !password) {
       setError("Please fill in all fields.");
       return;
@@ -33,8 +41,16 @@ function Signup({ onSwitchTab }) {
       setError("Password is too weak. Use at least 4 characters.");
       return;
     }
-    setError("");
-    alert("Account created! (Frontend only)");
+
+    setLoading(true);
+    try {
+      await signup(email, password);
+      navigate("/");
+    } catch (err) {
+      setError(err?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const strength = Math.min(Math.floor(password.length / 2), 5);
@@ -68,6 +84,7 @@ function Signup({ onSwitchTab }) {
             className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
             value={email}
             onChange={e => setEmail(e.target.value)}
+            required
           />
         </div>
       </div>
@@ -82,6 +99,8 @@ function Signup({ onSwitchTab }) {
             className="w-full pl-4 pr-14 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
             value={password}
             onChange={e => setPassword(e.target.value)}
+            required
+            minLength={4}
           />
           <button
             type="button"
@@ -140,8 +159,9 @@ function Signup({ onSwitchTab }) {
       <button
         type="submit"
         className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
+        disabled={loading}
       >
-        CREATE ACCOUNT
+        {loading ? "Creating..." : "CREATE ACCOUNT"}
       </button>
       <div className="text-center">
         <span className="text-gray-600">Already have a Scouter? </span>
@@ -157,3 +177,4 @@ function Signup({ onSwitchTab }) {
 }
 
 export default Signup;
+// ...existing code...
