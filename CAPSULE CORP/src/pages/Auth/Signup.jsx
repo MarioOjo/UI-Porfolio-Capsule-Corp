@@ -1,7 +1,7 @@
 // ...existing code...
 import { useState } from "react";
 import { FaUser, FaGlasses, FaEye } from "react-icons/fa";
-import { useAuth } from "../../../AuthContext"; // adjust path if needed
+import { useAuth } from "../../AuthContext"; // <<-- fixed path (was "../../../AuthContext")
 import { useNavigate } from "react-router-dom";
 
 function Signup({ onSwitchTab }) {
@@ -44,8 +44,8 @@ function Signup({ onSwitchTab }) {
 
     setLoading(true);
     try {
-      await signup(email, password); // uses AuthContext -> backend
-      navigate("/"); // or wherever
+      await signup(email, password);
+      navigate("/");
     } catch (err) {
       setError(err?.message || "Signup failed");
     } finally {

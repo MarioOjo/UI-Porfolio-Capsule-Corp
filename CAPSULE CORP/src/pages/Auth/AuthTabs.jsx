@@ -1,5 +1,8 @@
-// ...existing code...
-function AuthTabs() {
+import React, { useState } from "react";
+import Login from "./Login";
+import Signup from "./Signup";
+
+export default function AuthTabs() {
   const [activeTab, setActiveTab] = useState("login");
 
   return (
@@ -30,6 +33,7 @@ function AuthTabs() {
           SIGN UP
         </button>
       </div>
+
       <div className="p-8">
         {activeTab === "login" ? (
           <Login onSwitchTab={() => setActiveTab("signup")} />
@@ -40,4 +44,3 @@ function AuthTabs() {
     </div>
   );
 }
-// ...existing code...
