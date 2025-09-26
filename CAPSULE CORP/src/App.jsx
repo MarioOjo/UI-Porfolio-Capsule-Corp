@@ -12,16 +12,11 @@ import Cart from "./pages/Cart";
 import AuthPage from "./pages/Auth/AuthPage";
 import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
-import { useCart } from "./contexts/CartContext";
-import { useWishlist } from "./contexts/WishlistContext";
 
 function App() {
-  const { getCartCount } = useCart();
-  const { getWishlistCount } = useWishlist();
-
   return (
     <>
-      <HomeHeader cartCount={getCartCount()} wishlistCount={getWishlistCount()} />
+      <HomeHeader />
       <HomeNavigation />
       <Routes>
         <Route path="/" element={<Home />} />

@@ -8,19 +8,22 @@ import { AuthProvider } from './AuthContext'  // add this import
 import { NotificationProvider } from './contexts/NotificationContext'
 import { CartProvider } from './contexts/CartContext'
 import { WishlistProvider } from './contexts/WishlistContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <NotificationProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <App />
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </NotificationProvider>
+      <ThemeProvider>
+        <NotificationProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <App />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </NotificationProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
 )

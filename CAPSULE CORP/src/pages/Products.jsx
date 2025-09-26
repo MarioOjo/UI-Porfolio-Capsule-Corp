@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
 import ProductCard from "../components/Product/ProductCard";
 import { allProducts, searchProducts, getProductsByCategory } from "../data/products.js";
 
 function Products() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState(allProducts);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get('search') || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
