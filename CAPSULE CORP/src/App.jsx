@@ -12,6 +12,10 @@ import Cart from "./pages/Cart";
 import AuthPage from "./pages/Auth/AuthPage";
 import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
+import Profile from "./pages/Profile/Profile";
+import OrderHistory from "./pages/Profile/OrderHistory";
+import AddressBook from "./pages/Profile/AddressBook";
+import ChangePassword from "./pages/Profile/ChangePassword";
 
 function App() {
   return (
@@ -29,6 +33,10 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/order-history" element={<OrderHistory />} />
+        <Route path="/address-book" element={<AddressBook />} />
+        <Route path="/change-password" element={<ChangePassword />} />
       </Routes>
       <Footer />
     </>

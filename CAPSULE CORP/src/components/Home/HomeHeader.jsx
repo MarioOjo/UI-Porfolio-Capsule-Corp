@@ -1,4 +1,4 @@
-﻿// filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\components\Home\HomeHeader.jsx
+﻿//import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock, FaCog } from 'react-icons/fa';filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\components\Home\HomeHeader.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
@@ -15,6 +15,7 @@ function HomeHeader() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCartPreview, setShowCartPreview] = useState(false);
   const [showWishlistPreview, setShowWishlistPreview] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   
   const { user, logout } = useAuth();
   const { showSuccess } = useNotifications();
@@ -26,6 +27,7 @@ function HomeHeader() {
   const searchRef = useRef(null);
   const cartRef = useRef(null);
   const wishlistRef = useRef(null);
+  const profileRef = useRef(null);
   
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
@@ -53,6 +55,9 @@ function HomeHeader() {
       }
       if (wishlistRef.current && !wishlistRef.current.contains(event.target)) {
         setShowWishlistPreview(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -138,22 +143,99 @@ function HomeHeader() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Profile Icon */}
-            <Link to={user ? "/profile" : "/auth"} aria-label={user ? "Profile" : "Login or Signup"}>
-              <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
-            </Link>
+            {/* Profile Icon with Dropdown */}
+            <div className="relative" ref={profileRef}>
+              {user ? (
+                <button
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  onMouseEnter={() => setShowProfileDropdown(true)}
+                  className="flex items-center relative"
+                  aria-label="Profile Menu"
+                >
+                  <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
+                </button>
+              ) : (
+                <Link to="/auth" aria-label="Login or Signup">
+                  <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
+                </Link>
+              )}
+
+              {/* Profile Dropdown */}
+              {user && showProfileDropdown && (
+                <div className="absolute top-full right-0 mt-2 w-72 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  {/* Profile Header */}
+                  <div className="p-4 bg-gradient-to-r from-[#3B4CCA] to-blue-600">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center border-2 border-white shadow">
+                        <FaUserCircle className="text-[#3B4CCA] text-xl" />
+                      </div>
+                      <div>
+                        <p className="text-white font-bold font-saiyan text-sm">
+                          {user.firstName || 'CAPSULE'} {user.lastName || 'USER'}
+                        </p>
+                        <p className="text-blue-100 text-xs">{user.email}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-2">
+                    <Link
+                      to="/profile"
+                      className="flex items-center px-4 py-3 text-[#3B4CCA] hover:bg-gradient-to-r hover:from-blue-50 hover:to-orange-50 transition-all font-saiyan text-sm"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <FaUserCircle className="mr-3 text-lg" />
+                      MY PROFILE
+                    </Link>
+
+                    <Link
+                      to="/order-history"
+                      className="flex items-center px-4 py-3 text-[#3B4CCA] hover:bg-gradient-to-r hover:from-blue-50 hover:to-orange-50 transition-all font-saiyan text-sm"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <FaBox className="mr-3 text-lg" />
+                      ORDER HISTORY
+                    </Link>
+
+                    <Link
+                      to="/address-book"
+                      className="flex items-center px-4 py-3 text-[#3B4CCA] hover:bg-gradient-to-r hover:from-blue-50 hover:to-orange-50 transition-all font-saiyan text-sm"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <FaMapMarkerAlt className="mr-3 text-lg" />
+                      ADDRESS BOOK
+                    </Link>
+
+                    <Link
+                      to="/change-password"
+                      className="flex items-center px-4 py-3 text-[#3B4CCA] hover:bg-gradient-to-r hover:from-blue-50 hover:to-orange-50 transition-all font-saiyan text-sm"
+                      onClick={() => setShowProfileDropdown(false)}
+                    >
+                      <FaLock className="mr-3 text-lg" />
+                      CHANGE PASSWORD
+                    </Link>
+
+                    <div className="border-t border-gray-200 my-2"></div>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowProfileDropdown(false);
+                      }}
+                      className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 transition-all font-saiyan text-sm"
+                    >
+                      <FaSignOutAlt className="mr-3 text-lg" />
+                      SIGN OUT
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* Auth Actions */}
             {user ? (
               <>
-                <button
-                  onClick={() => logout()}
-                  className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
-                  aria-label="Logout"
-                >
-                  LOGOUT
-                </button>
-
                 {/* Wishlist with Preview */}
                 <div className="relative" ref={wishlistRef}>
                   <button
