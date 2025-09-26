@@ -4,6 +4,7 @@ import { FaGlasses, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext"; // add
 import { useNavigate } from "react-router-dom"; // add
 import { useNotifications } from "../../contexts/NotificationContext";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 function Login({ onSwitchTab }) {
   const [email, setEmail] = useState("");
@@ -52,8 +53,25 @@ function Login({ onSwitchTab }) {
   }
 
   return (
-    <form className="space-y-7" onSubmit={handleLogin}>
-      <div>
+    <div className="space-y-7">
+      {/* Google Sign-In Button */}
+      <GoogleSignInButton variant="primary" />
+      
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-white text-gray-500 font-saiyan tracking-wide">
+            OR USE SCOUTER ID
+          </span>
+        </div>
+      </div>
+
+      {/* Regular Login Form */}
+      <form className="space-y-7" onSubmit={handleLogin}>
+        <div>
         <label className="block text-sm font-saiyan text-gray-600 mb-3 tracking-wide">
           SCOUTER ID
         </label>
@@ -118,9 +136,9 @@ function Login({ onSwitchTab }) {
           </span>
         </div>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }
 
 export default Login;
-// ...existing code...

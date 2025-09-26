@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useGoogleAuth } from "./hooks/useGoogleAuth";
 import HomeHeader from "./components/Home/HomeHeader";
 import HomeNavigation from "./components/Home/HomeNavigation";
 import Footer from "./components/Footer";
@@ -18,6 +20,12 @@ import AddressBook from "./pages/Profile/AddressBook";
 import ChangePassword from "./pages/Profile/ChangePassword";
 
 function App() {
+  const { handleRedirectResult } = useGoogleAuth();
+
+  useEffect(() => {
+    // Handle Google OAuth redirect result when app loads
+    handleRedirectResult();
+  }, [handleRedirectResult]);
   return (
     <>
       <HomeHeader />

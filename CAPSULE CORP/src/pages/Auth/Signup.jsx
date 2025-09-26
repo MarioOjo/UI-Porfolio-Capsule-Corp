@@ -4,6 +4,7 @@ import { FaUser, FaGlasses, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext"; // <<-- fixed path (was "../../../AuthContext")
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../contexts/NotificationContext";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 function Signup({ onSwitchTab }) {
   const [name, setName] = useState("");
@@ -67,8 +68,25 @@ function Signup({ onSwitchTab }) {
   const strength = Math.min(Math.floor(password.length / 2), 5);
 
   return (
-    <form className="space-y-7" onSubmit={handleSignup}>
-      <div>
+    <div className="space-y-7">
+      {/* Google Sign-In Button */}
+      <GoogleSignInButton variant="secondary" />
+      
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-blue-300"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-white text-blue-500 font-saiyan tracking-wide">
+            OR CREATE NEW ACCOUNT
+          </span>
+        </div>
+      </div>
+
+      {/* Regular Signup Form */}
+      <form className="space-y-7" onSubmit={handleSignup}>
+        <div>
         <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
           EARTHLING NAME
         </label>
@@ -183,9 +201,9 @@ function Signup({ onSwitchTab }) {
           LOGIN
         </span>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }
 
 export default Signup;
-// ...existing code...

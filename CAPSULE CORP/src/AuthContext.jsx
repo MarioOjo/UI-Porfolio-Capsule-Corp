@@ -1,5 +1,7 @@
 ﻿// ...existing code...
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './config/firebase';
 import apiFetch from './utils/api';
 
 const AuthContext = createContext(null);
@@ -10,18 +12,59 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
-    async function fetchMe() {
-      try {
-        const res = await apiFetch('/api/me');
-        if (mounted) setUser(res.user);
-      } catch (e) {
-        if (mounted) setUser(null);
-      } finally {
-        if (mounted) setLoading(false);
+    
+    // Listen to Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!mounted) return;
+      
+      if (firebaseUser) {
+        // User is signed in with Firebase
+        const userData = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          emailVerified: firebaseUser.emailVerified,
+          provider: firebaseUser.providerData[0]?.providerId || 'email'
+        };
+        setUser(userData);
+        
+        // Optionally sync with your backend
+        try {
+          const token = await firebaseUser.getIdToken();
+          localStorage.setItem('authToken', token);
+          // You can send this token to your backend for verification
+          // await apiFetch('/api/auth/firebase-verify', {
+          //   method: 'POST',
+          //   body: JSON.stringify({ token })
+          // });
+        } catch (error) {
+          console.error('Error getting Firebase token:', error);
+        }
+      } else {
+        // User is signed out - check backend session as fallback
+        try {
+          const res = await apiFetch('/api/me');
+          if (mounted && res.user) {
+            setUser(res.user);
+          } else {
+            setUser(null);
+            localStorage.removeItem('authToken');
+          }
+        } catch (e) {
+          // Backend session doesn't exist or expired
+          setUser(null);
+          localStorage.removeItem('authToken');
+        }
       }
-    }
-    fetchMe();
-    return () => { mounted = false; };
+      
+      if (mounted) setLoading(false);
+    });
+    
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -45,11 +88,20 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try { 
-      await apiFetch('/api/auth/logout', { method: 'POST' }); 
-    } catch (e) {
-      console.error('Logout error:', e);
+    try {
+      // Sign out from Firebase
+      await signOut(auth);
+      
+      // Also logout from backend if needed
+      try {
+        await apiFetch('/api/auth/logout', { method: 'POST' });
+      } catch (e) {
+        console.error('Backend logout error:', e);
+      }
+    } catch (error) {
+      console.error('Firebase logout error:', error);
     }
+    
     setUser(null);
     localStorage.removeItem('authToken');
   };
@@ -89,7 +141,8 @@ export function AuthProvider({ children }) {
       signup, 
       logout,
       updateProfile,
-      changePassword
+      changePassword,
+      setUser // Export setUser for Google auth hook
     }}>
       {children}
     </AuthContext.Provider>

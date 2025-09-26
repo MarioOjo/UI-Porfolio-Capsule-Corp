@@ -1,6 +1,5 @@
-﻿//import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock, FaCog } from 'react-icons/fa';filepath: c:\Users\User\OneDrive\Desktop\UI-Porfolio-Capsule-Corp\CAPSULE CORP\src\components\Home\HomeHeader.jsx
-import { Link, useNavigate } from "react-router-dom";
-import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes } from "react-icons/fa";
+﻿import { Link, useNavigate } from "react-router-dom";
+import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
@@ -155,9 +154,16 @@ function HomeHeader() {
                   <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
                 </button>
               ) : (
-                <Link to="/auth" aria-label="Login or Signup">
-                  <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
-                </Link>
+                <div
+                  onClick={() => navigate('/auth')}
+                  className="text-white text-xl cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Login or Signup"
+                  onKeyDown={(e) => e.key === 'Enter' && navigate('/auth')}
+                >
+                  <FaUser />
+                </div>
               )}
 
               {/* Profile Dropdown */}
