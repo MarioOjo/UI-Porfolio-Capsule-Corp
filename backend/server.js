@@ -1,95 +1,260 @@
-// ...existing code...
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
-let bcrypt;
-try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
-const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const compression = require('compression');
 
-const {
-  DB_HOST='localhost', DB_USER='root', DB_PASS='', DB_NAME='capsule_db', DB_PORT=3306,
-  PORT=5000, JWT_SECRET='change_this_secret', JWT_EXPIRES='7d', FRONTEND_ORIGIN='http://localhost:5173'
-} = process.env;
+// Import custom modules
+const database = require('./src/config/database');
+const SecurityMiddleware = require('./src/middleware/SecurityMiddleware');
+const ErrorHandler = require('./src/middleware/ErrorHandler');
+const AuthMiddleware = require('./src/middleware/AuthMiddleware');
 
-const app = express();
-app.use(cookieParser());
-app.use(express.json());
-app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
+// Import routes (when created)
+// const authRoutes = require('./src/routes/authRoutes');
+// const productRoutes = require('./src/routes/productRoutes');
+// const userRoutes = require('./src/routes/userRoutes');
 
-const pool = mysql.createPool({
-  host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME, port: Number(DB_PORT),
-  waitForConnections: true, connectionLimit: 10, queueLimit: 0
-}).promise();
+class CapsuleCorpServer {
+  constructor() {
+    this.app = express();
+    this.port = process.env.PORT || 5000;
+    this.isDevelopment = process.env.NODE_ENV === 'development';
+  }
 
-const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+  async initialize() {
+    try {
+      // Initialize database connection
+      await database.initialize();
+      
+      // Setup middleware
+      this.setupMiddleware();
+      
+      // Setup routes
+      this.setupRoutes();
+      
+      // Setup error handling
+      this.setupErrorHandling();
+      
+      console.log('🚀 Capsule Corp server initialized successfully!');
+    } catch (error) {
+      console.error('❌ Failed to initialize server:', error);
+      process.exit(1);
+    }
+  }
 
-function signToken(payload){ return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES }); }
-function setTokenCookie(res, token){
-  const isProd = process.env.NODE_ENV === 'production';
-  res.cookie('token', token, { httpOnly:true, secure:isProd, sameSite:'lax', maxAge:1000*60*60*24*7 });
+  setupMiddleware() {
+    // Compression for better performance
+    this.app.use(compression());
+    
+    // Security headers
+    this.app.use(helmet(SecurityMiddleware.helmetConfig));
+    
+    // CORS configuration
+    this.app.use(cors(SecurityMiddleware.corsOptions));
+    
+    // Rate limiting
+    this.app.use(SecurityMiddleware.strictRateLimit);
+    this.app.use('/api/auth', SecurityMiddleware.authRateLimit);
+    
+    // Request logging
+    if (this.isDevelopment) {
+      this.app.use(morgan('dev'));
+    } else {
+      this.app.use(morgan('combined'));
+    }
+    
+    // Body parsing
+    this.app.use(express.json({ limit: '10mb' }));
+    this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+    
+    // Request validation
+    this.app.use(SecurityMiddleware.validateRequest);
+  }
+
+  setupRoutes() {
+    // Health check
+    this.app.get('/health', (req, res) => {
+      res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        version: process.env.npm_package_version || '1.0.0'
+      });
+    });
+
+    // API routes
+    this.app.get('/api', (req, res) => {
+      res.json({
+        message: 'Welcome to Capsule Corp API!',
+        version: '1.0.0',
+        endpoints: [
+          '/api/auth - Authentication endpoints',
+          '/api/products - Product management',
+          '/api/users - User management',
+          '/api/orders - Order management'
+        ]
+      });
+    });
+
+    // Legacy routes (from original server.js) - TO BE REFACTORED
+    this.setupLegacyRoutes();
+    
+    // Future modular routes
+    // this.app.use('/api/auth', authRoutes);
+    // this.app.use('/api/products', productRoutes);
+    // this.app.use('/api/users', userRoutes);
+  }
+
+  setupLegacyRoutes() {
+    const authService = require('./src/services/AuthService');
+    const userModel = require('./src/models/UserModel');
+
+    // Legacy authentication routes
+    this.app.post('/api/auth/register', ErrorHandler.handleAsync(async (req, res) => {
+      const { username, email, password } = req.body;
+      
+      // Basic validation
+      if (!username || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+
+      // Check if user exists
+      const existingUser = await userModel.findByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+
+      // Hash password and create user
+      const hashedPassword = await authService.hashPassword(password);
+      const newUser = await userModel.create({
+        username,
+        email,
+        password_hash: hashedPassword
+      });
+
+      // Generate token
+      const token = authService.generateToken({ 
+        id: newUser.id, 
+        username: newUser.username, 
+        email: newUser.email 
+      });
+
+      res.status(201).json({
+        message: 'User created successfully',
+        token,
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email
+        }
+      });
+    }));
+
+    this.app.post('/api/auth/login', ErrorHandler.handleAsync(async (req, res) => {
+      const { email, password } = req.body;
+
+      // Find user
+      const user = await userModel.findByEmail(email);
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      // Verify password
+      const isValidPassword = await authService.comparePassword(password, user.password_hash);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      // Update last login
+      await userModel.updateLastLogin(user.id);
+
+      // Generate token
+      const token = authService.generateToken({ 
+        id: user.id, 
+        username: user.username, 
+        email: user.email 
+      });
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email
+        }
+      });
+    }));
+
+    // Protected route example
+    this.app.get('/api/auth/profile', 
+      AuthMiddleware.authenticateToken,
+      ErrorHandler.handleAsync(async (req, res) => {
+        const user = await userModel.findById(req.user.id);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          createdAt: user.created_at,
+          lastLogin: user.last_login
+        });
+      })
+    );
+  }
+
+  setupErrorHandling() {
+    // 404 handler
+    this.app.use(ErrorHandler.notFoundHandler);
+    
+    // Global error handler
+    this.app.use(ErrorHandler.globalErrorHandler);
+  }
+
+  async start() {
+    try {
+      await this.initialize();
+      
+      this.server = this.app.listen(this.port, () => {
+        console.log(`🔋 Capsule Corp server is running on port ${this.port}`);
+        console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+        if (this.isDevelopment) {
+          console.log(`📋 Health check: http://localhost:${this.port}/health`);
+          console.log(`🔧 API docs: http://localhost:${this.port}/api`);
+        }
+      });
+
+      // Graceful shutdown
+      process.on('SIGTERM', () => this.shutdown());
+      process.on('SIGINT', () => this.shutdown());
+      
+    } catch (error) {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
+    }
+  }
+
+  async shutdown() {
+    console.log('🔄 Shutting down Capsule Corp server...');
+    
+    if (this.server) {
+      this.server.close(() => {
+        console.log('✅ HTTP server closed');
+      });
+    }
+    
+    await database.closeConnection();
+    process.exit(0);
+  }
 }
-function clearTokenCookie(res){ res.clearCookie('token', { httpOnly:true, sameSite:'lax' }); }
 
-async function getUserByEmail(email) {
-  // avoid requesting columns that may not exist (role_id caused the error)
-  const [rows] = await pool.query(
-    'SELECT id, email, password_hash, is_active, created_at FROM users WHERE email = ? LIMIT 1',
-    [email]
-  );
-  return rows[0];
-}
+// Start the server
+const server = new CapsuleCorpServer();
+server.start().catch(console.error);
 
-async function getUserById(id) {
-  const [rows] = await pool.query(
-    'SELECT id, email, is_active, created_at FROM users WHERE id = ? LIMIT 1',
-    [id]
-  );
-  return rows[0];
-}
-
-app.post('/api/auth/signup', asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  if (await getUserByEmail(email)) return res.status(409).json({ error: 'Email already exists' });
-  const hash = await bcrypt.hash(password, 10);
-  const [result] = await pool.execute('INSERT INTO users (email, password_hash, is_active) VALUES (?, ?, 1)', [email, hash]);
-  const user = { id: result.insertId, email };
-  const token = signToken({ sub: user.id, email: user.email });
-  setTokenCookie(res, token);
-  res.status(201).json({ user });
-}));
-
-app.post('/api/auth/login', asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const row = await getUserByEmail(email);
-  if (!row) return res.status(401).json({ error: 'Invalid credentials' });
-  const match = await bcrypt.compare(password, row.password_hash);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  const user = { id: row.id, email: row.email };
-  const token = signToken({ sub: user.id, email: user.email });
-  setTokenCookie(res, token);
-  res.json({ user });
-}));
-
-app.post('/api/auth/logout', asyncHandler(async (req, res) => { clearTokenCookie(res); res.json({ ok: true }); }));
-
-app.get('/api/me', asyncHandler(async (req, res) => {
-  const token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    const user = await getUserById(payload.sub);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ user });
-  } catch (e) { return res.status(401).json({ error: 'Invalid token' }); }
-}));
-
-// ...existing code...
-(async () => {
-  try { await pool.query('SELECT 1'); console.log(`Connected to DB: ${DB_NAME}`); }
-  catch (err) { console.error('Database connection failed:', err.message); process.exit(1); }
-  app.listen(Number(PORT), () => console.log(`Server running on port ${PORT}`));
-})();
+module.exports = CapsuleCorpServer;
