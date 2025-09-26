@@ -4,3 +4,74 @@
 body {
   font-family: 'Orbitron', monospace;
 }
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Kamehameha glow effect */
+.kamehameha-glow {
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+  transition: box-shadow 0.3s ease;
+}
+
+.kamehameha-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.8);
+}
+
+/* Power bar animation */
+.power-bar.active {
+  animation: power-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes power-pulse {
+  from { opacity: 0.8; }
+  to { opacity: 1; transform: scale(1.05); }
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./Auth.css";
 import AuthTabs from "./AuthTabs";
 import CapsuleLogo from "../../components/CapsuleLogo";
@@ -5,6 +7,16 @@ import AuthFooter from "../../components/AuthFooter";
 
 
 function AuthPage() {
+  const [searchParams] = useSearchParams();
+  const [initialTab, setInitialTab] = useState("login");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "signup") {
+      setInitialTab("signup");
+    }
+  }, [searchParams]);
+
   return (
     <div className="min-h-screen nebula-bg flex flex-col">
       <header className="py-8">
@@ -14,7 +26,7 @@ function AuthPage() {
         </p>
       </header>
       <main className="flex-1 flex items-center justify-center">
-        <AuthTabs />
+        <AuthTabs initialTab={initialTab} />
       </main>
       <AuthFooter />
     </div>

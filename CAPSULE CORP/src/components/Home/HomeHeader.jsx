@@ -1,9 +1,26 @@
 import { Link } from "react-router-dom";
-import { FaCapsules, FaUser, FaShoppingCart, FaSearch } from "react-icons/fa";
+import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt } from "react-icons/fa";
 import { useState } from "react";
+import { useAuth } from "../../AuthContext";
+import { useNotifications } from "../../contexts/NotificationContext";
 
-function HomeHeader({ cartCount }) {
+function HomeHeader({ cartCount, wishlistCount = 0 }) {
   const [search, setSearch] = useState("");
+  const { user, logout } = useAuth();
+  const { showSuccess } = useNotifications();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      showSuccess("🌟 Power level secured! See you next time, warrior!", {
+        title: "LOGOUT SUCCESSFUL",
+        duration: 3000
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg">
       <div className="max-w-6xl mx-auto px-4 py-4">
@@ -28,10 +45,58 @@ function HomeHeader({ cartCount }) {
             </div>
           </div>
           <div className="flex items-center space-x-6">
-            {/* Profile icon links to /auth for login/signup */}
-            <Link to="/auth" aria-label="Login or Signup">
+            {/* Profile Icon */}
+            <Link to={user ? "/profile" : "/auth"} aria-label={user ? "Profile" : "Login or Signup"}>
               <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
             </Link>
+            
+            {/* Auth Actions */}
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
+                    aria-label="Logout"
+                  >
+                    LOGOUT
+                  </button>
+                  <div className="relative">
+                    <Link 
+                      to="/wishlist" 
+                      aria-label="Wishlist"
+                      className="flex items-center"
+                    >
+                      <FaHeart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
+                      {wishlistCount > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth"
+                    className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
+                    aria-label="Sign In"
+                  >
+                    SIGN IN
+                  </Link>
+                  <Link
+                    to="/auth?tab=signup"
+                    className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
+                    aria-label="Register"
+                  >
+                    REGISTER
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Cart */}
             <div className="relative">
               <Link to="/cart" aria-label="View Cart">
                 <FaShoppingCart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />

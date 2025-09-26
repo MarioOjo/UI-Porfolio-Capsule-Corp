@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaUser, FaGlasses, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext"; // <<-- fixed path (was "../../../AuthContext")
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../../contexts/NotificationContext";
 
 function Signup({ onSwitchTab }) {
   const [name, setName] = useState("");
@@ -15,6 +16,7 @@ function Signup({ onSwitchTab }) {
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotifications();
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
@@ -45,9 +47,18 @@ function Signup({ onSwitchTab }) {
     setLoading(true);
     try {
       await signup(email, password);
+      showSuccess("🎉 Scouter activated! Your Capsule Corp. account is ready!", {
+        title: "ACCOUNT CREATED",
+        duration: 4000
+      });
       navigate("/");
     } catch (err) {
-      setError(err?.message || "Signup failed");
+      const errorMessage = err?.message || "Signup failed";
+      setError(errorMessage);
+      showError(`⚡ ${errorMessage}`, {
+        title: "SIGNUP FAILED",
+        duration: 5000
+      });
     } finally {
       setLoading(false);
     }

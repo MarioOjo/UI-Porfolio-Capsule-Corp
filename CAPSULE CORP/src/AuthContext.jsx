@@ -45,7 +45,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+    try { 
+      await apiFetch('/api/auth/logout', { method: 'POST' }); 
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setUser(null);
     localStorage.removeItem('authToken');
   };
