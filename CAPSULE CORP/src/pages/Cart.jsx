@@ -1,194 +1,218 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaShoppingCart, FaMinus, FaPlus, FaTrash, FaArrowLeft } from "react-icons/fa";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../AuthContext";
 
-const LOCAL_CART_KEY = "capsule_cart_v1";
+function Cart() {
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-function parseCents(v) {
-  if (v == null) return 0;
-  if (typeof v === "number") return v;
-  if (typeof v === "string") {
-    const n = parseFloat(v.replace(/[^0-9.\-]/g, ""));
-    return isNaN(n) ? 0 : Math.round(n * 100);
-  }
-  return 0;
-}
-
-function formatPrice(cents) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-export default function Cart({ cartCount, setCartCount }) {
-  const [items, setItems] = useState([]);
-
-  // load & normalize cart on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LOCAL_CART_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      const normalized = (parsed || []).map((it) => {
-        const priceCents = typeof it.priceCents === "number"
-          ? it.priceCents
-          : (it.price ? parseCents(it.price) : parseCents(it.price_cents));
-        return {
-          id: it.id ?? it.sku ?? it.name,
-          name: it.name ?? "Unknown product",
-          sku: it.sku ?? "",
-          img: it.img ?? it.image ?? null,
-          qty: Math.max(1, Number(it.qty) || 1),
-          priceCents,
-        };
-      });
-      setItems(normalized);
-      if (typeof setCartCount === "function") {
-        setCartCount(normalized.reduce((s, i) => s + (i.qty || 0), 0));
-      }
-    } catch (e) {
-      console.error("Failed to load cart:", e);
-      setItems([]);
-      if (typeof setCartCount === "function") setCartCount(0);
+  const handleCheckout = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-  }, [setCartCount]);
-
-  // persist & sync count whenever items change
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(items));
-    } catch {}
-    if (typeof setCartCount === "function") {
-      setCartCount(items.reduce((s, i) => s + (i.qty || 0), 0));
-    }
-  }, [items, setCartCount]);
-
-  const updateItem = (id, fn) => setItems((prev) => {
-    const next = prev.map(i => i.id === id ? fn(i) : i).filter(i => i.qty > 0);
-    return next;
-  });
-
-  const changeQty = (id, delta) => {
-    updateItem(id, (it) => ({ ...it, qty: Math.max(0, (it.qty || 1) + delta) }));
+    navigate('/checkout');
   };
 
-  const setQty = (id, qty) => {
-    updateItem(id, (it) => ({ ...it, qty: Math.max(0, qty) }));
-  };
-
-  const removeItem = (id) => setItems((prev) => prev.filter(i => i.id !== id));
-
-  const clearCart = () => setItems([]);
-
-  const subtotalCents = items.reduce((s, it) => s + (it.priceCents || 0) * (it.qty || 0), 0);
+  const total = getCartTotal();
 
   return (
-    <div className="max-w-6xl mx-auto py-20 px-4">
-      <h1 className="text-4xl font-saiyan text-[#3B4CCA] mb-8">Your Capsule Cart</h1>
-
-      {items.length === 0 ? (
-        <div className="bg-[#F3F4F6] border-2 border-dashed border-[#3B4CCA] rounded-lg p-10 text-center">
-          <p className="text-lg text-[#3B4CCA] mb-4">Your cart is currently empty.</p>
-          <Link
-            to="/products"
-            className="inline-block bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white px-8 py-3 rounded hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all shadow"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 font-saiyan">
+              CAPSULE CART
+            </h1>
+            <p className="text-gray-600 mt-2">
+              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your capsule collection
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center space-x-2 text-blue-600 hover:text-orange-600 transition-colors font-saiyan"
           >
-            Browse Products
-          </Link>
+            <FaArrowLeft />
+            <span>CONTINUE SHOPPING</span>
+          </button>
         </div>
-      ) : (
-        <div className="space-y-8">
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border-2 border-[#3B4CCA] rounded-lg shadow">
-              <thead>
-                <tr className="bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white">
-                  <th className="py-4 px-6 text-left">Product</th>
-                  <th className="py-4 px-6">Qty</th>
-                  <th className="py-4 px-6">Price</th>
-                  <th className="py-4 px-6">Remove</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map(item => (
-                  <tr key={item.id} className="border-b border-[#E5E7EB]">
-                    <td className="py-4 px-6 font-medium text-[#3B4CCA]">
-                      <div className="flex items-center space-x-4">
-                        {item.img ? (
-                          <img src={item.img} alt={item.name} className="w-16 h-16 object-cover rounded" />
-                        ) : (
-                          <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center text-sm">No Img</div>
-                        )}
-                        <div>
-                          <div>{item.name}</div>
-                          {item.sku && <div className="text-sm text-gray-500">{item.sku}</div>}
+
+        {cartItems.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <FaShoppingCart className="text-6xl text-gray-300 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 font-saiyan">
+              YOUR CART IS EMPTY
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Ready to power up? Start adding some legendary gear to your collection!
+            </p>
+            <Link
+              to="/products"
+              className="inline-block bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-3 rounded-xl font-saiyan font-bold kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
+            >
+              EXPLORE CAPSULES
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center space-x-6">
+                      {/* Product Image */}
+                      <div className="w-24 h-24 bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover rounded-xl"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-xl flex items-center justify-center">
+                          <span className="text-white font-bold text-xs text-center px-2">
+                            {item.name}
+                          </span>
                         </div>
                       </div>
-                    </td>
 
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          className="px-2 py-1 bg-[#3B4CCA] text-white rounded hover:bg-[#FF9E00] transition"
-                          onClick={() => changeQty(item.id, -1)}
-                          disabled={(item.qty || 1) <= 1}
-                          aria-label={`Decrease quantity of ${item.name}`}
-                        >-</button>
-
-                        <input
-                          type="number"
-                          value={item.qty}
-                          min="1"
-                          onChange={(e) => setQty(item.id, Math.max(1, Number(e.target.value || 1)))}
-                          className="w-16 text-center border rounded px-2 py-1"
-                          aria-label={`Quantity for ${item.name}`}
-                        />
-
-                        <button
-                          className="px-2 py-1 bg-[#3B4CCA] text-white rounded hover:bg-[#FF9E00] transition"
-                          onClick={() => changeQty(item.id, +1)}
-                          aria-label={`Increase quantity of ${item.name}`}
-                        >+</button>
+                      {/* Product Info */}
+                      <div className="flex-1">
+                        <Link
+                          to={`/product/${item.slug}`}
+                          className="text-xl font-bold text-gray-800 hover:text-orange-600 transition-colors font-saiyan"
+                        >
+                          {item.name}
+                        </Link>
+                        <p className="text-gray-600 mt-1">{item.category}</p>
+                        <div className="flex items-center mt-2">
+                          <span className="text-sm text-gray-600">Power Level: </span>
+                          <span className="text-sm font-bold text-orange-600 ml-1">
+                            {item.powerLevel.toLocaleString()}
+                          </span>
+                        </div>
                       </div>
-                    </td>
 
-                    <td className="py-4 px-6 text-[#FF9E00] font-bold">
-                      {formatPrice((item.priceCents || 0) * (item.qty || 1))}
-                    </td>
+                      {/* Quantity Controls */}
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors"
+                          disabled={item.quantity <= 1}
+                        >
+                          <FaMinus className="text-xs" />
+                        </button>
+                        <span className="w-8 text-center font-bold">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors"
+                        >
+                          <FaPlus className="text-xs" />
+                        </button>
+                      </div>
 
-                    <td className="py-4 px-6">
+                      {/* Price */}
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-orange-600 font-saiyan">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          ${item.price.toFixed(2)} each
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
                       <button
-                        className="text-red-500 hover:text-red-700 font-bold"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors p-2"
                         aria-label={`Remove ${item.name} from cart`}
                       >
-                        Remove
+                        <FaTrash />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
-          <div className="flex flex-col md:flex-row items-center justify-between mt-8">
-            <div className="text-xl font-bold text-[#3B4CCA] mb-4 md:mb-0">
-              Total: <span className="text-[#FF9E00]">{formatPrice(subtotalCents)}</span>
+              {/* Clear Cart Button */}
+              <div className="text-center pt-4">
+                <button
+                  onClick={clearCart}
+                  className="text-red-500 hover:text-red-700 transition-colors font-medium"
+                >
+                  Clear All Items
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button
-                className="px-4 py-2 rounded bg-neutral-100"
-                onClick={clearCart}
-              >
-                Clear cart
-              </button>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 font-saiyan">
+                  ORDER SUMMARY
+                </h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-bold">${total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Shipping:</span>
+                    <span className="font-bold text-green-600">FREE</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Power Level Bonus:</span>
+                    <span className="font-bold text-blue-600">Applied</span>
+                  </div>
+                  <hr className="border-gray-200" />
+                  <div className="flex justify-between items-center text-xl">
+                    <span className="font-bold text-gray-800">Total:</span>
+                    <span className="font-bold text-orange-600 font-saiyan">
+                      ${total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
 
-              <button
-                className="bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white px-8 py-3 rounded hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all shadow"
-                onClick={() => alert("Checkout not implemented yet.")}
-              >
-                Proceed to Checkout
-              </button>
+                <button
+                  onClick={handleCheckout}
+                  className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl mb-4"
+                >
+                  {user ? 'PROCEED TO CHECKOUT' : 'SIGN IN TO CHECKOUT'}
+                </button>
+
+                <Link
+                  to="/products"
+                  className="block w-full text-center bg-gray-100 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Continue Shopping
+                </Link>
+
+                {/* Security Features */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h4 className="font-bold text-gray-800 mb-3">🛡️ Secure Checkout</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>✅ Capsule Corp Encryption</div>
+                    <div>✅ Saiyan-Grade Security</div>
+                    <div>✅ Dragon Ball Warranty</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
+
+export default Cart;

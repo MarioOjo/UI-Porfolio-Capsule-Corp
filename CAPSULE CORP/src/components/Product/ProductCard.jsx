@@ -28,12 +28,6 @@ function ProductCard({ product, size = "medium" }) {
     }
   };
 
-  // Use database image directly, with better fallback
-  const resolvedImageSrc = product.image || `https://via.placeholder.com/400x400/FF9E00/FFFFFF?text=${(product.name || 'Product').replace(/ /g, '+')}`;
-
-  // Debug: log what we're trying to load
-  console.log('Product:', product.name, 'Image:', product.image, 'Resolved:', resolvedImageSrc);
-
   const cardSizes = {
     small: "h-32",
     medium: "h-48",
@@ -53,25 +47,15 @@ function ProductCard({ product, size = "medium" }) {
           {/* Product Image */}
           <div className={`w-full ${cardSizes[size]} bg-gradient-to-br from-[#3B4CCA] to-blue-600 flex items-center justify-center relative overflow-hidden`}>
             <img
-              src={resolvedImageSrc}
-              alt={product.name || "Product"}
+              src={product.image}
+              alt={product.name}
               className="w-full h-full object-cover"
               onError={(e) => {
-                console.log('Image failed to load:', e.target.src);
-                // Fallback to a themed placeholder if the database image fails to load
-                const categoryColors = {
-                  'Battle Gear': 'FF9E00',
-                  'Training': '3B4CCA', 
-                  'Tech': '00CED1',
-                  'Capsules': 'FFD700',
-                  'Consumables': '32CD32'
-                };
-                const color = categoryColors[product.category] || 'FF9E00';
-                const productName = (product.name || 'Product').replace(/ /g, '+');
-                e.target.src = `https://via.placeholder.com/400x400/${color}/FFFFFF?text=${productName}`;
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 items-center justify-center hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 flex items-center justify-center">
               <span className="text-white font-bold font-saiyan text-center px-2">
                 {product.name}
               </span>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FaGlasses, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext"; // add
 import { useNavigate } from "react-router-dom"; // add
+import { useNotifications } from "../../contexts/NotificationContext";
 
 function Login({ onSwitchTab }) {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ function Login({ onSwitchTab }) {
   const [loading, setLoading] = useState(false); // add
   const { login } = useAuth(); // add
   const navigate = useNavigate(); // add
+  const { showSuccess, showError } = useNotifications();
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
@@ -32,9 +34,18 @@ function Login({ onSwitchTab }) {
     setLoading(true);
     try {
       await login(email, password); // call backend via AuthContext
+      showSuccess("🔥 Power level rising! Welcome back, Saiyan!", {
+        title: "LOGIN SUCCESSFUL",
+        duration: 4000
+      });
       navigate("/");
     } catch (err) {
-      setError(err?.message || "Login failed");
+      const errorMessage = err?.message || "Login failed";
+      setError(errorMessage);
+      showError(`⚡ ${errorMessage}`, {
+        title: "LOGIN FAILED",
+        duration: 5000
+      });
     } finally {
       setLoading(false);
     }

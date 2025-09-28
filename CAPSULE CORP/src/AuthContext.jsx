@@ -45,13 +45,52 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+    try { 
+      await apiFetch('/api/auth/logout', { method: 'POST' }); 
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
     setUser(null);
     localStorage.removeItem('authToken');
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await apiFetch('/api/profile/update', {
+        method: 'PUT',
+        body: JSON.stringify(profileData)
+      });
+      if (res.user) setUser(res.user);
+      return res;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      throw error;
+    }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const res = await apiFetch('/api/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      return res;
+    } catch (error) {
+      console.error('Password change error:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      signup, 
+      logout,
+      updateProfile,
+      changePassword
+    }}>
       {children}
     </AuthContext.Provider>
   );

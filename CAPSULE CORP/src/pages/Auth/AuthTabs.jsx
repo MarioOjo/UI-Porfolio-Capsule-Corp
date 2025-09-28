@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Login from "./Login";
 import Signup from "./Signup";
 
-export default function AuthTabs() {
-  const [activeTab, setActiveTab] = useState("login");
+export default function AuthTabs({ initialTab = "login" }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-2xl capsule-shadow overflow-hidden border border-blue-600/20">
