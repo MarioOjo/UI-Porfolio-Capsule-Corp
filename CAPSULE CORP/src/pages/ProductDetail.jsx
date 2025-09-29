@@ -112,13 +112,13 @@ function ProductDetail() {
                 <img
                   src={product.gallery?.[selectedImage] || product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover relative z-10"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'flex';
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 items-center justify-center hidden">
                   <span className="text-white font-bold font-saiyan text-center text-2xl px-4">
                     {product.name}
                   </span>
@@ -155,6 +155,9 @@ function ProductDetail() {
                       src={image}
                       alt={`${product.name} view ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/api/placeholder/80/80';
+                      }}
                     />
                   </button>
                 ))}

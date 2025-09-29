@@ -76,15 +76,16 @@ function HomeHeader() {
     <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-              <FaCapsules className="text-[#3B4CCA] text-xl" />
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+              <FaCapsules className="text-[#3B4CCA] text-lg sm:text-xl" />
             </div>
-            <h1 className="text-2xl font-bold text-white font-saiyan">CAPSULE CORP.</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-white font-saiyan hidden xs:block">CAPSULE CORP.</h1>
+            <h1 className="text-sm font-bold text-white font-saiyan xs:hidden">CAPSULE</h1>
           </Link>
 
           {/* Enhanced Search Bar */}
-          <div className="flex-1 max-w-md mx-8 relative" ref={searchRef}>
+          <div className="flex-1 max-w-md mx-4 sm:mx-8 relative" ref={searchRef}>
             <form onSubmit={handleSearchSubmit}>
               <div className="relative">
                 <input
@@ -93,14 +94,14 @@ function HomeHeader() {
                   onChange={e => setSearch(e.target.value)}
                   onFocus={() => search.trim() && setShowSearchResults(true)}
                   placeholder="Find Dragon Balls..."
-                  className="w-full px-4 py-3 bg-white/90 backdrop-blur border-2 border-white/20 rounded-xl pr-12 focus:outline-none focus:ring-2 focus:ring-[#FFD700] transition-all"
+                  className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white/90 backdrop-blur border-2 border-white/20 rounded-xl pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-[#FFD700] transition-all text-sm sm:text-base"
                   aria-label="Search"
                 />
                 <button
                   type="submit"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3B4CCA] hover:text-[#FFD700] transition-colors"
+                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-[#3B4CCA] hover:text-[#FFD700] transition-colors"
                 >
-                  <FaSearch className="text-lg" />
+                  <FaSearch className="text-base sm:text-lg" />
                 </button>
 
                 {/* Search Results Dropdown */}
@@ -141,13 +142,21 @@ function HomeHeader() {
             </form>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Profile Icon with Dropdown */}
-            <div className="relative" ref={profileRef}>
+            <div 
+              className="relative" 
+              ref={profileRef}
+              onMouseLeave={() => setTimeout(() => setShowProfileDropdown(false), 100)}
+            >
               {user ? (
                 <button
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  onMouseEnter={() => setShowProfileDropdown(true)}
+                  onMouseEnter={() => {
+                    setShowCartPreview(false);
+                    setShowWishlistPreview(false);
+                    setShowProfileDropdown(true);
+                  }}
                   className="flex items-center relative"
                   aria-label="Profile Menu"
                 >
@@ -168,7 +177,10 @@ function HomeHeader() {
 
               {/* Profile Dropdown */}
               {user && showProfileDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-72 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-50 overflow-hidden">
+                <div 
+                  className="absolute top-full right-0 mt-2 w-64 sm:w-72 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[60] overflow-hidden"
+                  onMouseEnter={() => setShowProfileDropdown(true)}
+                >
                   {/* Profile Header */}
                   <div className="p-4 bg-gradient-to-r from-[#3B4CCA] to-blue-600">
                     <div className="flex items-center space-x-3">
@@ -243,10 +255,18 @@ function HomeHeader() {
             {user ? (
               <>
                 {/* Wishlist with Preview */}
-                <div className="relative" ref={wishlistRef}>
+                <div 
+                  className="relative" 
+                  ref={wishlistRef}
+                  onMouseLeave={() => setTimeout(() => setShowWishlistPreview(false), 100)}
+                >
                   <button
                     onClick={() => setShowWishlistPreview(!showWishlistPreview)}
-                    onMouseEnter={() => setShowWishlistPreview(true)}
+                    onMouseEnter={() => {
+                      setShowCartPreview(false);
+                      setShowProfileDropdown(false);
+                      setShowWishlistPreview(true);
+                    }}
                     className="flex items-center relative"
                     aria-label="Wishlist"
                   >
@@ -260,7 +280,10 @@ function HomeHeader() {
 
                   {/* Wishlist Preview Dropdown */}
                   {showWishlistPreview && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+                    <div 
+                      className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[55] max-h-96 overflow-hidden"
+                      onMouseEnter={() => setShowWishlistPreview(true)}
+                    >
                       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                         <h3 className="font-bold text-[#3B4CCA] font-saiyan">WISHLIST</h3>
                         <p className="text-sm text-gray-600">{wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}</p>
@@ -350,10 +373,18 @@ function HomeHeader() {
             </button>
 
             {/* Cart with Preview */}
-            <div className="relative" ref={cartRef}>
+            <div 
+              className="relative" 
+              ref={cartRef}
+              onMouseLeave={() => setTimeout(() => setShowCartPreview(false), 100)}
+            >
               <button
                 onClick={() => setShowCartPreview(!showCartPreview)}
-                onMouseEnter={() => setShowCartPreview(true)}
+                onMouseEnter={() => {
+                  setShowWishlistPreview(false);
+                  setShowProfileDropdown(false);
+                  setShowCartPreview(true);
+                }}
                 className="flex items-center relative"
                 aria-label="Shopping Cart"
               >
@@ -367,7 +398,10 @@ function HomeHeader() {
 
               {/* Cart Preview Dropdown */}
               {showCartPreview && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+                <div 
+                  className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[50] max-h-96 overflow-hidden"
+                  onMouseEnter={() => setShowCartPreview(true)}
+                >
                   <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                     <h3 className="font-bold text-[#3B4CCA] font-saiyan">CAPSULE CART</h3>
                     <p className="text-sm text-gray-600">{cartCount} {cartCount === 1 ? 'item' : 'items'}</p>

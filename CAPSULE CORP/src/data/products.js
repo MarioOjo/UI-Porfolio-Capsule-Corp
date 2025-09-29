@@ -9,11 +9,10 @@ export const featuredProducts = [
     price: 299.00,
     originalPrice: 399.00,
     powerLevel: 9000,
-    image: "/api/placeholder/400/400",
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg",
     gallery: [
-      "/api/placeholder/400/400",
-      "/api/placeholder/400/300",
-      "/api/placeholder/400/350"
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096628/c2_zaswlx.jpg"
     ],
     inStock: true,
     stock: 15,
@@ -35,12 +34,8 @@ export const featuredProducts = [
     category: "Training",
     price: 15999.00,
     powerLevel: 50000,
-    image: "/api/placeholder/400/400",
-    gallery: [
-      "/api/placeholder/400/400",
-      "/api/placeholder/400/300",
-      "/api/placeholder/400/350"
-    ],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759166389/Firefly_-Photorealistic_wide-angle_interior_view_of_a_Dragon_Ball_Z_gravity_chamber._The_cha_106501_pnmqzo.jpg",
+    gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759166389/Firefly_-Photorealistic_wide-angle_interior_view_of_a_Dragon_Ball_Z_gravity_chamber._The_cha_106501_pnmqzo.jpg"],
     inStock: true,
     stock: 2,
     featured: true,
@@ -379,8 +374,11 @@ export const allProducts = [
     category: "Training",
     price: 99999.00,
     powerLevel: 100000,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759168531/pass_s6htfv.png",
+    gallery: [
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759168531/pass_s6htfv.png",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759168435/Firefly_-A_futuristic_fantasy_temple_standing_in_a_limitless_white_dimension._The_temple_has_921029_hgswg6.jpg"
+    ],
     inStock: true,
     stock: 2,
     featured: true,
@@ -688,8 +686,8 @@ export const allProducts = [
     category: "Battle Gear",
     price: 1999.00,
     powerLevel: 2000000,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096291/c1_a9za6g.jpg",
+    gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096291/c1_a9za6g.jpg"],
     inStock: true,
     stock: 20,
     featured: true,
@@ -710,8 +708,12 @@ export const allProducts = [
     category: "Battle Gear",
     price: 49999.00,
     powerLevel: 1000000,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759163370/earrings_uz8yak.jpg",
+    gallery: [
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759163370/earrings_uz8yak.jpg",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759165120/Fusion_Style_Blue_Drop_Earrings_Anime_Inspired_Jewelry_Cosplay_Accessory_Gift_for_Anime_Fan_Blue_Orb_Earrings_-_Etsy_tcpjqs.jpg",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759165286/Green_Faceted_Glass_Crystal_Ball_earrings_dangle_sphere_sparkling_wedding_transparent_best_for_summer_gift_for_her_Fashion_Stainless_steel_z9gwgg.jpg"
+    ],
     inStock: false,
     stock: 0,
     featured: true,

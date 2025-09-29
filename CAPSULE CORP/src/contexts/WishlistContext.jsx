@@ -6,29 +6,41 @@ const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { showSuccess, showInfo } = useNotifications();
 
   // Load wishlist from localStorage on mount (if user is logged in)
   useEffect(() => {
     if (user) {
-      const savedWishlist = localStorage.getItem(`capsule-wishlist-${user.id}`);
+      setLoading(true);
+      // Use proper user identifier - try uid first (Firebase), then id (backend)
+      const userId = user.uid || user.id;
+      const savedWishlist = localStorage.getItem(`capsule-wishlist-${userId}`);
       if (savedWishlist) {
         try {
-          setWishlistItems(JSON.parse(savedWishlist));
+          const parsedWishlist = JSON.parse(savedWishlist);
+          setWishlistItems(parsedWishlist);
         } catch (error) {
           console.error('Error loading wishlist from localStorage:', error);
+          setWishlistItems([]);
         }
+      } else {
+        setWishlistItems([]);
       }
+      setLoading(false);
     } else {
       setWishlistItems([]);
+      setLoading(false);
     }
   }, [user]);
 
   // Save wishlist to localStorage whenever it changes
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(`capsule-wishlist-${user.id}`, JSON.stringify(wishlistItems));
+    if (user && wishlistItems.length >= 0) {
+      // Use proper user identifier - try uid first (Firebase), then id (backend)
+      const userId = user.uid || user.id;
+      localStorage.setItem(`capsule-wishlist-${userId}`, JSON.stringify(wishlistItems));
     }
   }, [wishlistItems, user]);
 
@@ -78,6 +90,7 @@ export function WishlistProvider({ children }) {
   return (
     <WishlistContext.Provider value={{
       wishlistItems,
+      loading,
       addToWishlist,
       removeFromWishlist,
       isInWishlist,

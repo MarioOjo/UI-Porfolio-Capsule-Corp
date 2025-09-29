@@ -249,3 +249,66 @@ body {
   -webkit-line-clamp: 3;
   line-clamp: 3;
 }
+
+/* Mobile responsiveness utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-friendly button sizes */
+@media (max-width: 640px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Responsive text scaling */
+@media (max-width: 480px) {
+  .font-saiyan {
+    letter-spacing: 0.05em;
+  }
+  
+  .kamehameha-glow {
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+  }
+  
+  .kamehameha-glow:hover {
+    box-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+  }
+}
+
+/* Mobile-first grid improvements */
+.mobile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-grid {
+    gap: 2rem;
+  }
+}
+
+/* Better mobile card shadows */
+@media (max-width: 640px) {
+  .shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-xl {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}

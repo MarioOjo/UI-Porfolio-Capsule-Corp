@@ -41,7 +41,7 @@ function ProductCard({ product, size = "medium" }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200 w-full max-w-sm mx-auto sm:max-w-none">
       <Link to={`/product/${product.slug}`} className="block">
         <div className="relative">
           {/* Product Image */}
@@ -49,7 +49,10 @@ function ProductCard({ product, size = "medium" }) {
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover relative z-10"
+              onLoad={(e) => {
+                e.target.nextSibling.style.display = 'none';
+              }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
@@ -98,20 +101,20 @@ function ProductCard({ product, size = "medium" }) {
           </div>
           
           {/* Product Info */}
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <div className="mb-2">
               <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
                 {product.category}
               </span>
             </div>
             
-            <h3 className={`${textSizes[size]} font-bold text-gray-800 mb-2 font-saiyan line-clamp-2`}>
+            <h3 className={`${size === 'small' ? 'text-sm' : 'text-base sm:text-lg'} font-bold text-gray-800 mb-2 font-saiyan line-clamp-2`}>
               {product.name}
             </h3>
             
             <div className="flex items-center mb-3">
               <FaStar className="text-yellow-400 mr-1" />
-              <span className="text-sm text-gray-600">
+              <span className="text-xs sm:text-sm text-gray-600">
                 Power Level: {product.powerLevel.toLocaleString()}
               </span>
             </div>
@@ -134,16 +137,16 @@ function ProductCard({ product, size = "medium" }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 {product.originalPrice && (
-                  <span className="text-sm text-gray-400 line-through mr-2">
+                  <span className="text-xs sm:text-sm text-gray-400 line-through mr-2">
                     ${product.originalPrice.toFixed(2)}
                   </span>
                 )}
-                <span className={`${textSizes[size]} font-bold text-orange-600 font-saiyan`}>
+                <span className={`${size === 'small' ? 'text-base' : 'text-lg sm:text-xl'} font-bold text-orange-600 font-saiyan`}>
                   ${product.price.toFixed(2)}
                 </span>
               </div>
               {product.stock <= 5 && product.inStock && (
-                <span className="text-xs text-red-500 font-medium">
+                <span className="text-xs text-red-500 font-medium hidden sm:inline">
                   Only {product.stock} left!
                 </span>
               )}
@@ -153,18 +156,19 @@ function ProductCard({ product, size = "medium" }) {
       </Link>
       
       {/* Action Button */}
-      <div className="px-4 pb-4">
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4">
         <button
           onClick={handleAddToCart}
           disabled={!product.inStock}
-          className={`w-full flex items-center justify-center px-4 py-3 rounded-xl font-saiyan font-bold text-sm transition-all ${
+          className={`w-full flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-saiyan font-bold text-xs sm:text-sm transition-all touch-target ${
             product.inStock
               ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >
-          <FaShoppingCart className="mr-2" />
-          {product.inStock ? "ADD TO CAPSULE" : "OUT OF STOCK"}
+          <FaShoppingCart className="mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">{product.inStock ? "ADD TO CAPSULE" : "OUT OF STOCK"}</span>
+          <span className="sm:hidden">{product.inStock ? "ADD" : "OUT"}</span>
         </button>
       </div>
     </div>
