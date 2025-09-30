@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FaCapsules, FaFacebook, FaTwitter, FaInstagram } from "react-icons/fa";
+import { FaCapsules, FaFacebook, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhone, FaEnvelope } from "react-icons/fa";
 
 function Footer() {
   return (
@@ -13,9 +13,24 @@ function Footer() {
               </div>
               <h5 className="font-saiyan text-lg tracking-wide">CAPSULE CORP.</h5>
             </div>
-            <p className="text-neutral-400 text-sm">
+            <p className="text-neutral-400 text-sm mb-4">
               Founded by Dr. Brief, Capsule Corp. has been Earth's leading technology company since Age 712.
             </p>
+            {/* Contact Info */}
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center space-x-2">
+                <FaMapMarkerAlt className="text-neutral-500 text-xs" />
+                <span className="text-neutral-400">Cupertino, CA</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FaPhone className="text-neutral-500 text-xs" />
+                <span className="text-neutral-400">+1 (555) CAPSULE</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FaEnvelope className="text-neutral-500 text-xs" />
+                <span className="text-neutral-400">support@capsulecorp.com</span>
+              </div>
+            </div>
           </div>
           <div>
             <h6 className="mb-4 font-bold">Quick Links</h6>
@@ -33,7 +48,7 @@ function Footer() {
                 <Link to="/training" className="hover:text-white transition-colors">Training</Link>
               </li>
               <li>
-                <Link to="/cart" className="hover:text-white transition-colors">Cart</Link>
+                <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
               </li>
             </ul>
           </div>
@@ -52,6 +67,9 @@ function Footer() {
               <li>
                 <Link to="/products" className="hover:text-white transition-colors">Accessories</Link>
               </li>
+              <li>
+                <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -67,9 +85,16 @@ function Footer() {
                 <FaInstagram className="text-xl hover:text-neutral-300 transition-colors" />
               </a>
             </div>
-            <p className="text-neutral-400 text-sm">
+            <p className="text-neutral-400 text-sm mb-4">
               Follow us for updates from Earth's greatest scientists!
             </p>
+            {/* Silicon Valley Address */}
+            <div className="text-xs text-neutral-500">
+              <p className="font-semibold mb-1">Silicon Valley HQ:</p>
+              <p>Capsule Corporation Tower</p>
+              <p>10600 N De Anza Blvd</p>
+              <p>Cupertino, CA 95014</p>
+            </div>
           </div>
         </div>
         <div className="border-t border-neutral-800 mt-8 pt-8 text-center relative">

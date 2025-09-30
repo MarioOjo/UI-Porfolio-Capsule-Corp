@@ -15,6 +15,8 @@ const Cart = lazy(() => import('../pages/Cart'));
 const AuthPage = lazy(() => import('../pages/Auth/AuthPage'));
 const Wishlist = lazy(() => import('../pages/Wishlist'));
 const Checkout = lazy(() => import('../pages/Checkout'));
+const Contact = lazy(() => import('../pages/Contact'));
+const About = lazy(() => import('../pages/About'));
 const Profile = lazy(() => import('../pages/Profile/Profile'));
 const OrderHistory = lazy(() => import('../pages/Profile/OrderHistory'));
 const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
@@ -54,6 +56,8 @@ const AnimatedRoutes = () => {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/order-history" element={<OrderHistory />} />
