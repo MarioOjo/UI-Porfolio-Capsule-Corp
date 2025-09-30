@@ -1,5 +1,5 @@
 ﻿import { Link, useNavigate } from "react-router-dom";
-import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock } from "react-icons/fa";
+import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock, FaUserShield, FaMoon, FaSun } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
@@ -147,17 +147,17 @@ function HomeHeader() {
             <div 
               className="relative" 
               ref={profileRef}
-              onMouseLeave={() => setTimeout(() => setShowProfileDropdown(false), 100)}
+              onMouseEnter={() => {
+                setShowCartPreview(false);
+                setShowWishlistPreview(false);
+                setShowProfileDropdown(true);
+              }}
+              onMouseLeave={() => setTimeout(() => setShowProfileDropdown(false), 300)}
             >
               {user ? (
                 <button
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  onMouseEnter={() => {
-                    setShowCartPreview(false);
-                    setShowWishlistPreview(false);
-                    setShowProfileDropdown(true);
-                  }}
-                  className="flex items-center relative"
+                  className="flex items-center relative p-2"
                   aria-label="Profile Menu"
                 >
                   <FaUser className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
@@ -165,7 +165,7 @@ function HomeHeader() {
               ) : (
                 <div
                   onClick={() => navigate('/auth')}
-                  className="text-white text-xl cursor-pointer"
+                  className="text-white text-xl cursor-pointer p-2"
                   role="button"
                   tabIndex={0}
                   aria-label="Login or Signup"
@@ -180,6 +180,7 @@ function HomeHeader() {
                 <div 
                   className="absolute top-full right-0 mt-2 w-64 sm:w-72 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[60] overflow-hidden"
                   onMouseEnter={() => setShowProfileDropdown(true)}
+                  onMouseLeave={() => setShowProfileDropdown(false)}
                 >
                   {/* Profile Header */}
                   <div className="p-4 bg-gradient-to-r from-[#3B4CCA] to-blue-600">
@@ -215,6 +216,18 @@ function HomeHeader() {
                       <FaBox className="mr-3 text-lg" />
                       ORDER HISTORY
                     </Link>
+
+                    {/* Admin Dashboard Link - Only for admins */}
+                    {(user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com') && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center px-4 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50 transition-all font-saiyan text-sm border-t border-gray-200"
+                        onClick={() => setShowProfileDropdown(false)}
+                      >
+                        <FaUserShield className="mr-3 text-lg" />
+                        ADMIN DASHBOARD
+                      </Link>
+                    )}
 
                     <Link
                       to="/address-book"
@@ -258,21 +271,21 @@ function HomeHeader() {
                 <div 
                   className="relative" 
                   ref={wishlistRef}
-                  onMouseLeave={() => setTimeout(() => setShowWishlistPreview(false), 100)}
+                  onMouseEnter={() => {
+                    setShowCartPreview(false);
+                    setShowProfileDropdown(false);
+                    setShowWishlistPreview(true);
+                  }}
+                  onMouseLeave={() => setTimeout(() => setShowWishlistPreview(false), 300)}
                 >
                   <button
                     onClick={() => setShowWishlistPreview(!showWishlistPreview)}
-                    onMouseEnter={() => {
-                      setShowCartPreview(false);
-                      setShowProfileDropdown(false);
-                      setShowWishlistPreview(true);
-                    }}
-                    className="flex items-center relative"
+                    className="flex items-center relative p-2"
                     aria-label="Wishlist"
                   >
                     <FaHeart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow animate-pulse">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow animate-pulse">
                         {wishlistCount}
                       </span>
                     )}
@@ -283,6 +296,7 @@ function HomeHeader() {
                     <div 
                       className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[55] max-h-96 overflow-hidden"
                       onMouseEnter={() => setShowWishlistPreview(true)}
+                      onMouseLeave={() => setShowWishlistPreview(false)}
                     >
                       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                         <h3 className="font-bold text-[#3B4CCA] font-saiyan">WISHLIST</h3>
@@ -357,17 +371,17 @@ function HomeHeader() {
               onClick={toggleDarkMode}
               className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-[#FFD700] transition-all duration-300 bg-gradient-to-br from-orange-400 to-yellow-500 hover:scale-105"
               aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              title={isDarkMode ? "Super Saiyan Mode (Light)" : "Base Form (Dark)"}
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {isDarkMode ? (
-                // Super Saiyan Goku (Light Mode) - Blonde hair
-                <div className="w-full h-full flex items-center justify-center text-xl">
-                  👱‍♂️
+                // Moon icon for dark mode
+                <div className="w-full h-full flex items-center justify-center text-white">
+                  <FaMoon className="text-lg" />
                 </div>
               ) : (
-                // Base Goku (Dark Mode) - Black hair  
-                <div className="w-full h-full flex items-center justify-center text-xl">
-                  👨‍🦱
+                // Sun icon for light mode  
+                <div className="w-full h-full flex items-center justify-center text-white">
+                  <FaSun className="text-lg" />
                 </div>
               )}
             </button>
@@ -376,21 +390,21 @@ function HomeHeader() {
             <div 
               className="relative" 
               ref={cartRef}
-              onMouseLeave={() => setTimeout(() => setShowCartPreview(false), 100)}
+              onMouseEnter={() => {
+                setShowWishlistPreview(false);
+                setShowProfileDropdown(false);
+                setShowCartPreview(true);
+              }}
+              onMouseLeave={() => setTimeout(() => setShowCartPreview(false), 300)}
             >
               <button
                 onClick={() => setShowCartPreview(!showCartPreview)}
-                onMouseEnter={() => {
-                  setShowWishlistPreview(false);
-                  setShowProfileDropdown(false);
-                  setShowCartPreview(true);
-                }}
-                className="flex items-center relative"
+                className="flex items-center relative p-2"
                 aria-label="Shopping Cart"
               >
                 <FaShoppingCart className="text-white text-xl hover:text-[#FFD700] transition-colors cursor-pointer" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-bounce">
+                  <span className="absolute -top-1 -right-1 bg-[#FF9E00] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-bounce">
                     {cartCount}
                   </span>
                 )}
@@ -401,6 +415,7 @@ function HomeHeader() {
                 <div 
                   className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[50] max-h-96 overflow-hidden"
                   onMouseEnter={() => setShowCartPreview(true)}
+                  onMouseLeave={() => setShowCartPreview(false)}
                 >
                   <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                     <h3 className="font-bold text-[#3B4CCA] font-saiyan">CAPSULE CART</h3>

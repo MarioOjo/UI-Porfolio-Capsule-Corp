@@ -19,6 +19,13 @@ const Profile = lazy(() => import('../pages/Profile/Profile'));
 const OrderHistory = lazy(() => import('../pages/Profile/OrderHistory'));
 const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
 const ChangePassword = lazy(() => import('../pages/Profile/ChangePassword'));
+
+// Admin pages
+const AdminDashboard = lazy(() => import('../pages/Admin/AdminDashboard'));
+const AdminProducts = lazy(() => import('../pages/Admin/AdminProducts'));
+const AdminOrders = lazy(() => import('../pages/Admin/AdminOrders'));
+const AdminUsers = lazy(() => import('../pages/Admin/AdminUsers'));
+
 const NotFound = lazy(() => import('../pages/NotFound'));
 
 const AnimatedRoutes = () => {
@@ -52,6 +59,13 @@ const AnimatedRoutes = () => {
               <Route path="/order-history" element={<OrderHistory />} />
               <Route path="/address-book" element={<AddressBook />} />
               <Route path="/change-password" element={<ChangePassword />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

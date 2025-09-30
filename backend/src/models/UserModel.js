@@ -7,14 +7,21 @@ class UserModel {
   }
 
   async create(userData) {
-    const { username, email, password_hash, google_id = null } = userData;
+    const { 
+      username, 
+      email, 
+      password_hash, 
+      firstName = null, 
+      lastName = null, 
+      google_id = null 
+    } = userData;
     
     const query = `
-      INSERT INTO ${this.table} (username, email, password_hash, google_id, created_at) 
-      VALUES (?, ?, ?, ?, NOW())
+      INSERT INTO ${this.table} (username, email, password_hash, firstName, lastName, google_id, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
     `;
     
-    const result = await this.db.executeQuery(query, [username, email, password_hash, google_id]);
+    const result = await this.db.executeQuery(query, [username, email, password_hash, firstName, lastName, google_id]);
     return { id: result.insertId, ...userData };
   }
 

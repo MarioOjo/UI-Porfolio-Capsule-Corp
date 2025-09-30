@@ -77,10 +77,10 @@ export function AuthProvider({ children }) {
     return res;
   };
 
-  const signup = async (email, password) => {
+  const signup = async (email, password, firstName = '', lastName = '') => {
     const res = await apiFetch('/api/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, firstName, lastName })
     });
     if (res.user) setUser(res.user);
     if (res.token) localStorage.setItem('authToken', res.token);

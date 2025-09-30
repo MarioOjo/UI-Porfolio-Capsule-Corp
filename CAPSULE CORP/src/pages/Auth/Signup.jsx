@@ -7,9 +7,11 @@ import { useNotifications } from "../../contexts/NotificationContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 function Signup({ onSwitchTab }) {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [promo, setPromo] = useState(false);
   const [error, setError] = useState("");
@@ -32,12 +34,16 @@ function Signup({ onSwitchTab }) {
   async function handleSignup(e) {
     e.preventDefault();
     setError("");
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
     }
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
     if (passwordStrength(password) === "Weak") {
@@ -47,7 +53,7 @@ function Signup({ onSwitchTab }) {
 
     setLoading(true);
     try {
-      await signup(email, password);
+      await signup(email, password, firstName, lastName);
       showSuccess("🎉 Scouter activated! Your Capsule Corp. account is ready!", {
         title: "ACCOUNT CREATED",
         duration: 4000
@@ -86,21 +92,41 @@ function Signup({ onSwitchTab }) {
 
       {/* Regular Signup Form */}
       <form className="space-y-7" onSubmit={handleSignup}>
+        {/* First Name */}
         <div>
-        <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-          EARTHLING NAME
-        </label>
-        <div className="relative">
-          <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
-          <input
-            type="text"
-            placeholder="Your Earthling Name"
-            className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
+          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
+            EARTHLING NAME (FIRST NAME)
+          </label>
+          <div className="relative">
+            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+            <input
+              type="text"
+              placeholder="Your First Name"
+              className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              required
+            />
+          </div>
         </div>
-      </div>
+
+        {/* Last Name */}
+        <div>
+          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
+            EARTHLING NAME (LAST NAME)
+          </label>
+          <div className="relative">
+            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+            <input
+              type="text"
+              placeholder="Your Last Name"
+              className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              required
+            />
+          </div>
+        </div>
       <div>
         <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
           SCOUTER ID (EMAIL)
@@ -169,6 +195,29 @@ function Signup({ onSwitchTab }) {
             : "Strong (PL>9000)"}
         </span>
       </div>
+
+      {/* Confirm Password */}
+      <div>
+        <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
+          CONFIRM BATTLE PASSWORD
+        </label>
+        <div className="relative">
+          <input
+            type="password"
+            placeholder="Confirm your battle password"
+            className="w-full pl-4 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+        {confirmPassword && password !== confirmPassword && (
+          <span className="text-xs text-red-500 font-medium mt-1 block">
+            Passwords do not match
+          </span>
+        )}
+      </div>
+
       <div className="flex items-start space-x-3">
         <input
           type="checkbox"

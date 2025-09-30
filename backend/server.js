@@ -7,6 +7,7 @@ const compression = require('compression');
 
 // Import custom modules
 const database = require('./src/config/database');
+const DatabaseMigration = require('./src/utils/DatabaseMigration');
 const SecurityMiddleware = require('./src/middleware/SecurityMiddleware');
 const ErrorHandler = require('./src/middleware/ErrorHandler');
 const AuthMiddleware = require('./src/middleware/AuthMiddleware');
@@ -27,6 +28,9 @@ class CapsuleCorpServer {
     try {
       // Initialize database connection
       await database.initialize();
+      
+      // Run database migrations
+      await DatabaseMigration.runMigrations();
       
       // Setup middleware
       this.setupMiddleware();
@@ -152,6 +156,53 @@ class CapsuleCorpServer {
       });
     }));
 
+    // Add signup route (alias for register to match frontend)
+    this.app.post('/api/auth/signup', ErrorHandler.handleAsync(async (req, res) => {
+      const { email, password, firstName, lastName } = req.body;
+      
+      // Basic validation
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+
+      // Check if user exists
+      const existingUser = await userModel.findByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+
+      // Hash password and create user
+      const hashedPassword = await authService.hashPassword(password);
+      const username = firstName && lastName ? `${firstName} ${lastName}` : email.split('@')[0];
+      
+      const newUser = await userModel.create({
+        username,
+        email,
+        password_hash: hashedPassword,
+        firstName: firstName || '',
+        lastName: lastName || ''
+      });
+
+      // Generate token
+      const token = authService.generateToken({ 
+        id: newUser.id, 
+        username: newUser.username, 
+        email: newUser.email 
+      });
+
+      res.status(201).json({
+        message: 'User created successfully',
+        token,
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName
+        }
+      });
+    }));
+
     this.app.post('/api/auth/login', ErrorHandler.handleAsync(async (req, res) => {
       const { email, password } = req.body;
 
@@ -204,6 +255,43 @@ class CapsuleCorpServer {
           createdAt: user.created_at,
           lastLogin: user.last_login
         });
+      })
+    );
+
+    // Add /api/me endpoint for frontend AuthContext (handles both authenticated and unauthenticated)
+    this.app.get('/api/me', 
+      ErrorHandler.handleAsync(async (req, res) => {
+        try {
+          // Try to authenticate but don't fail if no token
+          const authHeader = req.headers.authorization;
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'No authentication token provided' });
+          }
+
+          const token = authHeader.substring(7);
+          const authService = require('./src/services/AuthService');
+          const decoded = authService.verifyToken(token);
+          
+          const user = await userModel.findById(decoded.id);
+          if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+          }
+
+          res.json({
+            user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              createdAt: user.created_at,
+              lastLogin: user.last_login
+            }
+          });
+        } catch (error) {
+          // Token invalid or expired
+          res.status(401).json({ error: 'Invalid or expired token' });
+        }
       })
     );
   }

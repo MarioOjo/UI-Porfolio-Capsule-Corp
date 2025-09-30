@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes } from "react-icons/fa";
+import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaMoon, FaSun } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -166,17 +166,17 @@ function Navbar() {
             onClick={toggleDarkMode}
             className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#3B4CCA]/20 hover:border-[#FFD700] transition-all duration-300 bg-gradient-to-br from-orange-400 to-yellow-500"
             aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            title={isDarkMode ? "Super Saiyan Mode (Light)" : "Base Form (Dark)"}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {isDarkMode ? (
-              // Super Saiyan Goku (Light Mode) - Blonde hair
-              <div className="w-full h-full flex items-center justify-center text-xl">
-                👱‍♂️
+              // Moon icon for dark mode
+              <div className="w-full h-full flex items-center justify-center text-white">
+                <FaMoon className="text-lg" />
               </div>
             ) : (
-              // Base Goku (Dark Mode) - Black hair  
-              <div className="w-full h-full flex items-center justify-center text-xl">
-                👨‍🦱
+              // Sun icon for light mode  
+              <div className="w-full h-full flex items-center justify-center text-white">
+                <FaSun className="text-lg" />
               </div>
             )}
           </button>
