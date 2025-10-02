@@ -67,9 +67,5 @@ INSERT IGNORE INTO categories (id, name, slug) VALUES
   (3, 'Tech', 'tech'),
   (4, 'Consumables', 'consumables');
 
-INSERT INTO products (name, slug, description, category_id, status_id, price_cents, power_level, featured, stock)
-VALUES
-  ('Saiyan Battle Armor','saiyan-battle-armor','Durable battle armor',1,1,29900,9000,1,10),
-  ('Gravity Chamber','gravity-chamber','High gravity training room',2,1,1599900,50000,1,2),
-  ('Elite Scouter','elite-scouter','Advanced scouter tech',3,1,129900,1000000,1,25)
-ON DUPLICATE KEY UPDATE price_cents = VALUES(price_cents), stock = VALUES(stock);
+-- Legacy products table seed removed - using capsule_products table instead (see 002_create_products_table.sql and 003_seed_products_data.sql)
+-- The products table above exists for backward compatibility but is not populated
