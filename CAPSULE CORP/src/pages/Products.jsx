@@ -14,12 +14,18 @@ function Products() {
   const [sortBy, setSortBy] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Sync search state with URL parameters
+  useEffect(() => {
+    const searchParam = searchParams.get('search') || "";
+    setSearch(searchParam);
+  }, [searchParams]);
+
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "Battle Gear", label: "⚔️ Battle Gear" },
     { value: "Training", label: "💪 Training" },
-    { value: "Tech", label: "📡 Tech" },
-    { value: "Consumables", label: "🍃 Consumables" }
+    { value: "Technology", label: "📡 Technology" },
+    { value: "Capsules", label: "🧪 Capsules" }
   ];
 
   const sortOptions = [
@@ -195,6 +201,30 @@ function Products() {
         {/* Products Content - only show when not loading and no error */}
         {!loading && !error && (
           <>
+            {/* Search Results Indicator */}
+            {search.trim() && (
+              <div className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg">
+                <h2 className="text-lg font-bold text-blue-800 font-saiyan">
+                  🔍 SEARCH RESULTS FOR: "{search.trim()}"
+                </h2>
+                <p className="text-blue-600 text-sm mt-1">
+                  {products.length} {products.length === 1 ? 'item' : 'items'} found
+                </p>
+              </div>
+            )}
+
+            {/* Category Filter Indicator */}
+            {selectedCategory !== 'all' && (
+              <div className="mb-6 p-4 bg-orange-100 border-l-4 border-orange-500 rounded-lg">
+                <h2 className="text-lg font-bold text-orange-800 font-saiyan">
+                  📂 CATEGORY: {selectedCategory.toUpperCase()}
+                </h2>
+                <p className="text-orange-600 text-sm mt-1">
+                  {products.length} {products.length === 1 ? 'item' : 'items'} in this category
+                </p>
+              </div>
+            )}
+
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
           <section className="mb-8 sm:mb-12">

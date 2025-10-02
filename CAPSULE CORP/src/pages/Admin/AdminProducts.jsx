@@ -72,13 +72,14 @@ function AdminProducts() {
   const categories = [...new Set(products.map(p => p && p.category).filter(Boolean))];
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm('⚠️ Are you sure you want to delete this product? This action cannot be undone!')) {
       try {
         await apiFetch(`/api/products/${productId}`, { method: 'DELETE' });
         setProducts(products.filter(p => p.id !== productId));
+        // Success notification could be added here
       } catch (err) {
         console.error('Error deleting product:', err);
-        alert('Failed to delete product. Please try again.');
+        alert('❌ Failed to delete product. Please try again.');
       }
     }
   };
@@ -118,7 +119,7 @@ function AdminProducts() {
       setEditingProduct(null);
     } catch (err) {
       console.error('Error updating product:', err);
-      alert('Failed to update product. Please try again.');
+      alert('❌ Failed to update product. Please try again.');
     }
   };
 
@@ -148,7 +149,7 @@ function AdminProducts() {
       setShowAddModal(false);
     } catch (err) {
       console.error('Error adding product:', err);
-      alert('Failed to add product. Please try again.');
+      alert('❌ Failed to add product. Please try again.');
     }
   };
 

@@ -14,8 +14,8 @@ class SecurityMiddleware {
     });
   }
 
-  static strictRateLimit = this.createRateLimiter(15 * 60 * 1000, 50); // 50 requests per 15 minutes
-  static authRateLimit = this.createRateLimiter(15 * 60 * 1000, 10);  // 10 auth attempts per 15 minutes
+  static strictRateLimit = this.createRateLimiter(15 * 60 * 1000, 200); // 200 requests per 15 minutes
+  static authRateLimit = this.createRateLimiter(15 * 60 * 1000, 20);  // 20 auth attempts per 15 minutes
 
   static validateRequest(req, res, next) {
     // Basic request validation

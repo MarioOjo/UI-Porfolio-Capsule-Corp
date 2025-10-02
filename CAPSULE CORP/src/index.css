@@ -1,6 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
+/* === Popover & Scroll Utilities (added) =============================== */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.popover-panel {
+  --tw-shadow: 0 8px 28px -4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  box-shadow: var(--tw-shadow);
+  animation: popover-pop 160ms cubic-bezier(.32,.72,.33,1.01);
+  transform-origin: top right;
+  will-change: transform, opacity;
+  backdrop-filter: blur(10px) saturate(1.4);
+}
+
+@keyframes popover-pop { 
+  0% { opacity: 0; transform: translateY(6px) scale(.94); }
+  60% { opacity: 1; transform: translateY(-1px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.popover-content-fade { animation: popover-content 220ms ease 40ms backwards; }
+@keyframes popover-content { from { opacity:0; transform: translateY(3px);} to { opacity:1; transform: translateY(0);} }
+
+.popover-no-clip { overflow: hidden !important; max-height: none !important; }
+/* When any floating panel is open, prevent background page scroll */
+html.scroll-locked, body.scroll-locked { overflow: hidden !important; }
+/* ===================================================================== */
+
 /* Prevent horizontal overflow globally */
 html, body {
   overflow-x: hidden;

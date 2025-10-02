@@ -38,7 +38,7 @@ function Navbar() {
 
   // Handle search
   useEffect(() => {
-    if (search.trim()) {
+    if (search.trim() && search.trim().length >= 2) {
       const searchProducts = async () => {
         try {
           const response = await apiFetch(`/api/products?search=${encodeURIComponent(search.trim())}&limit=5`);
@@ -52,7 +52,7 @@ function Navbar() {
       };
       
       // Debounce search
-      const timeoutId = setTimeout(searchProducts, 300);
+      const timeoutId = setTimeout(searchProducts, 800);
       return () => clearTimeout(timeoutId);
     } else {
       setSearchResults([]);
@@ -77,6 +77,24 @@ function Navbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Lock body scroll when any floating panel is open
+  useEffect(() => {
+    const anyOpen = showCartPreview || showWishlistPreview || (showSearchResults && searchResults.length > 0);
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+    if (anyOpen) {
+      htmlEl.classList.add('scroll-locked');
+      bodyEl.classList.add('scroll-locked');
+    } else {
+      htmlEl.classList.remove('scroll-locked');
+      bodyEl.classList.remove('scroll-locked');
+    }
+    return () => {
+      htmlEl.classList.remove('scroll-locked');
+      bodyEl.classList.remove('scroll-locked');
+    };
+  }, [showCartPreview, showWishlistPreview, showSearchResults, searchResults]);
 
   const handleLogout = async () => {
     try {
@@ -135,7 +153,7 @@ function Navbar() {
 
               {/* Search Results Dropdown */}
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto max-w-full">
+                <div className="popover-panel absolute top-full left-0 right-0 mt-2 bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-[100] max-w-full popover-no-clip">
                   {searchResults.map((product) => (
                     <Link
                       key={product.id}
@@ -217,7 +235,6 @@ function Navbar() {
               <div className="relative" ref={wishlistRef}>
                 <button
                   onClick={() => setShowWishlistPreview(!showWishlistPreview)}
-                  onMouseEnter={() => setShowWishlistPreview(true)}
                   className="flex items-center relative"
                   aria-label="Wishlist"
                 >
@@ -231,7 +248,7 @@ function Navbar() {
 
                 {/* Wishlist Preview Dropdown */}
                 {showWishlistPreview && (
-                  <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+                  <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                       <h3 className="font-bold text-gray-800 font-saiyan">WISHLIST</h3>
                       <p className="text-sm text-gray-600">{wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}</p>
@@ -244,7 +261,7 @@ function Navbar() {
                       </div>
                     ) : (
                       <>
-                        <div className="max-h-64 overflow-y-auto">
+                        <div>
                           {wishlistItems.slice(0, 4).map((item) => (
                             <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                               <img 
@@ -304,7 +321,6 @@ function Navbar() {
           <div className="relative" ref={cartRef}>
             <button
               onClick={() => setShowCartPreview(!showCartPreview)}
-              onMouseEnter={() => setShowCartPreview(true)}
               className="flex items-center relative"
               aria-label="Shopping Cart"
             >
@@ -318,7 +334,7 @@ function Navbar() {
 
             {/* Cart Preview Dropdown */}
             {showCartPreview && (
-              <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+              <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
                 <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                   <h3 className="font-bold text-gray-800 font-saiyan">CAPSULE CART</h3>
                   <p className="text-sm text-gray-600">{cartCount} {cartCount === 1 ? 'item' : 'items'}</p>
@@ -331,7 +347,7 @@ function Navbar() {
                   </div>
                 ) : (
                   <>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div>
                       {cartItems.slice(0, 4).map((item) => (
                         <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                           <img 

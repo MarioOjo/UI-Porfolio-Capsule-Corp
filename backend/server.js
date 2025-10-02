@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -22,15 +23,19 @@ class CapsuleCorpServer {
     this.app = express();
     this.port = process.env.PORT || 5000;
     this.isDevelopment = process.env.NODE_ENV === 'development';
+    this.safeMode = process.env.SAFE_MODE === '1' || process.env.SAFE_MODE === 'true';
   }
 
   async initialize() {
     try {
-      // Initialize database connection
-      await database.initialize();
-      
-      // Run database migrations
-      await DatabaseMigration.runMigrations();
+      if (this.safeMode) {
+        console.log('🟡 SAFE_MODE enabled: Skipping database initialization and migrations.');
+      } else {
+        // Initialize database connection
+        await database.initialize();
+        // Run database migrations
+        await DatabaseMigration.runMigrations();
+      }
       
       // Setup middleware
       this.setupMiddleware();
@@ -102,13 +107,42 @@ class CapsuleCorpServer {
       });
     });
 
-    // Legacy routes (from original server.js) - TO BE REFACTORED
-    this.setupLegacyRoutes();
+    if (this.safeMode) {
+      console.log('⚠️  SAFE_MODE active: mounting mock API endpoints.');
+      this.setupMockRoutes();
+    } else {
+      // Legacy routes (from original server.js) - TO BE REFACTORED
+      this.setupLegacyRoutes();
+    }
     
     // Future modular routes
     // this.app.use('/api/auth', authRoutes);
     // this.app.use('/api/products', productRoutes);
     // this.app.use('/api/users', userRoutes);
+
+    // === Serve React Frontend (Vite build) ===
+    // We build the React app into ../CAPSULE CORP/dist during Heroku postbuild.
+    // Serve static assets if the build folder exists.
+    const distDir = path.join(__dirname, '../CAPSULE CORP/dist');
+    try {
+      this.app.use(express.static(distDir, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-store');
+          } else {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          }
+        }
+      }));
+      // Catch-all to support client-side routing, excluding API & health endpoints
+      this.app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
+        return res.sendFile(path.join(distDir, 'index.html'));
+      });
+      console.log('🧩 React build directory configured:', distDir);
+    } catch (e) {
+      console.warn('⚠️ React dist directory not found yet. Build will populate it on deploy.');
+    }
   }
 
   setupLegacyRoutes() {
@@ -397,6 +431,62 @@ class CapsuleCorpServer {
         res.json({ message: 'Product deleted successfully' });
       })
     );
+  }
+
+  // Mock routes for SAFE_MODE (no DB required)
+  setupMockRoutes() {
+    const mockProducts = require('./src/mock/mockProducts');
+
+    this.app.get('/api/products', (req, res) => {
+      const { search, featured, category } = req.query;
+      let results = [...mockProducts];
+      if (featured === 'true') {
+        results = results.filter(p => p.featured);
+      }
+      if (category) {
+        results = results.filter(p => p.category.toLowerCase() === category.toLowerCase());
+      }
+      if (search) {
+        const term = search.toLowerCase();
+        results = results.filter(p => p.name.toLowerCase().includes(term));
+      }
+      res.json({ products: results });
+    });
+
+    this.app.get('/api/products/:id', (req, res) => {
+      const id = Number(req.params.id);
+      const product = mockProducts.find(p => p.id === id);
+      if (!product) return res.status(404).json({ error: 'Product not found (SAFE_MODE)' });
+      res.json({ product });
+    });
+
+    this.app.get('/api/products/slug/:slug', (req, res) => {
+      const { slug } = req.params;
+      const product = mockProducts.find(p => p.slug === slug);
+      if (!product) return res.status(404).json({ error: 'Product not found (SAFE_MODE)' });
+      res.json({ product });
+    });
+
+    // Auth simulation (always unauthenticated)
+    this.app.post('/api/auth/login', (req, res) => {
+      return res.status(200).json({
+        message: 'SAFE_MODE login simulated',
+        token: 'safe.fake.token',
+        user: { id: 0, username: 'DemoUser', email: 'demo@example.com' }
+      });
+    });
+
+    this.app.post('/api/auth/signup', (req, res) => {
+      return res.status(201).json({
+        message: 'SAFE_MODE signup simulated',
+        token: 'safe.fake.token',
+        user: { id: 0, username: 'NewUser', email: req.body.email || 'demo@example.com' }
+      });
+    });
+
+    this.app.get('/api/auth/profile', (req, res) => {
+      return res.status(401).json({ error: 'Not authenticated (SAFE_MODE)' });
+    });
   }
 
   setupErrorHandling() {

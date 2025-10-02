@@ -33,7 +33,7 @@ function HomeHeader() {
 
   // Handle search
   useEffect(() => {
-    if (search.trim()) {
+    if (search.trim() && search.trim().length >= 2) {
       const searchProducts = async () => {
         try {
           const response = await apiFetch(`/api/products?search=${encodeURIComponent(search.trim())}&limit=5`);
@@ -47,7 +47,7 @@ function HomeHeader() {
       };
       
       // Debounce search
-      const timeoutId = setTimeout(searchProducts, 300);
+      const timeoutId = setTimeout(searchProducts, 800);
       return () => clearTimeout(timeoutId);
     } else {
       setSearchResults([]);
@@ -74,6 +74,24 @@ function HomeHeader() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Body scroll lock when any dropdown open
+  useEffect(() => {
+    const anyOpen = showProfileDropdown || showCartPreview || showWishlistPreview || (showSearchResults && searchResults.length > 0);
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+    if (anyOpen) {
+      htmlEl.classList.add('scroll-locked');
+      bodyEl.classList.add('scroll-locked');
+    } else {
+      htmlEl.classList.remove('scroll-locked');
+      bodyEl.classList.remove('scroll-locked');
+    }
+    return () => {
+      htmlEl.classList.remove('scroll-locked');
+      bodyEl.classList.remove('scroll-locked');
+    };
+  }, [showProfileDropdown, showCartPreview, showWishlistPreview, showSearchResults, searchResults]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -118,7 +136,7 @@ function HomeHeader() {
 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto backdrop-blur-sm">
+                  <div className="popover-panel absolute top-full left-0 right-0 mt-2 bg-white/90 border-2 border-[#FFD700]/40 rounded-xl z-50 popover-no-clip">
                     {searchResults.map((product) => (
                       <Link
                         key={product.id}
@@ -159,12 +177,6 @@ function HomeHeader() {
             <div 
               className="relative" 
               ref={profileRef}
-              onMouseEnter={() => {
-                setShowCartPreview(false);
-                setShowWishlistPreview(false);
-                setShowProfileDropdown(true);
-              }}
-              onMouseLeave={() => setTimeout(() => setShowProfileDropdown(false), 300)}
             >
               {user ? (
                 <button
@@ -190,9 +202,7 @@ function HomeHeader() {
               {/* Profile Dropdown */}
               {user && showProfileDropdown && (
                 <div 
-                  className="absolute top-full right-0 mt-2 w-64 sm:w-72 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[60] overflow-hidden"
-                  onMouseEnter={() => setShowProfileDropdown(true)}
-                  onMouseLeave={() => setShowProfileDropdown(false)}
+                  className="popover-panel absolute top-full right-0 mt-2 w-64 sm:w-72 bg-white/90 border-2 border-[#FFD700]/40 rounded-xl z-[80] popover-no-clip"
                 >
                   {/* Profile Header */}
                   <div className="p-4 bg-gradient-to-r from-[#3B4CCA] to-blue-600">
@@ -283,12 +293,6 @@ function HomeHeader() {
                 <div 
                   className="relative" 
                   ref={wishlistRef}
-                  onMouseEnter={() => {
-                    setShowCartPreview(false);
-                    setShowProfileDropdown(false);
-                    setShowWishlistPreview(true);
-                  }}
-                  onMouseLeave={() => setTimeout(() => setShowWishlistPreview(false), 300)}
                 >
                   <button
                     onClick={() => setShowWishlistPreview(!showWishlistPreview)}
@@ -306,9 +310,7 @@ function HomeHeader() {
                   {/* Wishlist Preview Dropdown */}
                   {showWishlistPreview && (
                     <div 
-                      className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[55] max-h-96 overflow-hidden"
-                      onMouseEnter={() => setShowWishlistPreview(true)}
-                      onMouseLeave={() => setShowWishlistPreview(false)}
+                      className="popover-panel absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white/90 border-2 border-[#FFD700]/40 rounded-xl z-[70] popover-no-clip"
                     >
                       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                         <h3 className="font-bold text-[#3B4CCA] font-saiyan">WISHLIST</h3>
@@ -322,7 +324,7 @@ function HomeHeader() {
                         </div>
                       ) : (
                         <>
-                          <div className="max-h-64 overflow-y-auto">
+                          <div>
                             {wishlistItems.slice(0, 4).map((item) => (
                               <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                                 <img 
@@ -402,12 +404,6 @@ function HomeHeader() {
             <div 
               className="relative" 
               ref={cartRef}
-              onMouseEnter={() => {
-                setShowWishlistPreview(false);
-                setShowProfileDropdown(false);
-                setShowCartPreview(true);
-              }}
-              onMouseLeave={() => setTimeout(() => setShowCartPreview(false), 300)}
             >
               <button
                 onClick={() => setShowCartPreview(!showCartPreview)}
@@ -425,10 +421,8 @@ function HomeHeader() {
               {/* Cart Preview Dropdown */}
               {showCartPreview && (
                 <div 
-                  className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[50] max-h-96 overflow-hidden transform -translate-x-0"
+                  className="popover-panel absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white/90 border-2 border-[#FFD700]/40 rounded-xl z-[70] popover-no-clip transform -translate-x-0"
                   style={{right: 'max(0px, calc(100% - 100vw + 16px))'}}
-                  onMouseEnter={() => setShowCartPreview(true)}
-                  onMouseLeave={() => setShowCartPreview(false)}
                 >
                   <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                     <h3 className="font-bold text-[#3B4CCA] font-saiyan">CAPSULE CART</h3>
@@ -442,7 +436,7 @@ function HomeHeader() {
                     </div>
                   ) : (
                     <>
-                      <div className="max-h-64 overflow-y-auto">
+                      <div>
                         {cartItems.slice(0, 4).map((item) => (
                           <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                             <img 
