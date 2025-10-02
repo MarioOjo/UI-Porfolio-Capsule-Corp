@@ -22,8 +22,9 @@ function FeaturedProducts() {
       try {
         setLoading(true);
         setError(null);
-        const response = await apiFetch('/api/products?featured=true&limit=6');
-        setFeaturedProducts(response.products || []);
+        const response = await apiFetch('/api/products?featured=true&limit=3');
+        // Ensure we only display exactly 3 featured products in frontend
+        setFeaturedProducts((response.products || []).slice(0, 3));
       } catch (err) {
         console.error('Error fetching featured products:', err);
         setError('Failed to load featured products');

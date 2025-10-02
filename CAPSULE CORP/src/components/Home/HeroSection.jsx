@@ -32,13 +32,13 @@ function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
                   to="/products"
-                  className="bg-white text-[#3B4CCA] px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-bold text-base lg:text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 text-center"
+                  className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
                 >
                   Shop Now
                 </Link>
                 <Link
                   to="/battle-gear"
-                  className="border-2 border-white text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-bold text-base lg:text-lg hover:bg-white hover:text-[#3B4CCA] transition-all shadow-xl text-center"
+                  className="bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all text-center"
                 >
                   View Collection
                 </Link>
@@ -49,13 +49,13 @@ function HeroSection() {
                 <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-4">
                   <Link
                     to="/wishlist"
-                    className="bg-red-500/20 border border-red-400 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-red-500/30 transition-all"
+                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold hover:from-red-600 hover:to-red-700 transition-all"
                   >
                     💖 My Wishlist
                   </Link>
                   <Link
                     to="/order-history"
-                    className="bg-blue-500/20 border border-blue-400 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-500/30 transition-all"
+                    className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold hover:from-[#2A3B9A] hover:to-blue-700 transition-all"
                   >
                     📦 Order History
                   </Link>

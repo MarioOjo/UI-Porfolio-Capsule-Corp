@@ -4,6 +4,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import useSEO from "../hooks/useSEO";
 import HeroSection from "../components/Home/HeroSection";
+import ProductCarousel from "../components/Home/ProductCarousel";
 import FeaturedProducts from "../components/Home/FeaturedProducts";
 import FeaturesSection from "../components/Home/FeaturesSection";
 
@@ -37,6 +38,7 @@ function Home() {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
       <HeroSection />
+      <ProductCarousel />
       <FeaturedProducts />
       <FeaturesSection />
     </div>
