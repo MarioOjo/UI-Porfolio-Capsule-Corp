@@ -6,7 +6,7 @@ import { useNotifications } from "../../contexts/NotificationContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import { searchProducts } from "../../data/products.js";
+import { apiFetch } from "../../utils/api";
 
 function HomeHeader() {
   const [search, setSearch] = useState("");
@@ -34,9 +34,21 @@ function HomeHeader() {
   // Handle search
   useEffect(() => {
     if (search.trim()) {
-      const results = searchProducts(search);
-      setSearchResults(results.slice(0, 5));
-      setShowSearchResults(true);
+      const searchProducts = async () => {
+        try {
+          const response = await apiFetch(`/api/products?search=${encodeURIComponent(search.trim())}&limit=5`);
+          setSearchResults(response.products || []);
+          setShowSearchResults(true);
+        } catch (err) {
+          console.error('Search error:', err);
+          setSearchResults([]);
+          setShowSearchResults(false);
+        }
+      };
+      
+      // Debounce search
+      const timeoutId = setTimeout(searchProducts, 300);
+      return () => clearTimeout(timeoutId);
     } else {
       setSearchResults([]);
       setShowSearchResults(false);
@@ -73,9 +85,9 @@ function HomeHeader() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg">
-      <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+    <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 py-4 overflow-x-hidden">
+        <div className="flex items-center justify-between space-x-2 sm:space-x-4 min-w-0">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
               <FaCapsules className="text-[#3B4CCA] text-lg sm:text-xl" />
@@ -85,7 +97,7 @@ function HomeHeader() {
           </Link>
 
           {/* Enhanced Search Bar */}
-          <div className="flex-1 max-w-md mx-4 sm:mx-8 relative" ref={searchRef}>
+          <div className="flex-1 max-w-md mx-2 sm:mx-4 lg:mx-8 relative" ref={searchRef}>
             <form onSubmit={handleSearchSubmit}>
               <div className="relative">
                 <input
@@ -413,7 +425,8 @@ function HomeHeader() {
               {/* Cart Preview Dropdown */}
               {showCartPreview && (
                 <div 
-                  className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[50] max-h-96 overflow-hidden"
+                  className="absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white border-2 border-[#FFD700]/30 rounded-xl shadow-2xl z-[50] max-h-96 overflow-hidden transform -translate-x-0"
+                  style={{right: 'max(0px, calc(100% - 100vw + 16px))'}}
                   onMouseEnter={() => setShowCartPreview(true)}
                   onMouseLeave={() => setShowCartPreview(false)}
                 >

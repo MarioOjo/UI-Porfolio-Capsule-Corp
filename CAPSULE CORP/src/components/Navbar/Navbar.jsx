@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
-import { searchProducts } from "../../data/products.js";
+import { apiFetch } from "../../utils/api";
 
 function Navbar() {
   const [search, setSearch] = useState("");
@@ -39,9 +39,21 @@ function Navbar() {
   // Handle search
   useEffect(() => {
     if (search.trim()) {
-      const results = searchProducts(search);
-      setSearchResults(results.slice(0, 5)); // Limit to 5 results
-      setShowSearchResults(true);
+      const searchProducts = async () => {
+        try {
+          const response = await apiFetch(`/api/products?search=${encodeURIComponent(search.trim())}&limit=5`);
+          setSearchResults(response.products || []);
+          setShowSearchResults(true);
+        } catch (err) {
+          console.error('Search error:', err);
+          setSearchResults([]);
+          setShowSearchResults(false);
+        }
+      };
+      
+      // Debounce search
+      const timeoutId = setTimeout(searchProducts, 300);
+      return () => clearTimeout(timeoutId);
     } else {
       setSearchResults([]);
       setShowSearchResults(false);
@@ -91,8 +103,8 @@ function Navbar() {
   const wishlistCount = getWishlistCount();
 
   return (
-    <header className="max-w-6xl mx-auto px-4 py-4">
-      <div className="flex items-center justify-between">
+    <header className="max-w-6xl mx-auto px-4 py-4 overflow-hidden">
+      <div className="flex items-center justify-between min-w-0">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-neutral-700 rounded-full flex items-center justify-center">
@@ -123,7 +135,7 @@ function Navbar() {
 
               {/* Search Results Dropdown */}
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto max-w-full">
                   {searchResults.map((product) => (
                     <Link
                       key={product.id}
@@ -160,11 +172,11 @@ function Navbar() {
         </div>
 
         {/* Right Side Icons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 shrink-0">
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#3B4CCA]/20 hover:border-[#FFD700] transition-all duration-300 bg-gradient-to-br from-orange-400 to-yellow-500"
+            className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#3B4CCA]/20 hover:border-[#FFD700] transition-all duration-300 bg-gradient-to-br from-orange-400 to-yellow-500 shrink-0"
             aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
@@ -219,7 +231,7 @@ function Navbar() {
 
                 {/* Wishlist Preview Dropdown */}
                 {showWishlistPreview && (
-                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+                  <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                       <h3 className="font-bold text-gray-800 font-saiyan">WISHLIST</h3>
                       <p className="text-sm text-gray-600">{wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}</p>
@@ -306,7 +318,7 @@ function Navbar() {
 
             {/* Cart Preview Dropdown */}
             {showCartPreview && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+              <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border-2 border-[#3B4CCA]/20 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                   <h3 className="font-bold text-gray-800 font-saiyan">CAPSULE CART</h3>
                   <p className="text-sm text-gray-600">{cartCount} {cartCount === 1 ? 'item' : 'items'}</p>

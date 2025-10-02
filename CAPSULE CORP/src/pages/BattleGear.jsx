@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { getProductsByCategory } from '../data/products.js';
+import { apiFetch } from '../utils/api';
 import ProductCard from '../components/Product/ProductCard';
 import { FaShieldAlt, FaFireAlt, FaFistRaised, FaEye, FaBolt, FaUserShield } from 'react-icons/fa';
 
 function BattleGear() {
   const { isDarkMode } = useTheme();
   const [battleGearProducts, setBattleGearProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const products = getProductsByCategory('Battle Gear');
-    setBattleGearProducts(products);
+    const fetchBattleGearProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiFetch('/api/products?category=Battle Gear');
+        setBattleGearProducts(response.products || []);
+      } catch (err) {
+        console.error('Error fetching Battle Gear products:', err);
+        setError('Failed to load Battle Gear products');
+        setBattleGearProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBattleGearProducts();
   }, []);
 
   return (
@@ -140,7 +156,27 @@ function BattleGear() {
             </Link>
           </div>
 
-          {battleGearProducts.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <FaShieldAlt className={`text-6xl mx-auto mb-4 animate-spin ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+              <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                LOADING BATTLE GEAR...
+              </h3>
+              <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                Preparing legendary equipment
+              </p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <FaShieldAlt className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-red-600' : 'text-red-400'}`} />
+              <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>
+                FAILED TO LOAD GEAR
+              </h3>
+              <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                {error}
+              </p>
+            </div>
+          ) : battleGearProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {battleGearProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -150,10 +186,10 @@ function BattleGear() {
             <div className="text-center py-12">
               <FaShieldAlt className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
               <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                LOADING BATTLE GEAR...
+                NO BATTLE GEAR FOUND
               </h3>
               <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                Preparing legendary equipment
+                No equipment available at this time
               </p>
             </div>
           )}

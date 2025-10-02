@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
 import ProductCard from "../components/Product/ProductCard";
-import { allProducts, searchProducts, getProductsByCategory } from "../data/products.js";
+import { apiFetch } from "../utils/api";
 
 function Products() {
   const [searchParams] = useSearchParams();
-  const [products, setProducts] = useState(allProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState(searchParams.get('search') || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
@@ -29,42 +31,65 @@ function Products() {
     { value: "name", label: "Name A-Z" }
   ];
 
-  // Filter and sort products
+  // Fetch products from API
   useEffect(() => {
-    let filteredProducts = allProducts;
-
-    // Search filter
-    if (search.trim()) {
-      filteredProducts = searchProducts(search);
-    }
-
-    // Category filter
-    if (selectedCategory !== "all") {
-      filteredProducts = filteredProducts.filter(
-        product => product.category === selectedCategory
-      );
-    }
-
-    // Sort products
-    const sortedProducts = [...filteredProducts].sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return a.price - b.price;
-        case "price-high":
-          return b.price - a.price;
-        case "power-high":
-          return b.powerLevel - a.powerLevel;
-        case "power-low":
-          return a.powerLevel - b.powerLevel;
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "featured":
-        default:
-          return b.featured - a.featured || b.powerLevel - a.powerLevel;
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        let apiPath = '/api/products';
+        const params = new URLSearchParams();
+        
+        // Add filters to API call
+        if (search.trim()) {
+          params.append('search', search.trim());
+        }
+        
+        if (selectedCategory !== "all") {
+          params.append('category', selectedCategory);
+        }
+        
+        if (sortBy === "featured") {
+          params.append('featured', 'true');
+        }
+        
+        if (params.toString()) {
+          apiPath += '?' + params.toString();
+        }
+        
+        const response = await apiFetch(apiPath);
+        let fetchedProducts = response.products || [];
+        
+        // Sort products locally since backend doesn't handle all sort options
+        const sortedProducts = [...fetchedProducts].sort((a, b) => {
+          switch (sortBy) {
+            case "price-low":
+              return a.price - b.price;
+            case "price-high":
+              return b.price - a.price;
+            case "power-high":
+              return (b.power_level || 0) - (a.power_level || 0);
+            case "power-low":
+              return (a.power_level || 0) - (b.power_level || 0);
+            case "name":
+              return a.name.localeCompare(b.name);
+            case "featured":
+            default:
+              return (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.power_level || 0) - (a.power_level || 0);
+          }
+        });
+        
+        setProducts(sortedProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    });
+    };
 
-    setProducts(sortedProducts);
+    fetchProducts();
   }, [search, selectedCategory, sortBy]);
 
   const featuredProducts = products.filter(product => product.featured);
@@ -142,6 +167,34 @@ function Products() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-16">
+            <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600 font-saiyan">LOADING CAPSULES...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-8">
+            <div className="text-center">
+              <div className="text-4xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-red-800 mb-2 font-saiyan">ERROR</h3>
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 text-white px-6 py-2 rounded-xl font-saiyan hover:bg-red-700 transition-all"
+              >
+                TRY AGAIN
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Products Content - only show when not loading and no error */}
+        {!loading && !error && (
+          <>
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
           <section className="mb-8 sm:mb-12">
@@ -214,6 +267,8 @@ function Products() {
             Combine multiple items for devastating power combos! Mix training gear with battle equipment for maximum effectiveness.
           </p>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

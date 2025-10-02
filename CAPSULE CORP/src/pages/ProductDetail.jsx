@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaMinus, FaPlus, FaCheckCircle, FaBolt } from "react-icons/fa";
-import { getProductBySlug, getProductsByCategory } from "../data/products.js";
+import { apiFetch } from "../utils/api";
 import { useAuth } from "../AuthContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
@@ -20,24 +20,43 @@ function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const foundProduct = getProductBySlug(slug);
-    if (foundProduct) {
-      setProduct(foundProduct);
-      setRelatedProducts(
-        getProductsByCategory(foundProduct.category)
-          .filter(p => p.id !== foundProduct.id)
-          .slice(0, 4)
-      );
-    } else {
-      navigate('/products');
-    }
-    setLoading(false);
+    const fetchProductAndRelated = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch product by slug
+        const productResponse = await apiFetch(`/api/products/slug/${slug}`);
+        
+        if (productResponse.product) {
+          setProduct(productResponse.product);
+          
+          // Fetch related products from same category
+          const relatedResponse = await apiFetch(`/api/products?category=${encodeURIComponent(productResponse.product.category)}&limit=5`);
+          const related = (relatedResponse.products || [])
+            .filter(p => p.id !== productResponse.product.id)
+            .slice(0, 4);
+          setRelatedProducts(related);
+        } else {
+          navigate('/products');
+        }
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError('Product not found');
+        navigate('/products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductAndRelated();
   }, [slug, navigate]);
 
   const handleAddToCart = () => {
-    if (product && product.inStock) {
+    if (product && (product.inStock || product.in_stock || product.stock > 0)) {
       addToCart(product, quantity);
     }
   };
@@ -126,12 +145,12 @@ function ProductDetail() {
               </div>
               
               {/* Status Badge */}
-              {!product.inStock && (
+              {!(product.inStock || product.in_stock || product.stock > 0) && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
                   OUT OF STOCK
                 </div>
               )}
-              {product.featured && (
+              {(product.featured || product.is_featured) && (
                 <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-4 py-2 rounded-full font-bold kamehameha-glow">
                   LEGENDARY ITEM
                 </div>
@@ -183,7 +202,7 @@ function ProductDetail() {
             <div className="flex items-center space-x-2">
               <FaStar className="text-yellow-400 text-xl" />
               <span className="text-lg text-gray-700">
-                Power Level: <span className="font-bold text-orange-600">{product.powerLevel.toLocaleString()}</span>
+                Power Level: <span className="font-bold text-orange-600">{Number(product.powerLevel || product.power_level || 0).toLocaleString()}</span>
               </span>
             </div>
 
@@ -203,26 +222,26 @@ function ProductDetail() {
 
             {/* Price */}
             <div className="flex items-center space-x-4">
-              {product.originalPrice && (
+              {(product.originalPrice || product.original_price) && (
                 <span className="text-2xl text-gray-400 line-through">
-                  ${product.originalPrice.toFixed(2)}
+                  ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
                 </span>
               )}
               <span className="text-4xl font-bold text-orange-600 font-saiyan">
-                ${product.price.toFixed(2)}
+                ${parseFloat(product.price).toFixed(2)}
               </span>
-              {product.originalPrice && (
+              {(product.originalPrice || product.original_price) && (
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                  SAVE ${(product.originalPrice - product.price).toFixed(2)}
+                  SAVE ${(parseFloat(product.originalPrice || product.original_price) - parseFloat(product.price)).toFixed(2)}
                 </span>
               )}
             </div>
 
             {/* Stock Status */}
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className={`font-medium ${product.inStock ? 'text-green-600' : 'text-red-600'}`}>
-                {product.inStock ? 
+              <div className={`w-3 h-3 rounded-full ${(product.inStock || product.in_stock || product.stock > 0) ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className={`font-medium ${(product.inStock || product.in_stock || product.stock > 0) ? 'text-green-600' : 'text-red-600'}`}>
+                {(product.inStock || product.in_stock || product.stock > 0) ? 
                   product.stock <= 5 ? `Only ${product.stock} left in stock!` : 'In Stock' 
                   : 'Out of Stock'
                 }
@@ -230,7 +249,7 @@ function ProductDetail() {
             </div>
 
             {/* Quantity Selector */}
-            {product.inStock && (
+            {(product.inStock || product.in_stock || product.stock > 0) && (
               <div className="flex items-center space-x-4">
                 <span className="text-lg font-medium text-gray-700">Quantity:</span>
                 <div className="flex items-center border-2 border-gray-300 rounded-lg">
@@ -257,15 +276,15 @@ function ProductDetail() {
             <div className="flex space-x-4">
               <button
                 onClick={handleAddToCart}
-                disabled={!product.inStock}
+                disabled={!(product.inStock || product.in_stock || product.stock > 0)}
                 className={`flex-1 flex items-center justify-center px-8 py-4 rounded-xl font-saiyan font-bold text-lg transition-all ${
-                  product.inStock
+                  (product.inStock || product.in_stock || product.stock > 0)
                     ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 <FaShoppingCart className="mr-3" />
-                {product.inStock ? "ADD TO CAPSULE" : "OUT OF STOCK"}
+                {(product.inStock || product.in_stock || product.stock > 0) ? "ADD TO CAPSULE" : "OUT OF STOCK"}
               </button>
               
               <button

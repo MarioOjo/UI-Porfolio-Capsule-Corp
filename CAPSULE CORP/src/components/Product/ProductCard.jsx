@@ -12,7 +12,8 @@ function ProductCard({ product, size = "medium" }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.inStock) {
+    const inStock = product.stock > 0 || product.inStock || product.in_stock;
+    if (inStock) {
       addToCart(product);
     }
   };
@@ -65,12 +66,12 @@ function ProductCard({ product, size = "medium" }) {
             </div>
             
             {/* Status Badges */}
-            {!product.inStock && (
+            {(product.stock <= 0 || (!product.inStock && !product.in_stock)) && (
               <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                 OUT OF STOCK
               </div>
             )}
-            {product.featured && (
+            {(product.featured || product.is_featured) && (
               <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold kamehameha-glow">
                 LEGENDARY
               </div>
@@ -80,7 +81,7 @@ function ProductCard({ product, size = "medium" }) {
             <button
               onClick={handleWishlistToggle}
               className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-                product.featured ? 'top-12' : ''
+                (product.featured || product.is_featured) ? 'top-12' : ''
               } ${
                 isInWishlist(product.id)
                   ? 'bg-red-500 text-white'
@@ -115,7 +116,7 @@ function ProductCard({ product, size = "medium" }) {
             <div className="flex items-center mb-3">
               <FaStar className="text-yellow-400 mr-1" />
               <span className="text-xs sm:text-sm text-gray-600">
-                Power Level: {product.powerLevel.toLocaleString()}
+                Power Level: {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
               </span>
             </div>
             
@@ -136,16 +137,16 @@ function ProductCard({ product, size = "medium" }) {
             {/* Price */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                {product.originalPrice && (
+                {(product.originalPrice || product.original_price) && (
                   <span className="text-xs sm:text-sm text-gray-400 line-through mr-2">
-                    ${product.originalPrice.toFixed(2)}
+                    ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
                   </span>
                 )}
                 <span className={`${size === 'small' ? 'text-base' : 'text-lg sm:text-xl'} font-bold text-orange-600 font-saiyan`}>
-                  ${product.price.toFixed(2)}
+                  ${parseFloat(product.price).toFixed(2)}
                 </span>
               </div>
-              {product.stock <= 5 && product.inStock && (
+              {product.stock <= 5 && (product.inStock || product.in_stock || product.stock > 0) && (
                 <span className="text-xs text-red-500 font-medium hidden sm:inline">
                   Only {product.stock} left!
                 </span>
@@ -159,16 +160,16 @@ function ProductCard({ product, size = "medium" }) {
       <div className="px-3 sm:px-4 pb-3 sm:pb-4">
         <button
           onClick={handleAddToCart}
-          disabled={!product.inStock}
+          disabled={!(product.inStock || product.in_stock || product.stock > 0)}
           className={`w-full flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-saiyan font-bold text-xs sm:text-sm transition-all touch-target ${
-            product.inStock
+            (product.inStock || product.in_stock || product.stock > 0)
               ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >
           <FaShoppingCart className="mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">{product.inStock ? "ADD TO CAPSULE" : "OUT OF STOCK"}</span>
-          <span className="sm:hidden">{product.inStock ? "ADD" : "OUT"}</span>
+          <span className="hidden sm:inline">{(product.inStock || product.in_stock || product.stock > 0) ? "ADD TO CAPSULE" : "OUT OF STOCK"}</span>
+          <span className="sm:hidden">{(product.inStock || product.in_stock || product.stock > 0) ? "ADD" : "OUT"}</span>
         </button>
       </div>
     </div>

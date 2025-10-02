@@ -1,17 +1,33 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { getProductsByCategory } from '../data/products.js';
+import { apiFetch } from '../utils/api';
 import ProductCard from '../components/Product/ProductCard';
 import { FaCapsules, FaRocket, FaHome, FaCar, FaCogs } from 'react-icons/fa';
 
 function Capsules() {
   const { isDarkMode } = useTheme();
   const [capsuleProducts, setCapsuleProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const products = getProductsByCategory('Capsules');
-    setCapsuleProducts(products);
+    const fetchCapsuleProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiFetch('/api/products?category=Capsules');
+        setCapsuleProducts(response.products || []);
+      } catch (err) {
+        console.error('Error fetching Capsule products:', err);
+        setError('Failed to load Capsule products');
+        setCapsuleProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCapsuleProducts();
   }, []);
 
   return (

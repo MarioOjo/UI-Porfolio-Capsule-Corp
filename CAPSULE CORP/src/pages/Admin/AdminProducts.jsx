@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft } from 'react-icons/fa';
-import { allProducts } from '../../data/products.js';
+import { apiFetch } from '../../utils/api.js';
 
 function AdminProducts() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [products, setProducts] = useState(allProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -22,25 +24,62 @@ function AdminProducts() {
     }
     
     const isAdmin = user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com';
+    
     if (!isAdmin) {
       navigate('/');
       return;
     }
   }, [user, navigate]);
 
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiFetch('/api/products');
+        setProducts(response.products || []);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      const isAdmin = user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com';
+      if (isAdmin) {
+        fetchProducts();
+      }
+    }
+  }, [user]);
+
   // Filter products
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    if (!product) return false;
+    
+    const productName = product.name || '';
+    const productDescription = product.description || '';
+    const productCategory = product.category || '';
+    
+    const matchesSearch = productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         productDescription.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || productCategory === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(products.map(p => p.category))];
+  const categories = [...new Set(products.map(p => p && p.category).filter(Boolean))];
 
-  const handleDeleteProduct = (productId) => {
+  const handleDeleteProduct = async (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== productId));
+      try {
+        await apiFetch(`/api/products/${productId}`, { method: 'DELETE' });
+        setProducts(products.filter(p => p.id !== productId));
+      } catch (err) {
+        console.error('Error deleting product:', err);
+        alert('Failed to delete product. Please try again.');
+      }
     }
   };
 
@@ -49,34 +88,138 @@ function AdminProducts() {
     setShowEditModal(true);
   };
 
-  const handleUpdateProduct = (updatedProduct) => {
-    setProducts(products.map(p => 
-      p.id === updatedProduct.id ? updatedProduct : p
-    ));
-    setShowEditModal(false);
-    setEditingProduct(null);
+  const handleUpdateProduct = async (updatedProduct) => {
+    try {
+      const response = await apiFetch(`/api/products/${updatedProduct.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: updatedProduct.name,
+          slug: updatedProduct.slug,
+          description: updatedProduct.description,
+          category: updatedProduct.category,
+          price: updatedProduct.price,
+          original_price: updatedProduct.originalPrice || updatedProduct.price,
+          power_level: updatedProduct.powerLevel,
+          image: updatedProduct.image,
+          gallery: updatedProduct.gallery || [],
+          in_stock: updatedProduct.inStock,
+          stock: updatedProduct.stock,
+          featured: updatedProduct.featured || false,
+          tags: updatedProduct.tags || [],
+          specifications: updatedProduct.specifications || {}
+        })
+      });
+      
+      // Update local state with the updated product
+      setProducts(products.map(p => 
+        p.id === updatedProduct.id ? response.product : p
+      ));
+      setShowEditModal(false);
+      setEditingProduct(null);
+    } catch (err) {
+      console.error('Error updating product:', err);
+      alert('Failed to update product. Please try again.');
+    }
   };
 
-  const handleAddProduct = (newProductData) => {
-    const newProduct = {
-      ...newProductData,
-      id: Math.max(...products.map(p => p.id)) + 1,
-      slug: newProductData.name.toLowerCase().replace(/\s+/g, '-'),
-      image: '/api/placeholder/300/300', // Placeholder image
-      gallery: ['/api/placeholder/300/300']
-    };
-    setProducts([...products, newProduct]);
-    setShowAddModal(false);
+  const handleAddProduct = async (newProductData) => {
+    try {
+      const response = await apiFetch('/api/products', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newProductData.name,
+          slug: newProductData.name.toLowerCase().replace(/\s+/g, '-'),
+          description: newProductData.description,
+          category: newProductData.category,
+          price: newProductData.price,
+          original_price: newProductData.price,
+          power_level: newProductData.powerLevel,
+          image: newProductData.image || 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg',
+          gallery: [newProductData.image || 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg'],
+          in_stock: newProductData.inStock,
+          stock: newProductData.stock,
+          featured: false,
+          tags: [],
+          specifications: {}
+        })
+      });
+      
+      setProducts([...products, response.product]);
+      setShowAddModal(false);
+    } catch (err) {
+      console.error('Error adding product:', err);
+      alert('Failed to add product. Please try again.');
+    }
   };
 
   const getStockStatus = (product) => {
-    if (!product.inStock) return { text: 'Out of Stock', color: 'text-red-600 bg-red-100' };
-    if (product.stock <= 5) return { text: 'Low Stock', color: 'text-orange-600 bg-orange-100' };
+    const inStock = product.inStock || product.in_stock;
+    const stock = product.stock;
+    
+    if (!inStock) return { text: 'Out of Stock', color: 'text-red-600 bg-red-100' };
+    if (stock <= 5) return { text: 'Low Stock', color: 'text-orange-600 bg-orange-100' };
     return { text: 'In Stock', color: 'text-green-600 bg-green-100' };
   };
 
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600 font-saiyan">CHECKING AUTHENTICATION...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isAdmin = user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com';
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🚫</div>
+          <h2 className="text-2xl font-bold text-gray-800 font-saiyan mb-4">ACCESS DENIED</h2>
+          <p className="text-gray-600 mb-6">You don't have admin privileges.</p>
+          <button
+            onClick={() => navigate('/')}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-saiyan hover:bg-blue-700"
+          >
+            GO HOME
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600 font-saiyan">LOADING PRODUCTS...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⚠️</div>
+            <h3 className="text-xl font-bold text-red-800 mb-2 font-saiyan">ERROR</h3>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white px-6 py-2 rounded-xl font-saiyan hover:bg-red-700 transition-all"
+            >
+              TRY AGAIN
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -176,7 +319,7 @@ function AdminProducts() {
                               {product.name}
                             </div>
                             <div className="text-sm text-gray-500">
-                              PL: {product.powerLevel.toLocaleString()}
+                              PL: {(product.powerLevel || product.power_level || 0).toLocaleString()}
                             </div>
                           </div>
                         </div>
@@ -187,7 +330,7 @@ function AdminProducts() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-saiyan">
-                        ${product.price.toFixed(2)}
+                        ${parseFloat(product.price || 0).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {product.stock} units
@@ -418,8 +561,8 @@ function EditProductModal({ product, onSave, onCancel }) {
     price: product.price,
     category: product.category,
     stock: product.stock,
-    powerLevel: product.powerLevel || 0,
-    inStock: product.inStock
+    powerLevel: product.powerLevel || product.power_level || 0,
+    inStock: product.inStock !== undefined ? product.inStock : product.in_stock
   });
 
   const handleSubmit = (e) => {
@@ -429,7 +572,14 @@ function EditProductModal({ product, onSave, onCancel }) {
       ...formData,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
-      powerLevel: parseInt(formData.powerLevel)
+      powerLevel: parseInt(formData.powerLevel),
+      originalPrice: product.originalPrice || product.original_price || formData.price,
+      slug: product.slug,
+      image: product.image,
+      gallery: product.gallery || [],
+      featured: product.featured || false,
+      tags: product.tags || [],
+      specifications: product.specifications || {}
     });
   };
 

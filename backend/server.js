@@ -294,6 +294,109 @@ class CapsuleCorpServer {
         }
       })
     );
+
+    // Product API routes
+    const ProductModel = require('./src/models/ProductModel');
+
+    // Get all products
+    this.app.get('/api/products', ErrorHandler.handleAsync(async (req, res) => {
+      const { category, search, featured } = req.query;
+      
+      let products;
+      
+      if (featured === 'true') {
+        products = await ProductModel.getFeatured();
+      } else if (category) {
+        products = await ProductModel.findByCategory(category);
+      } else if (search) {
+        products = await ProductModel.search(search);
+      } else {
+        products = await ProductModel.findAll();
+      }
+      
+      res.json({ products });
+    }));
+
+    // Get product by ID
+    this.app.get('/api/products/:id', ErrorHandler.handleAsync(async (req, res) => {
+      const { id } = req.params;
+      
+      const product = await ProductModel.findById(id);
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      res.json({ product });
+    }));
+
+    // Get product by slug
+    this.app.get('/api/products/slug/:slug', ErrorHandler.handleAsync(async (req, res) => {
+      const { slug } = req.params;
+      
+      const product = await ProductModel.findBySlug(slug);
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      res.json({ product });
+    }));
+
+    // Create new product (Admin only)
+    this.app.post('/api/products', 
+      AuthMiddleware.authenticateToken,
+      ErrorHandler.handleAsync(async (req, res) => {
+        // Check if user is admin (basic check - you can enhance this)
+        const user = await userModel.findById(req.user.id);
+        if (!user || (!user.email.includes('admin') && user.email !== 'mario@capsulecorp.com')) {
+          return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const product = await ProductModel.create(req.body);
+        res.status(201).json({ product });
+      })
+    );
+
+    // Update product (Admin only)
+    this.app.put('/api/products/:id',
+      AuthMiddleware.authenticateToken,
+      ErrorHandler.handleAsync(async (req, res) => {
+        // Check if user is admin
+        const user = await userModel.findById(req.user.id);
+        if (!user || (!user.email.includes('admin') && user.email !== 'mario@capsulecorp.com')) {
+          return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const { id } = req.params;
+        const product = await ProductModel.update(id, req.body);
+        
+        if (!product) {
+          return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        res.json({ product });
+      })
+    );
+
+    // Delete product (Admin only)
+    this.app.delete('/api/products/:id',
+      AuthMiddleware.authenticateToken,
+      ErrorHandler.handleAsync(async (req, res) => {
+        // Check if user is admin
+        const user = await userModel.findById(req.user.id);
+        if (!user || (!user.email.includes('admin') && user.email !== 'mario@capsulecorp.com')) {
+          return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const { id } = req.params;
+        const deleted = await ProductModel.delete(id);
+        
+        if (!deleted) {
+          return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        res.json({ message: 'Product deleted successfully' });
+      })
+    );
   }
 
   setupErrorHandling() {
