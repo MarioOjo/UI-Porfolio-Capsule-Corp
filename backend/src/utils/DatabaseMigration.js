@@ -41,7 +41,9 @@ class DatabaseMigration {
   static async runSQLMigrations() {
     try {
       const sqlDir = path.join(__dirname, '../../sql');
+      // Include base schema first if present, then layered product migrations
       const migrationFiles = [
+        'capsule_db.sql',              // base schema (roles, users, categories, legacy products)
         '002_create_products_table.sql',
         '003_seed_products_data.sql',
         '004_add_capsule_products.sql'
@@ -50,14 +52,27 @@ class DatabaseMigration {
       for (const file of migrationFiles) {
         const filePath = path.join(sqlDir, file);
         try {
-          const sql = await fs.readFile(filePath, 'utf8');
-          
-          // Split SQL file by semicolons and execute each statement
-          const statements = sql.split(';').filter(stmt => stmt.trim());
-          
+          const raw = await fs.readFile(filePath, 'utf8');
+
+          // Remove BOM if present and normalize line endings
+          const sql = raw.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+
+          // Split SQL file by semicolons respecting basic cases (no advanced parser)
+          const statements = sql
+            .split(';')
+            .map(s => s.trim())
+            .filter(s => s.length && !s.startsWith('--'));
+
           for (const statement of statements) {
-            if (statement.trim()) {
-              await database.executeQuery(statement.trim());
+            try {
+              await database.executeQuery(statement);
+            } catch (stmtErr) {
+              const msg = stmtErr.message || '';
+              if (msg.includes('Duplicate') || msg.includes('already exists')) {
+                // benign, skip
+                continue;
+              }
+              throw stmtErr;
             }
           }
           

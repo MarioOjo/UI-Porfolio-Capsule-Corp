@@ -1,78 +1,97 @@
-// Reverted simple server (pre-Heroku integration & SAFE_MODE)
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
 let bcrypt;
 try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
+
+// Internal modules
+const database = require('./src/config/database');
+const DatabaseMigration = require('./src/utils/DatabaseMigration');
+const ProductModel = require('./src/models/ProductModel');
+const UserModel = require('./src/models/UserModel');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'capsule_db',
-  port: Number(process.env.DB_PORT || 3306),
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-}).promise();
-
+// Utility async wrapper
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-app.get('/', (req, res) => res.json({ ok: true }));
-app.get('/health', (req, res) => res.json({ ok: true }));
-
-app.get('/api/products', asyncHandler(async (req, res) => {
-  const [rows] = await pool.query('SELECT * FROM products LIMIT 100');
-  res.json(rows);
+app.get('/', (req, res) => res.json({ status: 'ok', version: 'db-integrated' }));
+app.get('/health', asyncHandler(async (req, res) => {
+  try {
+    await database.executeQuery('SELECT 1 as ok');
+    res.json({ ok: true, db: 'up' });
+  } catch (e) {
+    res.status(500).json({ ok: false, db: 'down', error: e.message });
+  }
 }));
 
+// ----- Auth (minimal) -----
 app.post('/api/auth/signup', asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  const existing = await UserModel.findByEmail(email);
+  if (existing) return res.status(409).json({ error: 'Email already exists' });
   const password_hash = await bcrypt.hash(password, 10);
-  try {
-    const [result] = await pool.execute(
-      'INSERT INTO users (email, password_hash, is_active) VALUES (?, ?, 1)',
-      [email, password_hash]
-    );
-    res.status(201).json({ id: result.insertId, email });
-  } catch (err) {
-    if (err && err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Email already exists' });
-    throw err;
-  }
+  const newUser = await UserModel.create({ username: username || email.split('@')[0], email, password_hash });
+  res.status(201).json({ id: newUser.id, email: newUser.email, username: newUser.username });
 }));
 
 app.post('/api/auth/login', asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  const [rows] = await pool.query('SELECT id, email, password_hash FROM users WHERE email = ? LIMIT 1', [email]);
-  if (!rows.length) return res.status(401).json({ error: 'Invalid credentials' });
-  const user = rows[0];
+  const user = await UserModel.findByEmail(email);
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, user.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  res.json({ id: user.id, email: user.email });
+  res.json({ id: user.id, email: user.email, username: user.username });
 }));
 
-// global error handler
+// ----- Product Endpoints (uses capsule_products schema) -----
+app.get('/api/products', asyncHandler(async (req, res) => {
+  const { category, search, featured } = req.query;
+  let products;
+  if (featured === 'true') {
+    products = await ProductModel.getFeatured();
+  } else if (category) {
+    products = await ProductModel.findByCategory(category);
+  } else if (search) {
+    products = await ProductModel.search(search);
+  } else {
+    products = await ProductModel.findAll();
+  }
+  res.json({ products });
+}));
+
+app.get('/api/products/slug/:slug', asyncHandler(async (req, res) => {
+  const product = await ProductModel.findBySlug(req.params.slug);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+  res.json({ product });
+}));
+
+app.get('/api/products/:id', asyncHandler(async (req, res) => {
+  const product = await ProductModel.findById(req.params.id);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
+  res.json({ product });
+}));
+
+// Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
-  console.error(err);
+  console.error('Unhandled error:', err);
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
-// verify DB and start
-(async () => {
+async function start() {
   try {
-    await pool.query('SELECT 1');
-    console.log(`Connected to DB: ${process.env.DB_NAME || 'capsule_db'}`);
-  } catch (err) {
-    console.error('Database connection failed:', err.message);
+    await database.initialize();
+    await DatabaseMigration.runMigrations();
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server running with migrations on port ${PORT}`));
+  } catch (e) {
+    console.error('Startup failure:', e.message);
     process.exit(1);
   }
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-})();
+}
+
+start();
