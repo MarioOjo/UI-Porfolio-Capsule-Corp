@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -122,9 +123,18 @@ class CapsuleCorpServer {
 
     // === Serve React Frontend (Vite build) ===
     // We build the React app into ../CAPSULE CORP/dist during Heroku postbuild.
-    // Serve static assets if the build folder exists.
-    const distDir = path.join(__dirname, '../CAPSULE CORP/dist');
-    try {
+    // Heroku slugs retain the space in the folder name, but add a few fallback patterns just in case.
+    const candidateDistDirs = [
+      path.join(__dirname, '../CAPSULE CORP/dist'),
+      path.join(__dirname, '../CAPSULE_CORP/dist'), // fallback if space stripped
+      path.join(__dirname, '../frontend/dist'),      // optional future structure
+      path.join(__dirname, '../dist')                // last resort
+    ];
+
+    const distDir = candidateDistDirs.find(p => fs.existsSync(p));
+
+    if (distDir) {
+      console.log('🧩 React build directory found:', distDir);
       this.app.use(express.static(distDir, {
         setHeaders: (res, filePath) => {
           if (filePath.endsWith('.html')) {
@@ -134,14 +144,29 @@ class CapsuleCorpServer {
           }
         }
       }));
+      this.app.get('/__distcheck', (req, res) => {
+        try {
+          const files = fs.readdirSync(distDir).slice(0, 40);
+          return res.json({ distDir, fileCount: files.length, sample: files });
+        } catch (err) {
+          return res.status(500).json({ error: 'Failed to read dist', message: err.message });
+        }
+      });
       // Catch-all to support client-side routing, excluding API & health endpoints
       this.app.get('*', (req, res, next) => {
-        if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
-        return res.sendFile(path.join(distDir, 'index.html'));
+        if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/__distcheck')) return next();
+        const indexPath = path.join(distDir, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          return res.sendFile(indexPath);
+        }
+        return res.status(200).send('<!doctype html><html><head><meta charset="utf-8"/><title>Capsule Corp</title></head><body><h1>Frontend build missing index.html</h1><p>dist directory located but index.html not found.</p></body></html>');
       });
-      console.log('🧩 React build directory configured:', distDir);
-    } catch (e) {
-      console.warn('⚠️ React dist directory not found yet. Build will populate it on deploy.');
+    } else {
+      console.warn('⚠️ React dist directory not found in any candidate path. Serving fallback message.');
+      this.app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
+        return res.status(200).send('<!doctype html><html><head><meta charset="utf-8"/><title>Capsule Corp (No Build)</title></head><body style="font-family: sans-serif; padding:40px;">\n<h1>Frontend build not found</h1><p>No dist directory detected on the server. If this is Heroku, ensure the heroku-postbuild ran and the folder name matches <code>CAPSULE CORP/dist</code>.</p><ul><li>Check build logs for Vite output.</li><li>Confirm folder name has the space.</li><li>Redeploy if needed.</li></ul></body></html>');
+      });
     }
   }
 
