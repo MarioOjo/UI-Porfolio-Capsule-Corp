@@ -75,23 +75,8 @@ function HomeHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Body scroll lock when any dropdown open
-  useEffect(() => {
-    const anyOpen = showProfileDropdown || showCartPreview || showWishlistPreview || (showSearchResults && searchResults.length > 0);
-    const htmlEl = document.documentElement;
-    const bodyEl = document.body;
-    if (anyOpen) {
-      htmlEl.classList.add('scroll-locked');
-      bodyEl.classList.add('scroll-locked');
-    } else {
-      htmlEl.classList.remove('scroll-locked');
-      bodyEl.classList.remove('scroll-locked');
-    }
-    return () => {
-      htmlEl.classList.remove('scroll-locked');
-      bodyEl.classList.remove('scroll-locked');
-    };
-  }, [showProfileDropdown, showCartPreview, showWishlistPreview, showSearchResults, searchResults]);
+  // Note: Scroll lock removed as it was causing content visibility issues
+  // Dropdowns now use proper z-indexing instead
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

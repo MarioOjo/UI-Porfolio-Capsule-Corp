@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaChevronLeft, FaChevronRight, FaShoppingCart, FaHeart, FaStar } from "react-icons/fa";
+import { FaShoppingCart, FaHeart, FaStar } from "react-icons/fa";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -39,15 +39,15 @@ function ProductCarousel() {
     fetchCarouselProducts();
   }, []);
 
-  // Auto-advance carousel
+  // Auto-advance carousel every 5 seconds (continuous autoplay)
   useEffect(() => {
-    if (products.length > 0 && !isHovered) {
+    if (products.length > 0) {
       const timer = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % products.length);
       }, 5000);
       return () => clearInterval(timer);
     }
-  }, [products.length, isHovered]);
+  }, [products.length, currentSlide]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % products.length);
@@ -125,9 +125,7 @@ function ProductCarousel() {
 
         {/* Carousel Container */}
         <div 
-          className="relative overflow-hidden rounded-2xl shadow-2xl"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          className="relative rounded-2xl shadow-2xl overflow-hidden"
         >
           <div className="relative h-96 md:h-[500px]">
             {/* Background with Dragon Ball aesthetic */}
@@ -136,135 +134,129 @@ function ProductCarousel() {
               <div className="absolute inset-0 bg-gradient-radial from-transparent via-yellow-400/10 to-transparent"></div>
             </div>
 
-            {/* Product Content */}
-            {currentProduct && (
-              <div className="relative z-10 h-full flex items-center">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full px-8 md:px-16">
-                  {/* Product Image */}
-                  <div className="flex items-center justify-center">
-                    <div className="relative">
-                      <div className="w-72 h-72 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-1 kamehameha-glow">
-                        <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
-                          <img
-                            src={currentProduct.image || `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(currentProduct.name)}`}
-                            alt={currentProduct.name}
-                            className="w-full h-full object-cover rounded-full"
-                            onError={(e) => {
-                              e.target.src = `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(currentProduct.name)}`;
-                            }}
-                          />
+            {/* Slides - Each positioned absolutely with fade transition */}
+            {products.map((product, index) => (
+              <div 
+                key={product.id} 
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+              >
+                {/* Product Content */}
+                <div className="relative h-full flex items-center px-6 md:px-12 py-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 w-full max-w-6xl mx-auto">
+                    {/* Product Image */}
+                    <div className="flex items-center justify-center">
+                      <div className="relative">
+                        <div className="w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-1 kamehameha-glow">
+                          <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                            <img
+                              src={product.image || `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`}
+                              alt={product.name}
+                              className="w-full h-full object-cover rounded-full"
+                              onError={(e) => {
+                                e.target.src = `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`;
+                              }}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Power Level Indicator */}
+                        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 md:px-3 md:py-2 rounded-full font-bold text-xs md:text-sm kamehameha-glow">
+                          {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
                         </div>
                       </div>
-                      
-                      {/* Power Level Indicator */}
-                      <div className="absolute -top-4 -right-4 bg-red-500 text-white px-3 py-2 rounded-full font-bold text-sm kamehameha-glow">
-                        {Number(currentProduct.powerLevel || currentProduct.power_level || 0).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="flex flex-col justify-center text-white space-y-6">
-                    <div>
-                      <span className="inline-block bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold mb-4">
-                        {currentProduct.category}
-                      </span>
-                      <h3 className="text-3xl md:text-4xl font-black font-saiyan mb-4 leading-tight">
-                        {currentProduct.name}
-                      </h3>
-                      <p className="text-lg text-white/90 leading-relaxed line-clamp-3">
-                        {currentProduct.description}
-                      </p>
                     </div>
 
-                    {/* Power Level Display */}
-                    <div className="flex items-center space-x-2">
-                      <FaStar className="text-yellow-400 text-xl" />
-                      <span className="text-lg font-bold">
-                        Power Level: {Number(currentProduct.powerLevel || currentProduct.power_level || 0).toLocaleString()}
-                      </span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="flex items-center space-x-4">
-                      {(currentProduct.originalPrice || currentProduct.original_price) && (
-                        <span className="text-xl text-white/60 line-through">
-                          ${parseFloat(currentProduct.originalPrice || currentProduct.original_price).toFixed(2)}
+                    {/* Product Details */}
+                    <div className="flex flex-col justify-center text-white space-y-3 md:space-y-4">
+                      <div>
+                        <span className="inline-block bg-yellow-400 text-black px-3 py-1 rounded-full text-xs md:text-sm font-bold mb-2 md:mb-3">
+                          {product.category}
                         </span>
-                      )}
-                      <span className="text-3xl font-bold text-yellow-400 font-saiyan">
-                        ${parseFloat(currentProduct.price).toFixed(2)}
-                      </span>
-                    </div>
+                        <h3 className="text-2xl md:text-3xl lg:text-4xl font-black font-saiyan mb-2 md:mb-3 leading-tight">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm md:text-base lg:text-lg text-white/90 leading-relaxed line-clamp-2 md:line-clamp-3">
+                          {product.description}
+                        </p>
+                      </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={(e) => handleAddToCart(e, currentProduct)}
-                        disabled={!(currentProduct.inStock || currentProduct.in_stock || currentProduct.stock > 0)}
-                        className={`flex items-center px-6 py-3 rounded-xl font-saiyan font-bold transition-all ${
-                          (currentProduct.inStock || currentProduct.in_stock || currentProduct.stock > 0)
-                            ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
-                            : "bg-gray-500 text-gray-300 cursor-not-allowed"
-                        }`}
-                      >
-                        <FaShoppingCart className="mr-2" />
-                        ADD TO CAPSULE
-                      </button>
+                      {/* Power Level Display */}
+                      <div className="flex items-center space-x-2">
+                        <FaStar className="text-yellow-400 text-lg md:text-xl" />
+                        <span className="text-sm md:text-base lg:text-lg font-bold">
+                          Power Level: {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
+                        </span>
+                      </div>
 
-                      <Link
-                        to={`/product/${currentProduct.slug}`}
-                        className="flex items-center px-6 py-3 rounded-xl font-saiyan font-bold bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all"
-                      >
-                        VIEW DETAILS
-                      </Link>
+                      {/* Price */}
+                      <div className="flex items-center space-x-3 md:space-x-4">
+                        {(product.originalPrice || product.original_price) && (
+                          <span className="text-lg md:text-xl text-white/60 line-through">
+                            ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
+                          </span>
+                        )}
+                        <span className="text-2xl md:text-3xl font-bold text-yellow-400 font-saiyan">
+                          ${parseFloat(product.price).toFixed(2)}
+                        </span>
+                      </div>
 
-                      {user && (
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 md:gap-3">
                         <button
-                          onClick={(e) => handleWishlistToggle(e, currentProduct)}
-                          className={`p-3 rounded-full transition-all ${
-                            isInWishlist(currentProduct.id)
-                              ? 'bg-red-500 text-white'
-                              : 'bg-white/20 text-white hover:bg-red-500'
+                          onClick={(e) => handleAddToCart(e, product)}
+                          disabled={!(product.inStock || product.in_stock || product.stock > 0)}
+                          className={`flex items-center px-3 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-saiyan font-bold text-xs md:text-sm transition-all ${
+                            (product.inStock || product.in_stock || product.stock > 0)
+                              ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
+                              : "bg-gray-500 text-gray-300 cursor-not-allowed"
                           }`}
                         >
-                          <FaHeart />
+                          <FaShoppingCart className="mr-1.5 md:mr-2 text-xs md:text-sm" />
+                          ADD TO CAPSULE
                         </button>
-                      )}
+
+                        <Link
+                          to={`/product/${product.slug}`}
+                          className="flex items-center px-3 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-saiyan font-bold text-xs md:text-sm bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all"
+                        >
+                          VIEW DETAILS
+                        </Link>
+
+                        {user && (
+                          <button
+                            onClick={(e) => handleWishlistToggle(e, product)}
+                            className={`p-2 md:p-3 rounded-full transition-all ${
+                              isInWishlist(product.id)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-white/20 text-white hover:bg-red-500'
+                            }`}
+                          >
+                            <FaHeart className="text-xs md:text-sm" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Navigation Arrows */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-all z-20"
-            >
-              <FaChevronLeft />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-3 rounded-full hover:bg-black/70 transition-all z-20"
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-
-          {/* Slide Indicators */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-            {products.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentSlide
-                    ? 'bg-yellow-400 scale-125'
-                    : 'bg-white/50 hover:bg-white/70'
-                }`}
-              />
             ))}
+
+            {/* Slide Indicators - Pill-shaped like Evetech */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+              {products.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    index === currentSlide
+                      ? 'w-8 bg-yellow-400'
+                      : 'w-2 bg-white/50 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 

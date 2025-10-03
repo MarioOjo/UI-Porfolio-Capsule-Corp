@@ -97,7 +97,7 @@ function Cart() {
                         <div className="flex items-center mt-2">
                           <span className="text-sm text-gray-600">Power Level: </span>
                           <span className="text-sm font-bold text-orange-600 ml-1">
-                            {item.powerLevel.toLocaleString()}
+                            {Number(item.powerLevel || item.power_level || 0).toLocaleString()}
                           </span>
                         </div>
                       </div>

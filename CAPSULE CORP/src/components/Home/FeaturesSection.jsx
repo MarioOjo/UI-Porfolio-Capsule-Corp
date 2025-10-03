@@ -1,4 +1,5 @@
 import { FaRocket, FaShieldAlt, FaStar, FaUsers, FaClock, FaPhoneAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../AuthContext";
 
@@ -12,21 +13,24 @@ function FeaturesSection() {
       title: "Instant Transmission Shipping",
       description: "Get your gear delivered faster than Goku's teleportation",
       gradient: "from-[#3B4CCA] to-blue-600",
-      stats: "2-day delivery"
+      stats: "2-day delivery",
+      link: "/products"
     },
     {
       icon: FaShieldAlt,
       title: "Battle-Tested Quality", 
       description: "Every product survives planet-destroying explosions",
       gradient: "from-[#FF9E00] to-red-500",
-      stats: "99.9% survival rate"
+      stats: "99.9% survival rate",
+      link: "/products?category=Battle Gear"
     },
     {
       icon: FaStar,
       title: "Legendary Support",
       description: "24/7 customer service by Z-Fighter experts",
       gradient: "from-[#FFD700] to-yellow-500",
-      stats: "4.9/5 rating"
+      stats: "4.9/5 rating",
+      link: "/contact"
     }
   ];
 
@@ -37,21 +41,24 @@ function FeaturesSection() {
       title: "Saiyan Community",
       description: "Connect with fellow warriors and share training tips",
       gradient: "from-purple-500 to-purple-600",
-      stats: "50K+ members"
+      stats: "50K+ members",
+      link: "/profile"
     },
     {
       icon: FaClock,
       title: "Order Tracking",
       description: "Real-time updates on your capsule deliveries",
       gradient: "from-green-500 to-green-600", 
-      stats: "Live updates"
+      stats: "Live updates",
+      link: "/profile/orders"
     },
     {
       icon: FaPhoneAlt,
       title: "Priority Support",
       description: "VIP customer service for registered warriors",
       gradient: "from-red-500 to-red-600",
-      stats: "< 1min response"
+      stats: "< 1min response",
+      link: "/contact"
     }
   ];
 
@@ -87,7 +94,11 @@ function FeaturesSection() {
           {displayFeatures.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div key={feature.title} className="text-center group">
+              <Link 
+                key={feature.title} 
+                to={feature.link}
+                className="text-center group block"
+              >
                 <div className={`w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-full mx-auto mb-6 flex items-center justify-center shadow-xl group-hover:scale-110 transition-all duration-300 relative`}>
                   <IconComponent className="text-white text-2xl" />
                   
@@ -115,7 +126,7 @@ function FeaturesSection() {
                 } font-semibold text-sm`}>
                   Learn More →
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

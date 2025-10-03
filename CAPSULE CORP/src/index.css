@@ -24,14 +24,20 @@
 @keyframes popover-content { from { opacity:0; transform: translateY(3px);} to { opacity:1; transform: translateY(0);} }
 
 .popover-no-clip { overflow: hidden !important; max-height: none !important; }
-/* When any floating panel is open, prevent background page scroll */
-html.scroll-locked, body.scroll-locked { overflow: hidden !important; }
+.popover-no-clip { overflow: hidden !important; max-height: none !important; }
 /* ===================================================================== */
 
 /* Prevent horizontal overflow globally */
-html, body {
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
   overflow-x: hidden;
   max-width: 100vw;
+  margin: 0;
+  padding: 0;
 }
 
 * {
@@ -40,8 +46,8 @@ html, body {
 
 /* Ensure main app container doesn't overflow */
 #root {
-  overflow-x: hidden;
   max-width: 100vw;
+  width: 100%;
 }
 
 /* Prevent dropdown overflows */

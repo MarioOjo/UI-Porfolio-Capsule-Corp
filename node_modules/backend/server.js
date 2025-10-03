@@ -11,6 +11,7 @@ const emailService = require('./src/utils/emailService');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const contactRoutes = require('./routes/contact');
+const orderRoutes = require('./routes/orders');
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes); // For /api/me endpoint
 app.use('/api/products', productRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
