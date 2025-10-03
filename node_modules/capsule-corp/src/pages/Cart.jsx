@@ -123,10 +123,10 @@ function Cart() {
                       {/* Price */}
                       <div className="text-right">
                         <div className="text-2xl font-bold text-orange-600 font-saiyan">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                         </div>
                         <div className="text-sm text-gray-600">
-                          ${item.price.toFixed(2)} each
+                          ${parseFloat(item.price).toFixed(2)} each
                         </div>
                       </div>
 

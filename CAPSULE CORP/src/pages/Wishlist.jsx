@@ -151,7 +151,7 @@ function Wishlist() {
                   
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xl sm:text-2xl font-bold text-orange-600 font-saiyan">
-                      ${item.price ? item.price.toFixed(2) : '0.00'}
+                      ${item.price ? parseFloat(item.price).toFixed(2) : '0.00'}
                     </span>
                   </div>
                   

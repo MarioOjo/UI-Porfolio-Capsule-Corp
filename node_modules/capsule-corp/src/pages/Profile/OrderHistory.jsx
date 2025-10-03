@@ -247,11 +247,11 @@ const OrderHistory = () => {
                                 {item.name}
                               </h4>
                               <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                                Quantity: {item.quantity} × ${parseFloat(item.price).toFixed(2)}
                               </p>
                             </div>
                             <div className={`text-right font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                             </div>
                           </div>
                         ))}
@@ -341,11 +341,11 @@ const OrderHistory = () => {
                             {item.name}
                           </p>
                           <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            ${item.price.toFixed(2)} × {item.quantity}
+                            ${parseFloat(item.price).toFixed(2)} × {item.quantity}
                           </p>
                         </div>
                         <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          ${(item.price * item.quantity).toFixed(2)}
+                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     ))}

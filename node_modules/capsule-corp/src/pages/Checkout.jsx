@@ -484,7 +484,7 @@ function Checkout() {
                               </div>
                             </div>
                             <div className="font-bold text-orange-600">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                             </div>
                           </div>
                         ))}
@@ -558,7 +558,7 @@ function Checkout() {
                       <div className="font-medium text-sm">{item.name}</div>
                       <div className="text-xs text-gray-600">Qty: {item.quantity}</div>
                     </div>
-                    <div className="font-bold text-sm">${(item.price * item.quantity).toFixed(2)}</div>
+                    <div className="font-bold text-sm">${(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
                   </div>
                 ))}
               </div>

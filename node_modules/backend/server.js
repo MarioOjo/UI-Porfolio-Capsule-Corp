@@ -1,14 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-let bcrypt;
-try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
 
 // Internal modules
 const database = require('./src/config/database');
 const DatabaseMigration = require('./src/utils/DatabaseMigration');
-const ProductModel = require('./src/models/ProductModel');
-const UserModel = require('./src/models/UserModel');
+
+// Route imports
+const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/products');
 
 const app = express();
 
@@ -23,108 +23,21 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
-// Utility async wrapper
-const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
-
+// Root routes
 app.get('/', (req, res) => res.json({ status: 'ok', version: 'db-integrated' }));
-app.get('/health', asyncHandler(async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     await database.executeQuery('SELECT 1 as ok');
     res.json({ ok: true, db: 'up' });
   } catch (e) {
     res.status(500).json({ ok: false, db: 'down', error: e.message });
   }
-}));
+});
 
-// ----- Auth (minimal) -----
-app.post('/api/auth/signup', asyncHandler(async (req, res) => {
-  const { email, password, username, firstName, lastName } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  
-  const existing = await UserModel.findByEmail(email);
-  if (existing) return res.status(409).json({ error: 'Email already exists' });
-  
-  const password_hash = await bcrypt.hash(password, 10);
-  
-  // Create username from firstName + lastName or email
-  const generatedUsername = firstName && lastName 
-    ? `${firstName} ${lastName}`.trim()
-    : username || email.split('@')[0];
-  
-  const newUser = await UserModel.create({ 
-    username: generatedUsername, 
-    email, 
-    password_hash 
-  });
-  
-  // Return user wrapped in user property for frontend compatibility
-  res.status(201).json({ 
-    user: { 
-      id: newUser.id, 
-      email: newUser.email, 
-      username: newUser.username 
-    }
-  });
-}));
-
-app.post('/api/auth/login', asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  
-  const user = await UserModel.findByEmail(email);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-  
-  const match = await bcrypt.compare(password, user.password_hash);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  
-  // Return user wrapped in user property for frontend compatibility
-  res.json({ 
-    user: { 
-      id: user.id, 
-      email: user.email, 
-      username: user.username 
-    }
-  });
-}));
-
-app.post('/api/auth/logout', asyncHandler(async (req, res) => {
-  // For now just return success - could clear sessions here
-  res.json({ message: 'Logged out successfully' });
-}));
-
-app.get('/api/me', asyncHandler(async (req, res) => {
-  // For now return null - would check auth token here
-  res.json({ user: null });
-}));
-
-// ----- Product Endpoints (uses capsule_products schema) -----
-app.get('/api/products', asyncHandler(async (req, res) => {
-  const { category, search, featured } = req.query;
-  let products;
-  if (featured === 'true') {
-    products = await ProductModel.getFeatured();
-  } else if (category) {
-    products = await ProductModel.findByCategory(category);
-  } else if (search) {
-    products = await ProductModel.search(search);
-  } else {
-    products = await ProductModel.findAll();
-  }
-  res.json({ products });
-}));
-
-// Specific routes MUST come before parameterized routes
-app.get('/api/products/slug/:slug', asyncHandler(async (req, res) => {
-  const product = await ProductModel.findBySlug(req.params.slug);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-  res.json({ product });
-}));
-
-app.get('/api/products/:id', asyncHandler(async (req, res) => {
-  const product = await ProductModel.findById(req.params.id);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-  res.json({ product });
-}));
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api', authRoutes); // For /api/me endpoint
+app.use('/api/products', productRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
@@ -137,11 +50,25 @@ async function start() {
     await database.initialize();
     await DatabaseMigration.runMigrations();
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running with migrations on port ${PORT}`));
+    const server = app.listen(PORT, () => {
+      console.log(`✅ Server successfully listening on port ${PORT}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    });
+    
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error);
+      process.exit(1);
+    });
   } catch (e) {
-    console.error('Startup failure:', e.message);
+    console.error('❌ Startup failure:', e);
     process.exit(1);
   }
 }
+
+// Handle unhandled rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 start();
