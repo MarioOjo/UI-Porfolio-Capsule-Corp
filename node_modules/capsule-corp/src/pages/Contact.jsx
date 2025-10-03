@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useAuth } from '../AuthContext';
+import { apiFetch } from '../utils/api';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaRocket, FaUserAlt, FaPaperPlane } from 'react-icons/fa';
 
 function Contact() {
   const { isDarkMode } = useTheme();
-  const { addNotification } = useNotifications();
+  const { showSuccess, showError } = useNotifications();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,12 +28,24 @@ function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
-      addNotification('Message sent successfully! Our Z-Fighter support team will respond within 24 hours.', 'success');
+    try {
+      // Submit to backend API
+      await apiFetch('/api/contact', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...formData,
+          user_id: user?.id || null
+        })
+      });
+
+      showSuccess('✅ Message sent successfully! Our Z-Fighter support team will respond within 24 hours.');
       setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      showError('❌ Failed to send message. Please try again or contact us directly.');
+    } finally {
       setIsSubmitting(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -102,8 +117,8 @@ function Contact() {
                     EMAIL
                   </h3>
                   <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    support@capsulecorp.com<br />
-                    sales@capsulecorp.com
+                    capsulecorp.8999@gmail.com<br />
+                    General Inquiries & Support
                   </p>
                 </div>
               </div>

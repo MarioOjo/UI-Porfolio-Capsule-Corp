@@ -5,10 +5,12 @@ const cors = require('cors');
 // Internal modules
 const database = require('./src/config/database');
 const DatabaseMigration = require('./src/utils/DatabaseMigration');
+const emailService = require('./src/utils/emailService');
 
 // Route imports
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
+const contactRoutes = require('./routes/contact');
 
 const app = express();
 
@@ -38,6 +40,7 @@ app.get('/health', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes); // For /api/me endpoint
 app.use('/api/products', productRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
@@ -49,6 +52,7 @@ async function start() {
   try {
     await database.initialize();
     await DatabaseMigration.runMigrations();
+    await emailService.initialize(); // Initialize email service
     const PORT = process.env.PORT || 5000;
     const server = app.listen(PORT, () => {
       console.log(`✅ Server successfully listening on port ${PORT}`);
@@ -68,7 +72,19 @@ async function start() {
 // Handle unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
+  // Don't exit in development - just log the error
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  // Don't exit in development - just log the error
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
 });
 
 start();

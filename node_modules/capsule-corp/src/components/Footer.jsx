@@ -28,7 +28,7 @@ function Footer() {
               </div>
               <div className="flex items-center space-x-2">
                 <FaEnvelope className="text-neutral-500 text-xs" />
-                <span className="text-neutral-400">support@capsulecorp.com</span>
+                <span className="text-neutral-400">capsulecorp.8999@gmail.com</span>
               </div>
             </div>
           </div>
