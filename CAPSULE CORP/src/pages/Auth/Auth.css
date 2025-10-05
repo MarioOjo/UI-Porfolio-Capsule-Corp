@@ -1,16 +1,126 @@
-.nebula-bg {
-  background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+/* Auth Page Styles */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
-.font-saiyan {
-  font-family: 'Orbitron', monospace;
+
+.auth-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+  max-width: 450px;
 }
-.kamehameha-glow:hover {
-  box-shadow: 0 0 30px rgba(255,158,0,0.8), 0 0 60px rgba(59,76,202,0.6);
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
 }
-.ki-glow {
-  box-shadow: 0 0 20px rgba(59,76,202,0.5);
+
+.auth-tab {
+  flex: 1;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
 }
-.capsule-shadow {
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(59,76,202,0.1);
+
+.auth-tab.active {
+  background: linear-gradient(135deg, #3B4CCA, #667eea);
+  color: white;
+  border-bottom: 3px solid #FFD700;
 }
-/* Add any other custom effects you need */
+
+.auth-tab:not(.active):hover {
+  background: #f9fafb;
+}
+
+.auth-form {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3B4CCA;
+  box-shadow: 0 0 0 3px rgba(59, 76, 202, 0.1);
+}
+
+.auth-button {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #3B4CCA, #667eea);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(59, 76, 202, 0.3);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+.auth-link {
+  color: #3B4CCA;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.success-message {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
