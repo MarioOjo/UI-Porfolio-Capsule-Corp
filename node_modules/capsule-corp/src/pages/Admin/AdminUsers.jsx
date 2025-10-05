@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
+import Price from '../../components/Price';
 
 function AdminUsers() {
   const { user } = useAuth();
@@ -346,7 +347,7 @@ function AdminUsers() {
                       {user.orders}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-saiyan">
-                      ${user.totalSpent.toFixed(2)}
+                      <Price value={user.totalSpent} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">

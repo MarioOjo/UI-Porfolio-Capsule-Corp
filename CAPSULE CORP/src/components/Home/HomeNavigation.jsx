@@ -6,6 +6,7 @@ const navLinks = [
   { name: "Battle Gear", to: "/battle-gear" },
   { name: "Capsules", to: "/capsules" },
   { name: "Training", to: "/training" },
+  { name: "Track Order", to: "/track-order" },
   { name: "Contact", to: "/contact" },
   { name: "Cart", to: "/cart" },
 ];

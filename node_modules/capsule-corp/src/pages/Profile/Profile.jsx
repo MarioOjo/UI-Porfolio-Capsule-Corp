@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaUser, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
@@ -6,6 +7,7 @@ import { FaUser, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 const Profile = () => {
   const { user, updateProfile } = useAuth();
   const { isDarkMode } = useTheme();
+  const { formatPrice } = useCurrency();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -199,7 +201,7 @@ const Profile = () => {
                 </div>
                 <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-br from-orange-50 to-orange-100'}`}>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-[#FF9E00] font-saiyan">$2,450</div>
+                    <div className="text-3xl font-bold text-[#FF9E00] font-saiyan">{formatPrice(2450)}</div>
                     <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total Spent</div>
                   </div>
                 </div>

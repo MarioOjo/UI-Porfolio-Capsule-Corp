@@ -12,6 +12,7 @@ import { CartProvider } from './contexts/CartContext'
 import { WishlistProvider } from './contexts/WishlistContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { ReviewProvider } from './contexts/ReviewContext'
+import { CurrencyProvider } from './contexts/CurrencyContext'
 
 // Performance monitoring for development
 if (process.env.NODE_ENV === 'development') {
@@ -32,15 +33,17 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <ThemeProvider>
           <NotificationProvider>
-            <AuthProvider>
-              <ReviewProvider>
-                <CartProvider>
-                  <WishlistProvider>
-                    <App />
-                  </WishlistProvider>
-                </CartProvider>
-              </ReviewProvider>
-            </AuthProvider>
+            <CurrencyProvider>
+              <AuthProvider>
+                <ReviewProvider>
+                  <CartProvider>
+                    <WishlistProvider>
+                      <App />
+                    </WishlistProvider>
+                  </CartProvider>
+                </ReviewProvider>
+              </AuthProvider>
+            </CurrencyProvider>
           </NotificationProvider>
         </ThemeProvider>
       </BrowserRouter>

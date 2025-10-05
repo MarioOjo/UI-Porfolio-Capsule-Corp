@@ -6,6 +6,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { apiFetch } from "../../utils/api";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
+import Price from '../Price';
 
 function FeaturedProducts() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -155,13 +156,13 @@ function FeaturedProducts() {
                   </p>
 
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                       <span className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-[#3B4CCA]'}`}>
-                        ${parseFloat(product.price || 0).toFixed(2)}
+                        <Price value={parseFloat(product.price || 0)} />
                       </span>
                       {parseFloat(product.original_price || 0) > parseFloat(product.price || 0) && (
                         <span className="text-lg text-gray-500 line-through">
-                          ${parseFloat(product.original_price || 0).toFixed(2)}
+                          <Price value={parseFloat(product.original_price || 0)} />
                         </span>
                       )}
                     </div>

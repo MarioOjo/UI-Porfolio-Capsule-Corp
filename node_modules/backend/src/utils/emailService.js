@@ -231,6 +231,152 @@ Empowering Earth's Warriors Since 1985
       return false;
     }
   }
+
+  /**
+   * Send order status update notification to customer
+   */
+  async sendOrderStatusUpdate(customerEmail, customerName, orderNumber, newStatus, trackingNumber = null) {
+    if (!this.initialized) {
+      console.warn('Email service not initialized, skipping status update email');
+      return false;
+    }
+
+    try {
+      const statusEmojis = {
+        pending: '🕐',
+        processing: '📦',
+        shipped: '🚚',
+        delivered: '✅',
+        cancelled: '❌'
+      };
+
+      const statusMessages = {
+        pending: 'Your order has been received and is awaiting processing.',
+        processing: 'Your order is being prepared for shipment!',
+        shipped: 'Your order is on its way to you!',
+        delivered: 'Your order has been delivered. Enjoy your Capsule Corp gear!',
+        cancelled: 'Your order has been cancelled.'
+      };
+
+      const statusColors = {
+        pending: '#EAB308',
+        processing: '#3B82F6',
+        shipped: '#A855F7',
+        delivered: '#10B981',
+        cancelled: '#EF4444'
+      };
+
+      const trackingSection = trackingNumber ? `
+        <div style="background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0;">
+          <h3 style="color: #A855F7; margin: 0 0 10px 0;">🚛 Tracking Information</h3>
+          <p style="margin: 5px 0;"><strong>Tracking Number:</strong> <span style="font-family: monospace; background: white; padding: 5px 10px; border-radius: 5px;">${trackingNumber}</span></p>
+          <p style="margin: 10px 0 0 0; font-size: 14px; color: #6B7280;">You can track your package using this number with your carrier.</p>
+        </div>
+      ` : '';
+
+      const mailOptions = {
+        from: `"Capsule Corp Orders" <${process.env.EMAIL_USER}>`,
+        to: customerEmail,
+        subject: `${statusEmojis[newStatus]} Order ${orderNumber} - ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #FF6B35 0%, #3B4CCA 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: white; padding: 30px; border: 1px solid #E5E7EB; }
+              .status-badge { background: ${statusColors[newStatus]}; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold; margin: 10px 0; }
+              .order-number { background: #F3F4F6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+              .btn { display: inline-block; background: #FF6B35; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { background: #1F2937; color: white; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1 style="margin: 0; font-size: 32px;">${statusEmojis[newStatus]} Order Status Update</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Capsule Corporation</p>
+              </div>
+              <div class="content">
+                <p>Hi <strong>${customerName}</strong>,</p>
+                
+                <p>Great news! Your order status has been updated:</p>
+                
+                <div style="text-align: center;">
+                  <span class="status-badge">${newStatus.toUpperCase()}</span>
+                </div>
+                
+                <p style="font-size: 16px; color: #6B7280;">${statusMessages[newStatus]}</p>
+                
+                <div class="order-number">
+                  <p style="margin: 0; color: #6B7280; font-size: 14px;">Order Number</p>
+                  <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; font-family: monospace; color: #FF6B35;">${orderNumber}</p>
+                </div>
+                
+                ${trackingSection}
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${process.env.FRONTEND_ORIGIN || 'http://localhost:3000'}/track-order" class="btn">
+                    Track Your Order
+                  </a>
+                </div>
+                
+                <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">
+                  <strong>Questions?</strong> Contact our support team anytime.<br>
+                  📧 capsulecorp.8999@gmail.com | 📞 +1 (555) CAPSULE
+                </p>
+              </div>
+              <div class="footer">
+                <p style="margin: 0;"><strong>Capsule Corporation</strong></p>
+                <p style="margin: 5px 0; opacity: 0.8;">Empowering Earth's Warriors</p>
+                <p style="margin: 10px 0 0 0; font-size: 11px; opacity: 0.7;">
+                  This is an automated notification. Please do not reply to this email.
+                </p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `
+${statusEmojis[newStatus]} ORDER STATUS UPDATE - Capsule Corporation
+
+Hi ${customerName},
+
+Your order status has been updated to: ${newStatus.toUpperCase()}
+
+${statusMessages[newStatus]}
+
+Order Number: ${orderNumber}
+
+${trackingNumber ? `
+Tracking Information:
+Tracking Number: ${trackingNumber}
+You can track your package using this number with your carrier.
+` : ''}
+
+Track your order anytime at:
+${process.env.FRONTEND_ORIGIN || 'http://localhost:3000'}/track-order
+
+Questions? Contact our support team:
+Email: capsulecorp.8999@gmail.com
+Phone: +1 (555) CAPSULE
+
+---
+Capsule Corporation
+Empowering Earth's Warriors
+        `.trim(),
+      };
+
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`✅ Order status update email sent to ${customerEmail}:`, info.messageId);
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to send order status update:', error.message);
+      return false;
+    }
+  }
 }
 
 // Export singleton instance

@@ -3,6 +3,7 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft } from 'react-icons/fa';
 import { apiFetch } from '../../utils/api.js';
+import Price from '../../components/Price';
 
 function AdminProducts() {
   const { user } = useAuth();
@@ -91,25 +92,53 @@ function AdminProducts() {
 
   const handleUpdateProduct = async (updatedProduct) => {
     try {
-      const response = await apiFetch(`/api/products/${updatedProduct.id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: updatedProduct.name,
-          slug: updatedProduct.slug,
-          description: updatedProduct.description,
-          category: updatedProduct.category,
-          price: updatedProduct.price,
-          original_price: updatedProduct.originalPrice || updatedProduct.price,
-          power_level: updatedProduct.powerLevel,
-          image: updatedProduct.image,
-          gallery: updatedProduct.gallery || [],
-          in_stock: updatedProduct.inStock,
-          stock: updatedProduct.stock,
-          featured: updatedProduct.featured || false,
-          tags: updatedProduct.tags || [],
-          specifications: updatedProduct.specifications || {}
-        })
-      });
+      let response;
+      // If a file was provided from the edit modal, send multipart/form-data
+      if (updatedProduct.imageFiles && updatedProduct.imageFiles.length) {
+        const form = new FormData();
+        form.append('name', updatedProduct.name);
+        form.append('slug', updatedProduct.slug);
+        form.append('description', updatedProduct.description);
+        form.append('category', updatedProduct.category);
+        form.append('price', String(updatedProduct.price));
+        form.append('original_price', String(updatedProduct.originalPrice || updatedProduct.price));
+        form.append('power_level', String(updatedProduct.powerLevel || 0));
+        form.append('in_stock', updatedProduct.inStock ? '1' : '0');
+        form.append('stock', String(updatedProduct.stock));
+        form.append('featured', updatedProduct.featured ? '1' : '0');
+        form.append('tags', JSON.stringify(updatedProduct.tags || []));
+        form.append('specifications', JSON.stringify(updatedProduct.specifications || {}));
+        // append multiple files
+        updatedProduct.imageFiles.forEach((f) => form.append('images', f));
+        if (updatedProduct.gallery && updatedProduct.gallery.length) {
+          form.append('gallery', JSON.stringify(updatedProduct.gallery));
+        }
+
+        response = await apiFetch(`/api/products/${updatedProduct.id}`, {
+          method: 'PUT',
+          body: form
+        });
+      } else {
+        response = await apiFetch(`/api/products/${updatedProduct.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: updatedProduct.name,
+            slug: updatedProduct.slug,
+            description: updatedProduct.description,
+            category: updatedProduct.category,
+            price: updatedProduct.price,
+            original_price: updatedProduct.originalPrice || updatedProduct.price,
+            power_level: updatedProduct.powerLevel,
+            image: updatedProduct.image || updatedProduct.imageUrl,
+            gallery: updatedProduct.gallery || [],
+            in_stock: updatedProduct.inStock,
+            stock: updatedProduct.stock,
+            featured: updatedProduct.featured || false,
+            tags: updatedProduct.tags || [],
+            specifications: updatedProduct.specifications || {}
+          })
+        });
+      }
       
       // Update local state with the updated product
       setProducts(products.map(p => 
@@ -125,25 +154,52 @@ function AdminProducts() {
 
   const handleAddProduct = async (newProductData) => {
     try {
-      const response = await apiFetch('/api/products', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: newProductData.name,
-          slug: newProductData.name.toLowerCase().replace(/\s+/g, '-'),
-          description: newProductData.description,
-          category: newProductData.category,
-          price: newProductData.price,
-          original_price: newProductData.price,
-          power_level: newProductData.powerLevel,
-          image: newProductData.image || 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg',
-          gallery: [newProductData.image || 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg'],
-          in_stock: newProductData.inStock,
-          stock: newProductData.stock,
-          featured: false,
-          tags: [],
-          specifications: {}
-        })
-      });
+      let response;
+      if (newProductData.imageFiles && newProductData.imageFiles.length) {
+        const form = new FormData();
+        form.append('name', newProductData.name);
+        form.append('slug', newProductData.name.toLowerCase().replace(/\s+/g, '-'));
+        form.append('description', newProductData.description);
+        form.append('category', newProductData.category);
+        form.append('price', String(newProductData.price));
+        form.append('original_price', String(newProductData.price));
+        form.append('power_level', String(newProductData.powerLevel || 0));
+        form.append('in_stock', newProductData.inStock ? '1' : '0');
+        form.append('stock', String(newProductData.stock));
+        form.append('featured', '0');
+        form.append('tags', JSON.stringify([]));
+        form.append('specifications', JSON.stringify({}));
+        // append multiple files
+        newProductData.imageFiles.forEach((f) => form.append('images', f));
+        // append existing imageUrls from gallery
+        if (newProductData.imageUrls && newProductData.imageUrls.length) {
+          form.append('gallery', JSON.stringify(newProductData.imageUrls));
+        }
+        response = await apiFetch('/api/products', {
+          method: 'POST',
+          body: form
+        });
+      } else {
+        response = await apiFetch('/api/products', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: newProductData.name,
+            slug: newProductData.name.toLowerCase().replace(/\s+/g, '-'),
+            description: newProductData.description,
+            category: newProductData.category,
+            price: newProductData.price,
+            original_price: newProductData.price,
+            power_level: newProductData.powerLevel,
+            image: newProductData.imageUrls?.[0] || 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg',
+            gallery: newProductData.imageUrls?.length ? newProductData.imageUrls : ['https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096578/c3_kamzog.jpg'],
+            in_stock: newProductData.inStock,
+            stock: newProductData.stock,
+            featured: false,
+            tags: [],
+            specifications: {}
+          })
+        });
+      }
       
       setProducts([...products, response.product]);
       setShowAddModal(false);
@@ -331,7 +387,7 @@ function AdminProducts() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-saiyan">
-                        ${parseFloat(product.price || 0).toFixed(2)}
+                        <Price value={parseFloat(product.price || 0)} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {product.stock} units
@@ -417,6 +473,9 @@ function AddProductModal({ onSave, onCancel }) {
     powerLevel: '',
     inStock: true
   });
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState([]); // Track multiple URLs
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -424,12 +483,30 @@ function AddProductModal({ onSave, onCancel }) {
       ...formData,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
-      powerLevel: parseInt(formData.powerLevel) || 0
+      powerLevel: parseInt(formData.powerLevel) || 0,
+      imageFiles: imageFiles,
+      imageUrl: imageUrls.length ? imageUrls[0] : imageUrl, // Use first URL from list or single URL
+      imageUrls: imageUrls
     });
   };
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddUrl = () => {
+    if (imageUrl.trim()) {
+      setImageUrls(prev => [...prev, imageUrl.trim()]);
+      setImageUrl('');
+    }
+  };
+
+  const handleRemoveUrl = (index) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveFile = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -532,6 +609,77 @@ function AddProductModal({ onSave, onCancel }) {
             </label>
           </div>
 
+          {/* Image upload / URL */}
+          <div>
+            <label className="block text-sm font-saiyan text-gray-700 mb-2">IMAGE (file upload) — you can select multiple</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => setImageFiles(e.target.files ? Array.from(e.target.files) : [])}
+              className="w-full"
+            />
+            <p className="text-xs text-gray-500 mt-1">Or paste an image URL below and click "Add to Gallery".</p>
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Add to Gallery
+              </button>
+            </div>
+
+            {/* File previews */}
+            {imageFiles.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-saiyan text-gray-700 mb-2">Files to upload:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {imageFiles.map((file, index) => (
+                    <div key={index} className="relative border border-gray-300 rounded-lg p-2 bg-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                      <p className="text-xs text-gray-600 truncate pr-6">{file.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* URL previews */}
+            {imageUrls.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-saiyan text-gray-700 mb-2">Image URLs:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveUrl(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 z-10"
+                      >
+                        ×
+                      </button>
+                      <img src={url} alt={`Preview ${index + 1}`} className="w-full h-24 object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Action Buttons */}
           <div className="flex space-x-3 pt-4">
             <button
@@ -554,6 +702,7 @@ function AddProductModal({ onSave, onCancel }) {
   );
 }
 
+
 // Edit Product Modal Component
 function EditProductModal({ product, onSave, onCancel }) {
   const [formData, setFormData] = useState({
@@ -565,6 +714,9 @@ function EditProductModal({ product, onSave, onCancel }) {
     powerLevel: product.powerLevel || product.power_level || 0,
     inStock: product.inStock !== undefined ? product.inStock : product.in_stock
   });
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState(product.gallery || []); // Initialize with existing gallery
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -576,8 +728,10 @@ function EditProductModal({ product, onSave, onCancel }) {
       powerLevel: parseInt(formData.powerLevel),
       originalPrice: product.originalPrice || product.original_price || formData.price,
       slug: product.slug,
-      image: product.image,
-      gallery: product.gallery || [],
+      image: imageUrls.length ? imageUrls[0] : product.image, // Use first gallery image as main
+      imageFiles: imageFiles,
+      gallery: imageUrls, // Send managed gallery list
+      imageUrls: imageUrls,
       featured: product.featured || false,
       tags: product.tags || [],
       specifications: product.specifications || {}
@@ -586,6 +740,21 @@ function EditProductModal({ product, onSave, onCancel }) {
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddUrl = () => {
+    if (imageUrl.trim()) {
+      setImageUrls(prev => [...prev, imageUrl.trim()]);
+      setImageUrl('');
+    }
+  };
+
+  const handleRemoveUrl = (index) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveFile = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -681,6 +850,85 @@ function EditProductModal({ product, onSave, onCancel }) {
             <label htmlFor="inStock" className="text-sm font-saiyan text-gray-700">
               IN STOCK
             </label>
+          </div>
+
+          {/* Image upload / URL */}
+          <div>
+            <label className="block text-sm font-saiyan text-gray-700 mb-2">MANAGE GALLERY — Add or Remove Images</label>
+            
+            {/* Current gallery preview */}
+            {imageUrls.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-saiyan text-gray-700 mb-2">Current Gallery ({imageUrls.length} images):</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveUrl(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 z-10 text-sm font-bold"
+                      >
+                        ×
+                      </button>
+                      <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-24 object-cover" />
+                      {index === 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-blue-500 bg-opacity-75 text-white text-xs text-center py-1">
+                          Main Image
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <label className="block text-sm font-saiyan text-gray-700 mb-2">Upload files (multiple)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => setImageFiles(e.target.files ? Array.from(e.target.files) : [])}
+              className="w-full"
+            />
+
+            {/* File previews */}
+            {imageFiles.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-saiyan text-gray-700 mb-2">Files to upload:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {imageFiles.map((file, index) => (
+                    <div key={index} className="relative border border-gray-300 rounded-lg p-2 bg-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                      <p className="text-xs text-gray-600 truncate pr-6">{file.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 mt-2">Or paste an image URL below and click "Add to Gallery".</p>
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={handleAddUrl}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Add to Gallery
+              </button>
+            </div>
           </div>
 
           {/* Action Buttons */}

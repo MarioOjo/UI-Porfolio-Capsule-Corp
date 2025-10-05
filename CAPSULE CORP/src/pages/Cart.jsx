@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaMinus, FaPlus, FaTrash, FaArrowLeft } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
+import Price from "../components/Price";
 
 function Cart() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
@@ -123,11 +124,11 @@ function Cart() {
                       {/* Price */}
                       <div className="text-right">
                         <div className="text-2xl font-bold text-orange-600 font-saiyan">
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          ${parseFloat(item.price).toFixed(2)} each
-                        </div>
+                            <Price value={parseFloat(item.price) * item.quantity} />
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <Price value={parseFloat(item.price)} /> each
+                          </div>
                       </div>
 
                       {/* Remove Button */}
@@ -164,7 +165,7 @@ function Cart() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-bold">${total.toFixed(2)}</span>
+                    <span className="font-bold"><Price value={total} /></span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Shipping:</span>
@@ -178,7 +179,7 @@ function Cart() {
                   <div className="flex justify-between items-center text-xl">
                     <span className="font-bold text-gray-800">Total:</span>
                     <span className="font-bold text-orange-600 font-saiyan">
-                      ${total.toFixed(2)}
+                      <Price value={total} />
                     </span>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaEye, FaDownload, FaFilter, FaArrowLeft, FaSync, FaTruck, FaStickyNote } from 'react-icons/fa';
 import { apiFetch } from '../../utils/api';
+import Price from '../../components/Price';
 import { useNotifications } from '../../contexts/NotificationContext';
 
 function AdminOrders() {
@@ -470,8 +471,8 @@ function AdminOrders() {
                       {order.item_count || 0} items
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-saiyan">
-                      ${parseFloat(order.total || 0).toFixed(2)}
-                    </td>
+                          <Price value={parseFloat(order.total || 0)} />
+                        </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <button 
@@ -624,7 +625,7 @@ function AdminOrders() {
                             <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                           </div>
                         </div>
-                        <p className="font-bold">${parseFloat(item.subtotal).toFixed(2)}</p>
+                        <p className="font-bold"><Price value={parseFloat(item.subtotal)} /></p>
                       </div>
                     ))}
                   </div>
@@ -635,7 +636,7 @@ function AdminOrders() {
               <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold font-saiyan">TOTAL:</span>
-                  <span className="text-2xl font-bold text-orange-600 font-saiyan">${parseFloat(selectedOrder.total).toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-orange-600 font-saiyan"><Price value={parseFloat(selectedOrder.total)} /></span>
                 </div>
               </div>
             </div>

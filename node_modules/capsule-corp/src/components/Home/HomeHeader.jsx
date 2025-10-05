@@ -6,7 +6,9 @@ import { useNotifications } from "../../contexts/NotificationContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useCurrency } from "../../contexts/CurrencyContext";
 import { apiFetch } from "../../utils/api";
+import CurrencySelector from "../CurrencySelector";
 
 function HomeHeader() {
   const [search, setSearch] = useState("");
@@ -21,6 +23,7 @@ function HomeHeader() {
   const { cartItems, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
   const { wishlistItems, removeFromWishlist, getWishlistCount } = useWishlist();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   
   const searchRef = useRef(null);
@@ -88,8 +91,8 @@ function HomeHeader() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg overflow-x-hidden">
-      <div className="max-w-6xl mx-auto px-4 py-4 overflow-x-hidden">
+    <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg overflow-visible">
+      <div className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
         <div className="flex items-center justify-between space-x-2 sm:space-x-4 min-w-0">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
@@ -139,7 +142,7 @@ function HomeHeader() {
                         />
                         <div className="flex-1">
                           <h4 className="font-semibold text-[#3B4CCA] text-sm font-saiyan">{product.name}</h4>
-                          <p className="text-xs text-gray-600">${product.price}</p>
+                          <p className="text-xs text-gray-600">{formatPrice(product.price)}</p>
                         </div>
                       </Link>
                     ))}
@@ -158,6 +161,18 @@ function HomeHeader() {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Currency Selector */}
+            <CurrencySelector size="small" showLabel={false} />
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 text-white hover:text-[#FFD700] transition-colors"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <FaSun className="text-xl" /> : <FaMoon className="text-xl" />}
+            </button>
+            
             {/* Profile Icon with Dropdown */}
             <div 
               className="relative" 
@@ -309,9 +324,8 @@ function HomeHeader() {
                         </div>
                       ) : (
                         <>
-                          <div>
-                            {wishlistItems.slice(0, 4).map((item) => (
-                              <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
+                          {wishlistItems.slice(0, 4).map((item) => (
+                            <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                                 <img 
                                   src={item.image} 
                                   alt={item.name}
@@ -330,7 +344,6 @@ function HomeHeader() {
                                 </button>
                               </div>
                             ))}
-                          </div>
                           <div className="p-3 border-t border-gray-100 text-center">
                             <Link
                               to="/wishlist"
@@ -407,7 +420,6 @@ function HomeHeader() {
               {showCartPreview && (
                 <div 
                   className="popover-panel absolute top-full right-0 mt-2 w-72 sm:w-80 bg-white/90 border-2 border-[#FFD700]/40 rounded-xl z-[70] popover-no-clip transform -translate-x-0"
-                  style={{right: 'max(0px, calc(100% - 100vw + 16px))'}}
                 >
                   <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                     <h3 className="font-bold text-[#3B4CCA] font-saiyan">CAPSULE CART</h3>
@@ -421,9 +433,8 @@ function HomeHeader() {
                     </div>
                   ) : (
                     <>
-                      <div>
-                        {cartItems.slice(0, 4).map((item) => (
-                          <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
+                      {cartItems.slice(0, 4).map((item) => (
+                        <div key={item.id} className="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50">
                             <img 
                               src={item.image} 
                               alt={item.name}
@@ -431,7 +442,7 @@ function HomeHeader() {
                             />
                             <div className="flex-1">
                               <h4 className="font-semibold text-[#3B4CCA] text-sm">{item.name}</h4>
-                              <p className="text-xs text-gray-600">${item.price} x {item.quantity}</p>
+                              <p className="text-xs text-gray-600">{formatPrice(item.price)} x {item.quantity}</p>
                             </div>
                             <div className="flex items-center space-x-1">
                               <button
@@ -459,11 +470,10 @@ function HomeHeader() {
                             </div>
                           </div>
                         ))}
-                      </div>
                       <div className="p-3 border-t border-gray-100">
                         <div className="flex justify-between items-center mb-3">
                           <span className="font-bold text-[#3B4CCA]">Total:</span>
-                          <span className="font-bold text-[#3B4CCA] text-lg">${getCartTotal().toFixed(2)}</span>
+                          <span className="font-bold text-[#3B4CCA] text-lg">{formatPrice(getCartTotal())}</span>
                         </div>
                         <Link
                           to="/cart"

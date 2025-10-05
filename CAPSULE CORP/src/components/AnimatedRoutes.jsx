@@ -21,6 +21,8 @@ const Profile = lazy(() => import('../pages/Profile/Profile'));
 const OrderHistory = lazy(() => import('../pages/Profile/OrderHistory'));
 const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
 const ChangePassword = lazy(() => import('../pages/Profile/ChangePassword'));
+const OrderTracking = lazy(() => import('../pages/OrderTracking'));
+const OrderConfirmation = lazy(() => import('../pages/OrderConfirmation'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('../pages/Admin/AdminDashboard'));
@@ -63,6 +65,8 @@ const AnimatedRoutes = () => {
               <Route path="/order-history" element={<OrderHistory />} />
               <Route path="/address-book" element={<AddressBook />} />
               <Route path="/change-password" element={<ChangePassword />} />
+              <Route path="/track-order" element={<OrderTracking />} />
+              <Route path="/order-confirmation" element={<OrderConfirmation />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />

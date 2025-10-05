@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaBox, FaEye, FaTruck, FaCheckCircle, FaClock, FaTimes, FaSearch } from 'react-icons/fa';
+import Price from '../../components/Price';
 
 const OrderHistory = () => {
   const { user } = useAuth();
@@ -225,7 +226,7 @@ const OrderHistory = () => {
                           <div className="text-right">
                             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</p>
                             <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
-                              ${order.total.toFixed(2)}
+                              <Price value={order.total} />
                             </p>
                           </div>
                         </div>
@@ -247,11 +248,11 @@ const OrderHistory = () => {
                                 {item.name}
                               </h4>
                               <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                Quantity: {item.quantity} × ${parseFloat(item.price).toFixed(2)}
+                                Quantity: {item.quantity} × <Price value={item.price} />
                               </p>
                             </div>
                             <div className={`text-right font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                              ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                              <Price value={parseFloat(item.price) * item.quantity} />
                             </div>
                           </div>
                         ))}
@@ -320,7 +321,7 @@ const OrderHistory = () => {
                     <p><strong>Order ID:</strong> {selectedOrder.id}</p>
                     <p><strong>Date:</strong> {new Date(selectedOrder.date).toLocaleDateString()}</p>
                     <p><strong>Status:</strong> {selectedOrder.status}</p>
-                    <p><strong>Total:</strong> ${selectedOrder.total.toFixed(2)}</p>
+                    <p><strong>Total:</strong> <Price value={selectedOrder.total} /></p>
                   </div>
                 </div>
                 
@@ -341,11 +342,11 @@ const OrderHistory = () => {
                             {item.name}
                           </p>
                           <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            ${parseFloat(item.price).toFixed(2)} × {item.quantity}
+                            <Price value={parseFloat(item.price)} /> × {item.quantity}
                           </p>
                         </div>
                         <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                          <Price value={parseFloat(item.price) * item.quantity} />
                         </p>
                       </div>
                     ))}

@@ -5,6 +5,8 @@ import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { apiFetch } from "../../utils/api";
+import Price from "../../components/Price";
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 function Navbar() {
   const [search, setSearch] = useState("");
@@ -78,23 +80,8 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Lock body scroll when any floating panel is open
-  useEffect(() => {
-    const anyOpen = showCartPreview || showWishlistPreview || (showSearchResults && searchResults.length > 0);
-    const htmlEl = document.documentElement;
-    const bodyEl = document.body;
-    if (anyOpen) {
-      htmlEl.classList.add('scroll-locked');
-      bodyEl.classList.add('scroll-locked');
-    } else {
-      htmlEl.classList.remove('scroll-locked');
-      bodyEl.classList.remove('scroll-locked');
-    }
-    return () => {
-      htmlEl.classList.remove('scroll-locked');
-      bodyEl.classList.remove('scroll-locked');
-    };
-  }, [showCartPreview, showWishlistPreview, showSearchResults, searchResults]);
+  // NOTE: removed scroll-lock behavior (was causing header/content clipping and nested scrollbars on some platforms).
+  // Floating panels use z-index and absolute positioning; we avoid toggling global classes to prevent layout side-effects.
 
   const handleLogout = async () => {
     try {
@@ -119,9 +106,10 @@ function Navbar() {
 
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
+  const { formatPrice } = useCurrency();
 
   return (
-    <header className="max-w-6xl mx-auto px-4 py-4 overflow-hidden">
+  <header className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
       <div className="flex items-center justify-between min-w-0">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3">
@@ -171,7 +159,7 @@ function Navbar() {
                       />
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-800 text-sm">{product.name}</h4>
-                        <p className="text-xs text-gray-600">${product.price}</p>
+                        <p className="text-xs text-gray-600"><Price value={product.price} /></p>
                       </div>
                     </Link>
                   ))}
@@ -248,7 +236,7 @@ function Navbar() {
 
                 {/* Wishlist Preview Dropdown */}
                 {showWishlistPreview && (
-                  <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
+                  <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[95%] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-red-50">
                       <h3 className="font-bold text-gray-800 font-saiyan">WISHLIST</h3>
                       <p className="text-sm text-gray-600">{wishlistCount} {wishlistCount === 1 ? 'item' : 'items'}</p>
@@ -271,7 +259,7 @@ function Navbar() {
                               />
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-800 text-sm">{item.name}</h4>
-                                <p className="text-xs text-gray-600">${item.price}</p>
+                                <p className="text-xs text-gray-600"><Price value={item.price} /></p>
                               </div>
                               <button
                                 onClick={() => removeFromWishlist(item.id)}
@@ -333,8 +321,8 @@ function Navbar() {
             </button>
 
             {/* Cart Preview Dropdown */}
-            {showCartPreview && (
-              <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
+              {showCartPreview && (
+              <div className="popover-panel absolute top-full right-0 mt-2 w-80 max-w-[95%] bg-white/90 border-2 border-[#3B4CCA]/30 rounded-xl z-50 popover-no-clip">
                 <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-orange-50">
                   <h3 className="font-bold text-gray-800 font-saiyan">CAPSULE CART</h3>
                   <p className="text-sm text-gray-600">{cartCount} {cartCount === 1 ? 'item' : 'items'}</p>
@@ -389,7 +377,7 @@ function Navbar() {
                     <div className="p-3 border-t border-gray-100">
                       <div className="flex justify-between items-center mb-3">
                         <span className="font-bold text-gray-800">Total:</span>
-                        <span className="font-bold text-[#3B4CCA] text-lg">${getCartTotal().toFixed(2)}</span>
+                        <span className="font-bold text-[#3B4CCA] text-lg"><Price value={getCartTotal()} /></span>
                       </div>
                       <Link
                         to="/cart"

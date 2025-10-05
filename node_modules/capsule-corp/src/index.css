@@ -12,6 +12,7 @@
   transform-origin: top right;
   will-change: transform, opacity;
   backdrop-filter: blur(10px) saturate(1.4);
+  overflow: visible !important;
 }
 
 @keyframes popover-pop { 
@@ -23,19 +24,30 @@
 .popover-content-fade { animation: popover-content 220ms ease 40ms backwards; }
 @keyframes popover-content { from { opacity:0; transform: translateY(3px);} to { opacity:1; transform: translateY(0);} }
 
-.popover-no-clip { overflow: hidden !important; max-height: none !important; }
-.popover-no-clip { overflow: hidden !important; max-height: none !important; }
+.popover-no-clip { 
+  overflow: visible !important; 
+  max-height: none !important; 
+}
 /* ===================================================================== */
 
-/* Prevent horizontal overflow globally */
-html {
-  overflow-x: hidden;
-  overflow-y: auto;
+/* Prevent popovers from collapsing to very narrow widths on some browsers */
+.popover-panel {
+  /* reasonable minimum so dropdowns are usable */
+  min-width: 14rem; /* 224px */
+  width: auto;
 }
 
-body {
+/* Specific small-width helpers to ensure fixed w-72 / w-80 still have usable min-width */
+.popover-panel[class*="w-72"] { min-width: 18rem; }
+.popover-panel[class*="w-80"] { min-width: 20rem; }
+
+
+/* Prevent horizontal overflow globally */
+html, body {
   overflow-x: hidden;
-  max-width: 100vw;
+  /* Use 100% rather than 100vw to avoid creating horizontal scroll when
+     the browser adds a vertical scrollbar (100vw includes the scrollbar). */
+  max-width: 100%;
   margin: 0;
   padding: 0;
 }
@@ -46,7 +58,9 @@ body {
 
 /* Ensure main app container doesn't overflow */
 #root {
-  max-width: 100vw;
+  /* Avoid 100vw here as well; prefer 100% so layout doesn't overflow
+     when scrollbars appear. */
+  max-width: 100%;
   width: 100%;
 }
 
@@ -55,9 +69,28 @@ body {
   overflow: visible;
 }
 
-/* Ensure dropdowns stay within viewport */
+/* Ensure dropdowns stay within viewport (use min to avoid 100vw causing horizontal scroll)
+   Using min(100%, calc(100vw - 2rem)) keeps the dropdown within both the container
+   and the viewport without forcing layout to include the scrollbar width. */
 .absolute {
-  max-width: calc(100vw - 2rem);
+  max-width: min(100%, calc(100vw - 2rem));
+}
+
+/* Header / popover micro-scrollbar fix
+   Some Windows/Edge combos show a tiny scrollbar inside the header when
+   a positioned child has fractional height or backdrop-filter applied.
+   Make header and immediate popover containers use visible overflow and
+   avoid creating their own scroll context. */
+header, .popover-panel, .popover-no-clip, .max-w-6xl {
+  -webkit-overflow-scrolling: auto;
+  overflow: visible !important;
+}
+
+/* Hide any accidental tiny scrollbars in the header area while preserving
+   scrollability elsewhere. This targets webkit/edge blink scrollbars only. */
+header::-webkit-scrollbar, .popover-panel::-webkit-scrollbar {
+  height: 0px;
+  width: 0px;
 }
 
 /* Saiyan font class */
@@ -418,16 +451,17 @@ img, iframe {
   .max-w-7xl { max-width: 80rem; }
 }
 
-/* Prevent cart dropdowns from causing horizontal overflow */
+/* Prevent cart dropdowns from causing horizontal overflow.
+   Use right: 0 and a min-based max-width so we don't rely on viewport width math. */
 .absolute[class*="w-72"],
 .absolute[class*="w-80"] {
-  right: max(0px, calc(100% - 100vw + 16px)) !important;
-  max-width: calc(100vw - 16px) !important;
+  right: 0 !important;
+  max-width: min(100%, calc(100vw - 16px)) !important;
 }
 
-/* Ensure all dropdowns stay within viewport */
+/* Ensure dropdowns stay within viewport in a percent-based way */
 [class*="absolute"][class*="top-full"] {
-  max-width: 95vw !important;
+  max-width: 95% !important;
 }
 
 /* Dragon Ball Z Carousel Effects */

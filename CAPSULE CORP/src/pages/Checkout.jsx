@@ -4,6 +4,8 @@ import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck } from "rea
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
+import Price from "../components/Price";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 function Checkout() {
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -52,6 +54,7 @@ function Checkout() {
     }
   }, [user, cartItems, navigate]);
 
+  const { formatPrice } = useCurrency();
   const subtotal = getCartTotal();
   const shipping = subtotal > 500 ? 0 : 25.99; // Free shipping over $500
   const tax = subtotal * 0.08; // 8% tax
@@ -334,7 +337,7 @@ function Checkout() {
                           <div className="text-sm text-gray-600">5-7 business days</div>
                         </div>
                         <div className="font-bold text-orange-600">
-                          {subtotal > 500 ? 'FREE' : '$25.99'}
+                          {subtotal > 500 ? 'FREE' : <Price value={25.99} />}
                         </div>
                       </label>
                       <label className="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50">
@@ -350,7 +353,7 @@ function Checkout() {
                           <div className="font-medium">Instant Transmission</div>
                           <div className="text-sm text-gray-600">1-2 business days</div>
                         </div>
-                        <div className="font-bold text-orange-600">$49.99</div>
+                        <div className="font-bold text-orange-600"><Price value={49.99} /></div>
                       </label>
                     </div>
                   </div>
@@ -484,7 +487,7 @@ function Checkout() {
                               </div>
                             </div>
                             <div className="font-bold text-orange-600">
-                              ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                              <Price value={parseFloat(item.price) * item.quantity} />
                             </div>
                           </div>
                         ))}
@@ -558,7 +561,7 @@ function Checkout() {
                       <div className="font-medium text-sm">{item.name}</div>
                       <div className="text-xs text-gray-600">Qty: {item.quantity}</div>
                     </div>
-                    <div className="font-bold text-sm">${(parseFloat(item.price) * item.quantity).toFixed(2)}</div>
+                    <div className="font-bold text-sm"><Price value={(parseFloat(item.price) * item.quantity)} /></div>
                   </div>
                 ))}
               </div>
@@ -568,22 +571,22 @@ function Checkout() {
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span><Price value={subtotal} /></span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping:</span>
                   <span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>
-                    {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                    {shipping === 0 ? 'FREE' : <Price value={shipping} />}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax:</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span><Price value={tax} /></span>
                 </div>
                 <hr className="border-gray-200" />
                 <div className="flex justify-between text-xl font-bold">
                   <span>Total:</span>
-                  <span className="text-orange-600 font-saiyan">${total.toFixed(2)}</span>
+                  <span className="text-orange-600 font-saiyan"><Price value={total} /></span>
                 </div>
               </div>
 

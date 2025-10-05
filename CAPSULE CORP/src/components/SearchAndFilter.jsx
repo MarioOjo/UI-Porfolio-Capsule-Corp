@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useCurrency } from '../contexts/CurrencyContext';
 import { useDebounce } from '../hooks/usePerformance';
 
 const SearchAndFilter = ({ 
@@ -96,6 +97,8 @@ const SearchAndFilter = ({
     priceFilter[0] !== priceRange.min || 
     priceFilter[1] !== priceRange.max;
 
+  const { formatPrice } = useCurrency();
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       {/* Search Bar */}
@@ -186,8 +189,8 @@ const SearchAndFilter = ({
           {/* Price Range */}
           <div>
             <label className="block text-sm font-medium mb-2">
-              Price Range: ${priceFilter[0]} - ${priceFilter[1]}
-            </label>
+                Price Range: {formatPrice(priceFilter[0])} - {formatPrice(priceFilter[1])}
+              </label>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -211,10 +214,10 @@ const SearchAndFilter = ({
             <label className="block text-sm font-medium mb-2">Quick Price Filters</label>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: 'Under $100', range: [0, 100] },
-                { label: '$100-$500', range: [100, 500] },
-                { label: '$500-$1000', range: [500, 1000] },
-                { label: 'Over $1000', range: [1000, priceRange.max] }
+                { label: `Under ${formatPrice(100)}`, range: [0, 100] },
+                { label: `${formatPrice(100)} - ${formatPrice(500)}`, range: [100, 500] },
+                { label: `${formatPrice(500)} - ${formatPrice(1000)}`, range: [500, 1000] },
+                { label: `Over ${formatPrice(1000)}`, range: [1000, priceRange.max] }
               ].map(filter => (
                 <button
                   key={filter.label}

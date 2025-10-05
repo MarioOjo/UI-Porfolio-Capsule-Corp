@@ -3,6 +3,7 @@ import { FaHeart, FaShoppingCart, FaTrash, FaStar } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
+import Price from "../components/Price";
 
 function Wishlist() {
   const { user, loading: authLoading } = useAuth();
@@ -151,7 +152,7 @@ function Wishlist() {
                   
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xl sm:text-2xl font-bold text-orange-600 font-saiyan">
-                      ${item.price ? parseFloat(item.price).toFixed(2) : '0.00'}
+                      <Price value={item.price || 0} />
                     </span>
                   </div>
                   

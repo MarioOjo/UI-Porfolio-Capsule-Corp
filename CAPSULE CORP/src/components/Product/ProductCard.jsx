@@ -3,6 +3,8 @@ import { FaHeart, FaShoppingCart, FaStar, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
+import Price from "../../components/Price";
+import ImageCover from "../ImageCover";
 
 function ProductCard({ product, size = "medium" }) {
   const { user } = useAuth();
@@ -46,59 +48,49 @@ function ProductCard({ product, size = "medium" }) {
       <Link to={`/product/${product.slug}`} className="block">
         <div className="relative">
           {/* Product Image */}
-          <div className={`w-full ${cardSizes[size]} bg-gradient-to-br from-[#3B4CCA] to-blue-600 flex items-center justify-center relative overflow-hidden`}>
-            <img
+          <div className={`w-full ${cardSizes[size]} flex items-center justify-center relative overflow-hidden`}>
+            <ImageCover
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover relative z-10"
-              onLoad={(e) => {
-                e.target.nextSibling.style.display = 'none';
-              }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
+              className={`w-full ${cardSizes[size]}`}
+              overlayText={product.name}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold font-saiyan text-center px-2">
-                {product.name}
-              </span>
+          </div>
+            
+          {/* Status Badges */}
+          {(product.stock <= 0 || (!product.inStock && !product.in_stock)) && (
+            <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+              OUT OF STOCK
             </div>
-            
-            {/* Status Badges */}
-            {(product.stock <= 0 || (!product.inStock && !product.in_stock)) && (
-              <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                OUT OF STOCK
-              </div>
-            )}
-            {(product.featured || product.is_featured) && (
-              <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold kamehameha-glow">
-                LEGENDARY
-              </div>
-            )}
-            
-            {/* Wishlist Button */}
-            <button
-              onClick={handleWishlistToggle}
-              className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-                (product.featured || product.is_featured) ? 'top-12' : ''
-              } ${
-                isInWishlist(product.id)
-                  ? 'bg-red-500 text-white'
-                  : 'bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white'
-              } ${!user ? 'opacity-50' : 'hover:scale-110'}`}
-              aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-            >
-              <FaHeart className="text-sm" />
-            </button>
+          )}
+          {(product.featured || product.is_featured) && (
+            <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold kamehameha-glow">
+              LEGENDARY
+            </div>
+          )}
 
-            {/* Quick View Button */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="bg-white/90 text-[#3B4CCA] px-4 py-2 rounded-lg font-saiyan font-bold flex items-center space-x-2">
-                <FaEye />
-                <span>VIEW DETAILS</span>
-              </div>
+          {/* Wishlist Button */}
+          <button
+            onClick={handleWishlistToggle}
+            className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
+              (product.featured || product.is_featured) ? 'top-12' : ''
+            } ${
+              isInWishlist(product.id)
+                ? 'bg-red-500 text-white'
+                : 'bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white'
+            } ${!user ? 'opacity-50' : 'hover:scale-110'}`}
+            aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <FaHeart className="text-sm" />
+          </button>
+
+          {/* Quick View Button */}
+          <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="bg-white/90 text-[#3B4CCA] px-4 py-2 rounded-lg font-saiyan font-bold flex items-center space-x-2">
+              <FaEye />
+              <span>VIEW DETAILS</span>
             </div>
+          </div>
           </div>
           
           {/* Product Info */}
@@ -139,11 +131,11 @@ function ProductCard({ product, size = "medium" }) {
               <div>
                 {(product.originalPrice || product.original_price) && (
                   <span className="text-xs sm:text-sm text-gray-400 line-through mr-2">
-                    ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
+                    <Price value={product.originalPrice || product.original_price} />
                   </span>
                 )}
                 <span className={`${size === 'small' ? 'text-base' : 'text-lg sm:text-xl'} font-bold text-orange-600 font-saiyan`}>
-                  ${parseFloat(product.price).toFixed(2)}
+                  <Price value={product.price} />
                 </span>
               </div>
               {product.stock <= 5 && (product.inStock || product.in_stock || product.stock > 0) && (
@@ -153,7 +145,6 @@ function ProductCard({ product, size = "medium" }) {
               )}
             </div>
           </div>
-        </div>
       </Link>
       
       {/* Action Button */}

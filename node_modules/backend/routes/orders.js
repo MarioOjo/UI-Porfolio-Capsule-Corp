@@ -151,7 +151,33 @@ router.patch('/:id/status', requireAdmin, async (req, res) => {
     // Get user_id from header (in production, extract from JWT)
     const userId = req.headers['x-user-id'];
 
+    // Get order details for email notification
+    const order = await OrderModel.findById(req.params.id);
+    
     await OrderModel.updateStatus(req.params.id, status, userId, notes);
+    
+    // Send status update email
+    if (order && order.metadata) {
+      try {
+        const metadata = JSON.parse(order.metadata);
+        const customerEmail = metadata.email;
+        const customerName = metadata.customer;
+        
+        if (customerEmail) {
+          const emailService = require('../src/utils/emailService');
+          await emailService.sendOrderStatusUpdate(
+            customerEmail,
+            customerName,
+            order.order_number,
+            status,
+            metadata.tracking_number
+          );
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+        // Don't fail the status update if email fails
+      }
+    }
     
     res.json({
       success: true,

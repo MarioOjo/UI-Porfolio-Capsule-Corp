@@ -6,6 +6,7 @@ import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { apiFetch } from "../../utils/api";
+import Price from "../../components/Price";
 
 function ProductCarousel() {
   const [products, setProducts] = useState([]);
@@ -192,14 +193,14 @@ function ProductCarousel() {
 
                       {/* Price */}
                       <div className="flex items-center space-x-3 md:space-x-4">
-                        {(product.originalPrice || product.original_price) && (
-                          <span className="text-lg md:text-xl text-white/60 line-through">
-                            ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
+                          {(product.originalPrice || product.original_price) && (
+                            <span className="text-lg md:text-xl text-white/60 line-through">
+                              <Price value={product.originalPrice || product.original_price} />
+                            </span>
+                          )}
+                          <span className="text-2xl md:text-3xl font-bold text-yellow-400 font-saiyan">
+                            <Price value={product.price} />
                           </span>
-                        )}
-                        <span className="text-2xl md:text-3xl font-bold text-yellow-400 font-saiyan">
-                          ${parseFloat(product.price).toFixed(2)}
-                        </span>
                       </div>
 
                       {/* Action Buttons */}

@@ -6,6 +6,8 @@ import { useAuth } from "../AuthContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import ProductCard from "../components/Product/ProductCard";
+import ImageCover from "../components/ImageCover";
+import Price from "../components/Price";
 
 function ProductDetail() {
   const { slug } = useParams();
@@ -17,6 +19,7 @@ function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
   const [loading, setLoading] = useState(true);
@@ -54,6 +57,21 @@ function ProductDetail() {
 
     fetchProductAndRelated();
   }, [slug, navigate]);
+
+  // Preload selected image and update imageLoaded when ready
+  useEffect(() => {
+    if (!product) return;
+    const url = product.gallery?.[selectedImage] || product.image;
+    setImageLoaded(false);
+    const img = new Image();
+    img.src = url;
+    img.onload = () => setImageLoaded(true);
+    img.onerror = () => setImageLoaded(false);
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [product, selectedImage]);
 
   const handleAddToCart = () => {
     if (product && (product.inStock || product.in_stock || product.stock > 0)) {
@@ -127,22 +145,14 @@ function ProductDetail() {
           {/* Product Images */}
           <div className="space-y-4">
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-2xl overflow-hidden shadow-xl">
-                <img
+              {product && (
+                <ImageCover
                   src={product.gallery?.[selectedImage] || product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover relative z-10"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
+                  className="aspect-square shadow-xl"
+                  overlayText={product.name}
                 />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 items-center justify-center hidden">
-                  <span className="text-white font-bold font-saiyan text-center text-2xl px-4">
-                    {product.name}
-                  </span>
-                </div>
-              </div>
+              )}
               
               {/* Status Badge */}
               {!(product.inStock || product.in_stock || product.stock > 0) && (
@@ -224,15 +234,15 @@ function ProductDetail() {
             <div className="flex items-center space-x-4">
               {(product.originalPrice || product.original_price) && (
                 <span className="text-2xl text-gray-400 line-through">
-                  ${parseFloat(product.originalPrice || product.original_price).toFixed(2)}
+                  <Price value={product.originalPrice || product.original_price} />
                 </span>
               )}
               <span className="text-4xl font-bold text-orange-600 font-saiyan">
-                ${parseFloat(product.price).toFixed(2)}
+                <Price value={product.price} />
               </span>
               {(product.originalPrice || product.original_price) && (
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                  SAVE ${(parseFloat(product.originalPrice || product.original_price) - parseFloat(product.price)).toFixed(2)}
+                  SAVE <Price value={(parseFloat(product.originalPrice || product.original_price) - parseFloat(product.price))} />
                 </span>
               )}
             </div>

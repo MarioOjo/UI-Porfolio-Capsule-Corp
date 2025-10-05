@@ -1,22 +1,26 @@
+import { useCurrency } from '../../contexts/CurrencyContext';
+
 function RelatedProducts() {
+  const { formatPrice } = useCurrency();
+
   const products = [
     {
       name: "Battle Armor Set",
-      price: "$299",
+      price: 299,
       tag: "PL: 9000+",
       match: "85%",
       desc: "Saiyan Armor",
     },
     {
       name: "Weighted Training Gear",
-      price: "$899",
+      price: 899,
       tag: "PL: 15000+",
       match: "72%",
       desc: "Training Weights",
     },
     {
       name: "Healing Capsules",
-      price: "$49",
+      price: 49,
       tag: "RARE",
       match: "90%",
       desc: "Senzu Beans",
@@ -36,7 +40,7 @@ function RelatedProducts() {
             </div>
             <h3 className="text-lg mb-2">{prod.name}</h3>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xl">{prod.price}</span>
+              <span className="text-xl">{formatPrice(prod.price)}</span>
               <span className="bg-neutral-600 text-white px-2 py-1 rounded text-xs">
                 {prod.tag}
               </span>

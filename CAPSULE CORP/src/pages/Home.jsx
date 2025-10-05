@@ -38,6 +38,7 @@ function Home() {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
       <HeroSection />
+      {/* TimeChamberPass was removed per user request */}
       <ProductCarousel />
       <FeaturedProducts />
       <FeaturesSection />
