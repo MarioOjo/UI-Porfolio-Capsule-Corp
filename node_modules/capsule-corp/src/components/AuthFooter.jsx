@@ -1,6 +1,6 @@
-function AuthFooter() {
+function AuthFooter({ className = "" }) {
   return (
-    <footer className="py-10 text-center bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 border-t border-blue-800/50">
+    <footer className={`py-10 text-center bg-gradient-to-r from-slate-900 via-blue-900 to-purple-900 border-t border-blue-800/50 ${className}`}>
       <div className="flex items-center justify-center space-x-4 mb-6">
         <div className="w-10 h-10 bg-gradient-to-br from-white to-gray-200 rounded-full flex items-center justify-center shadow-lg">
           <span className="text-blue-600 text-lg font-bold">CC</span>

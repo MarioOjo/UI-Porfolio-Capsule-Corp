@@ -22,11 +22,11 @@ function App() {
         <HomeHeader />
         <HomeNavigation />
         
-        <main className="flex-1">
+        <main className="flex-1 flex flex-col">
           <AnimatedRoutes />
         </main>
         
-        <Footer />
+        <Footer className="mt-auto" />
       </div>
     </ErrorBoundary>
   );

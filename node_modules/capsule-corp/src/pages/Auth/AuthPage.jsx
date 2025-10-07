@@ -28,7 +28,7 @@ function AuthPage() {
       <main className="flex-1 flex items-center justify-center">
         <AuthTabs initialTab={initialTab} />
       </main>
-      <AuthFooter />
+      <AuthFooter className="mt-auto" />
     </div>
   );
 }
