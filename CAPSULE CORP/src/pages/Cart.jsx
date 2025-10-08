@@ -69,18 +69,20 @@ function Cart() {
                   <div className="p-6">
                     <div className="flex items-center space-x-6">
                       {/* Product Image */}
-                      <div className="w-24 h-24 bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-24 h-24 rounded-xl flex-shrink-0 overflow-hidden">
                         <img
-                          src={item.image}
+                          src={item.image || item.imageUrl}
                           alt={item.name}
-                          className="w-full h-full object-cover rounded-xl"
+                          className="w-full h-full object-cover"
                           onError={(e) => {
+                            // Fallback to gradient background with text if image fails
                             e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
+                            const fallback = e.target.parentElement.querySelector('.image-fallback');
+                            if (fallback) fallback.style.display = 'flex';
                           }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-xl flex items-center justify-center">
-                          <span className="text-white font-bold text-xs text-center px-2">
+                        <div className="image-fallback w-full h-full bg-gradient-to-br from-[#3B4CCA] to-blue-600 hidden items-center justify-center p-2">
+                          <span className="text-white font-bold text-xs text-center">
                             {item.name}
                           </span>
                         </div>

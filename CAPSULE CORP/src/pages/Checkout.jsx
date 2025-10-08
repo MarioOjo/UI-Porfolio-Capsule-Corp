@@ -476,11 +476,11 @@ function Checkout() {
                         {cartItems.map((item) => (
                           <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <div className="flex items-center space-x-4">
-                              <div className="w-16 h-16 bg-gradient-to-br from-[#3B4CCA] to-blue-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white text-xs font-bold text-center px-1">
-                                  {item.name}
-                                </span>
-                              </div>
+                              <img 
+                                src={item.image || item.imageUrl} 
+                                alt={item.name}
+                                className="w-16 h-16 object-cover rounded-lg"
+                              />
                               <div>
                                 <div className="font-medium">{item.name}</div>
                                 <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
@@ -556,12 +556,19 @@ function Checkout() {
               
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium text-sm">{item.name}</div>
-                      <div className="text-xs text-gray-600">Qty: {item.quantity}</div>
+                  <div key={item.id} className="flex justify-between items-start gap-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <img 
+                        src={item.image || item.imageUrl} 
+                        alt={item.name}
+                        className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{item.name}</div>
+                        <div className="text-xs text-gray-600">Qty: {item.quantity}</div>
+                      </div>
                     </div>
-                    <div className="font-bold text-sm"><Price value={(parseFloat(item.price) * item.quantity)} /></div>
+                    <div className="font-bold text-sm whitespace-nowrap"><Price value={(parseFloat(item.price) * item.quantity)} /></div>
                   </div>
                 ))}
               </div>
