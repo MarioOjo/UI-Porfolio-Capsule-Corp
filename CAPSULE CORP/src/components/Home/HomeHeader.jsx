@@ -98,8 +98,8 @@ function HomeHeader() {
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
               <FaCapsules className="text-[#3B4CCA] text-lg sm:text-xl" />
             </div>
-            <h1 className="text-lg sm:text-2xl font-bold text-white font-saiyan hidden xs:block">CAPSULE CORP.</h1>
-            <h1 className="text-sm font-bold text-white font-saiyan xs:hidden">CAPSULE</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-white font-saiyan hidden xs:block">CAPSULE CORP</h1>
+            <h1 className="text-sm font-bold text-white font-saiyan xs:hidden">CAPSULE CORP</h1>
           </Link>
 
           {/* Enhanced Search Bar */}

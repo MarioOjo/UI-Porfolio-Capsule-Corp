@@ -11,10 +11,10 @@ function Footer() {
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                 <FaCapsules className="text-neutral-900" />
               </div>
-              <h5 className="font-saiyan text-lg tracking-wide">CAPSULE CORP.</h5>
+              <h5 className="font-saiyan text-lg tracking-wide">CAPSULE CORP</h5>
             </div>
             <p className="text-neutral-400 text-sm mb-4">
-              Founded by Dr. Brief, Capsule Corp. has been Earth's leading technology company since Age 712.
+              Founded by Dr. Brief, Capsule Corp has been Earth's leading technology company since Age 712.
             </p>
             {/* Contact Info */}
             <div className="space-y-2 text-sm">

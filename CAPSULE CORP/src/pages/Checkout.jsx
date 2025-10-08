@@ -148,22 +148,22 @@ function Checkout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 font-saiyan mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 font-saiyan mb-2">
             SECURE CHECKOUT
           </h1>
-          <p className="text-gray-600">Complete your legendary purchase</p>
+          <p className="text-sm sm:text-base text-gray-600">Complete your legendary purchase</p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex justify-center mb-12">
-          <div className="flex items-center space-x-8">
+        <div className="flex justify-center mb-8 sm:mb-12 overflow-x-auto pb-4">
+          <div className="flex items-center space-x-4 sm:space-x-8 min-w-max px-4">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <div className="flex flex-col items-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold transition-all text-sm sm:text-base ${
                     currentStep >= step.number
                       ? 'bg-gradient-to-r from-orange-400 to-orange-600 text-white'
                       : 'bg-gray-200 text-gray-600'
@@ -171,12 +171,12 @@ function Checkout() {
                     {currentStep > step.number ? <FaCheck /> : step.number}
                   </div>
                   <div className="mt-2 text-center">
-                    <div className="font-medium text-gray-800">{step.title}</div>
-                    <div className="text-xs text-gray-600">{step.description}</div>
+                    <div className="font-medium text-gray-800 text-xs sm:text-sm whitespace-nowrap">{step.title}</div>
+                    <div className="text-xs text-gray-600 hidden sm:block">{step.description}</div>
                   </div>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className={`w-16 h-1 mx-4 ${
+                  <div className={`w-12 sm:w-16 h-1 mx-2 sm:mx-4 ${
                     currentStep > step.number ? 'bg-orange-400' : 'bg-gray-200'
                   }`} />
                 )}
@@ -185,14 +185,14 @@ function Checkout() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
               {/* Step 1: Shipping Information */}
               {currentStep === 1 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 font-saiyan flex items-center">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 font-saiyan flex items-center">
                     <FaTruck className="mr-3 text-orange-500" />
                     SHIPPING INFORMATION
                   </h2>

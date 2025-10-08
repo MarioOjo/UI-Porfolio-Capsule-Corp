@@ -110,17 +110,17 @@ function Navbar() {
 
   return (
   <header className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
-      <div className="flex items-center justify-between min-w-0">
+      <div className="flex items-center justify-between min-w-0 gap-2 sm:gap-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-neutral-700 rounded-full flex items-center justify-center">
-            <FaCapsules className="text-white text-lg" />
+        <Link to="/" className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-neutral-700 rounded-full flex items-center justify-center">
+            <FaCapsules className="text-white text-base sm:text-lg" />
           </div>
-          <h1 className="text-2xl font-bold text-[#3B4CCA] font-saiyan">CAPSULE CORP.</h1>
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#3B4CCA] font-saiyan hidden xs:block">CAPSULE CORP</h1>
         </Link>
 
         {/* Enhanced Search Bar */}
-        <div className="flex-1 max-w-md mx-8 relative" ref={searchRef}>
+        <div className="flex-1 max-w-xs sm:max-w-md mx-2 sm:mx-4 lg:mx-8 relative" ref={searchRef}>
           <form onSubmit={handleSearchSubmit}>
             <div className="relative">
               <input
@@ -128,15 +128,15 @@ function Navbar() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 onFocus={() => search.trim() && setShowSearchResults(true)}
-                placeholder="Search for Dragon Ball Z gear..."
-                className="w-full px-4 py-3 border-2 border-[#3B4CCA]/20 rounded-xl pr-12 focus:border-[#3B4CCA] focus:outline-none transition-all duration-300 bg-white/90 backdrop-blur-sm"
+                placeholder="Search..."
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-[#3B4CCA]/20 rounded-xl pr-10 sm:pr-12 focus:border-[#3B4CCA] focus:outline-none transition-all duration-300 bg-white/90 backdrop-blur-sm text-sm sm:text-base"
                 aria-label="Search products"
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3B4CCA] hover:text-[#FFD700] transition-colors p-1"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[#3B4CCA] hover:text-[#FFD700] transition-colors p-1"
               >
-                <FaSearch className="text-lg" />
+                <FaSearch className="text-sm sm:text-lg" />
               </button>
 
               {/* Search Results Dropdown */}

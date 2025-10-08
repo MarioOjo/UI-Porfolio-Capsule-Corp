@@ -21,23 +21,24 @@ function Cart() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 font-saiyan">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 font-saiyan">
               CAPSULE CART
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-sm sm:text-base text-gray-600 mt-2">
               {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your capsule collection
             </p>
           </div>
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-blue-600 hover:text-orange-600 transition-colors font-saiyan"
+            className="flex items-center space-x-2 text-blue-600 hover:text-orange-600 transition-colors font-saiyan text-sm sm:text-base"
           >
             <FaArrowLeft />
-            <span>CONTINUE SHOPPING</span>
+            <span className="hidden sm:inline">CONTINUE SHOPPING</span>
+            <span className="sm:hidden">BACK</span>
           </button>
         </div>
 
@@ -66,10 +67,10 @@ function Cart() {
                   key={item.id}
                   className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all"
                 >
-                  <div className="p-6">
-                    <div className="flex items-center space-x-6">
+                  <div className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                       {/* Product Image */}
-                      <div className="w-24 h-24 rounded-xl flex-shrink-0 overflow-hidden">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl flex-shrink-0 overflow-hidden">
                         <img
                           src={item.image || item.imageUrl}
                           alt={item.name}
@@ -88,25 +89,65 @@ function Cart() {
                         </div>
                       </div>
 
-                      {/* Product Info */}
-                      <div className="flex-1">
-                        <Link
-                          to={`/product/${item.slug}`}
-                          className="text-xl font-bold text-gray-800 hover:text-orange-600 transition-colors font-saiyan"
-                        >
-                          {item.name}
-                        </Link>
-                        <p className="text-gray-600 mt-1">{item.category}</p>
+                      {/* Product Info - Full Width on Mobile */}
+                      <div className="flex-1 min-w-0 w-full sm:w-auto">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <Link
+                            to={`/product/${item.slug}`}
+                            className="text-lg sm:text-xl font-bold text-gray-800 hover:text-orange-600 transition-colors font-saiyan line-clamp-2"
+                          >
+                            {item.name}
+                          </Link>
+                          {/* Remove Button - Top Right on Mobile */}
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:text-red-700 transition-colors p-2 sm:hidden flex-shrink-0"
+                            aria-label={`Remove ${item.name} from cart`}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                        <p className="text-sm sm:text-base text-gray-600 mt-1">{item.category}</p>
                         <div className="flex items-center mt-2">
-                          <span className="text-sm text-gray-600">Power Level: </span>
-                          <span className="text-sm font-bold text-orange-600 ml-1">
+                          <span className="text-xs sm:text-sm text-gray-600">Power Level: </span>
+                          <span className="text-xs sm:text-sm font-bold text-orange-600 ml-1">
                             {Number(item.powerLevel || item.power_level || 0).toLocaleString()}
                           </span>
                         </div>
+                        
+                        {/* Mobile: Quantity and Price Below */}
+                        <div className="flex items-center justify-between mt-4 sm:hidden">
+                          {/* Quantity Controls */}
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors touch-target"
+                              disabled={item.quantity <= 1}
+                            >
+                              <FaMinus className="text-xs" />
+                            </button>
+                            <span className="w-8 text-center font-bold">{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors touch-target"
+                            >
+                              <FaPlus className="text-xs" />
+                            </button>
+                          </div>
+                          {/* Price */}
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-orange-600 font-saiyan">
+                              <Price value={parseFloat(item.price) * item.quantity} />
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              <Price value={parseFloat(item.price)} /> each
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center space-x-3">
+                      {/* Desktop: Quantity Controls */}
+                      <div className="hidden sm:flex items-center space-x-3">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-orange-200 transition-colors"
@@ -123,8 +164,8 @@ function Cart() {
                         </button>
                       </div>
 
-                      {/* Price */}
-                      <div className="text-right">
+                      {/* Desktop: Price */}
+                      <div className="hidden sm:block text-right">
                         <div className="text-2xl font-bold text-orange-600 font-saiyan">
                             <Price value={parseFloat(item.price) * item.quantity} />
                           </div>
@@ -133,10 +174,10 @@ function Cart() {
                           </div>
                       </div>
 
-                      {/* Remove Button */}
+                      {/* Desktop: Remove Button */}
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-2"
+                        className="hidden sm:block text-red-500 hover:text-red-700 transition-colors p-2"
                         aria-label={`Remove ${item.name} from cart`}
                       >
                         <FaTrash />
