@@ -1,0 +1,13 @@
+{
+  "name": "capsule-corp-root",
+  "private": true,
+  "description": "Root workspace for Capsule Corp full-stack app (Heroku deployment)",
+  "workspaces": ["backend", "CAPSULE CORP"],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "heroku-postbuild": "npm --prefix \"CAPSULE CORP\" install --omit=dev && npm --prefix \"CAPSULE CORP\" run build"
+  }
+}
