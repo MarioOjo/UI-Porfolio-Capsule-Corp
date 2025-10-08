@@ -23,6 +23,7 @@ const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
 const ChangePassword = lazy(() => import('../pages/Profile/ChangePassword'));
 const OrderTracking = lazy(() => import('../pages/OrderTracking'));
 const OrderConfirmation = lazy(() => import('../pages/OrderConfirmation'));
+const ShippingInfo = lazy(() => import('../pages/ShippingInfo'));
 
 // Admin pages
 const AdminDashboard = lazy(() => import('../pages/Admin/AdminDashboard'));
@@ -67,6 +68,7 @@ const AnimatedRoutes = () => {
               <Route path="/change-password" element={<ChangePassword />} />
               <Route path="/track-order" element={<OrderTracking />} />
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
+              <Route path="/shipping-info" element={<ShippingInfo />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />

@@ -213,6 +213,72 @@ function Cart() {
             </div>
           </div>
         )}
+
+        {/* Important Notice Section - DBZ Themed */}
+        {cartItems.length > 0 && (
+          <div className="mt-8 bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 rounded-2xl shadow-lg p-6 border-2 border-orange-400">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="text-3xl">⚡</div>
+              <div>
+                <h3 className="text-xl font-bold text-white font-saiyan mb-2">CAPSULE CORP ALERT</h3>
+                <p className="text-blue-200 text-sm italic">Read this carefully before your legendary purchase!</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4 text-sm text-blue-100">
+              <div className="bg-blue-950/50 rounded-lg p-4 border border-blue-700/50">
+                <div className="flex items-start space-x-2">
+                  <span className="text-orange-400 font-bold">⚠️</span>
+                  <div>
+                    <span className="font-semibold text-orange-300">Reservation Policy:</span>
+                    <p className="mt-1">Placing an order or adding an item to your capsule collection does not reserve the item or lock the price. Items are only secured once your payment has been received and processed by our Earth Defense systems.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-950/50 rounded-lg p-4 border border-blue-700/50">
+                <div className="flex items-start space-x-2">
+                  <span className="text-green-400 font-bold">🚀</span>
+                  <div>
+                    <span className="font-semibold text-green-300">Instant Transmission Delivery:</span>
+                    <p className="mt-1">FREE delivery on eligible capsules is only available to main cities and training grounds. Remote locations may require additional Senzu Bean courier fees. Delivery charges are calculated based on your coordinates and shown before final confirmation.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-950/50 rounded-lg p-4 border border-blue-700/50">
+                <div className="flex items-start space-x-2">
+                  <span className="text-purple-400 font-bold">⏰</span>
+                  <div>
+                    <span className="font-semibold text-purple-300">Hyperbolic Time Processing:</span>
+                    <p className="mt-1">Orders placed after business hours (6:00 PM EST), on weekends, or during Galactic holidays will be processed the following business day. Our Capsule Corp engineers need rest too!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-950/50 rounded-lg p-4 border border-blue-700/50">
+                <div className="flex items-start space-x-2">
+                  <span className="text-yellow-400 font-bold">📦</span>
+                  <div>
+                    <span className="font-semibold text-yellow-300">Power Level Preparation Time:</span>
+                    <p className="mt-1">
+                      <Link to="/shipping-info" className="text-orange-300 hover:text-orange-400 underline font-medium">
+                        Click here to view current estimated lead times
+                      </Link>
+                      {" "}for order processing and capsule preparation. High-power items may require additional charging time.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-blue-700/50 text-center">
+              <p className="text-xs text-blue-300">
+                ⭐ Capsule Corp - Serving Earth's Warriors Since Age 712 ⭐
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
