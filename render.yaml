@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: capsulecorp-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: node server.js
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_TO
+        sync: false
+      - key: PORT
+        value: 10000 # Render sets PORT env; app uses process.env.PORT
+
+  - type: static
+    name: capsulecorp-frontend
+    rootDir: CAPSULE CORP
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    plan: free
+    headers:
+      - path: "/*"
+        name: "Cache-Control"
+        value: "public, max-age=600"
+    routes:
+      - type: rewrite
+        source: "/**"
+        destination: "/index.html"

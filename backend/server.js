@@ -17,10 +17,19 @@ const app = express();
 
 // CORS: in development reflect the request origin so Vite can run on different ports.
 // In production use an explicit FRONTEND_ORIGIN environment variable.
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map(s => s.trim());
 const corsOptions = (process.env.NODE_ENV === 'development')
   ? { origin: true, credentials: true } // reflect request origin (safe for dev only)
-  : { origin: FRONTEND_ORIGIN, credentials: true };
+  : {
+      origin: function(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (FRONTEND_ORIGINS.includes(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+      },
+      credentials: true
+    };
 
 app.use(cors(corsOptions));
 
