@@ -1,4 +1,7 @@
-require('dotenv').config();
+// Load local env only in non-production to avoid overriding Render/hosted env vars
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const express = require('express');
 const cors = require('cors');
 
