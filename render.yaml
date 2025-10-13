@@ -14,15 +14,27 @@ services:
         sync: false
       - key: DB_HOST
         sync: false
+      - key: DB_PORT
+        sync: false
       - key: DB_USER
         sync: false
       - key: DB_PASSWORD
         sync: false
       - key: DB_NAME
         sync: false
+      - key: DB_SSL
+        sync: false
+      - key: DB_SSL_CA
+        sync: false
+      - key: DB_SSL_CA_B64
+        sync: false
+      - key: DB_SSL_REJECT_UNAUTHORIZED
+        sync: false
       - key: EMAIL_HOST
         sync: false
       - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_SECURE
         sync: false
       - key: EMAIL_USER
         sync: false
@@ -42,3 +54,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_API_BASE
+        sync: false
