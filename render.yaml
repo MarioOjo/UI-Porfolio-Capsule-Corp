@@ -31,17 +31,14 @@ services:
       - key: EMAIL_TO
         sync: false
 
-  - type: static
+  - type: web
     name: capsulecorp-frontend
+    env: node
     rootDir: "CAPSULE CORP"
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    startCommand: npx serve -s dist -l $PORT
     plan: free
-    headers:
-      - path: "/*"
-        name: "Cache-Control"
-        value: "public, max-age=600"
-    routes:
-      - type: rewrite
-        source: "/*"
-        destination: "/index.html"
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
