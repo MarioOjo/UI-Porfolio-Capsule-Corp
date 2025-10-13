@@ -31,11 +31,11 @@ services:
       - key: EMAIL_TO
         sync: false
 
-  - type: static_site
+  - type: static
     name: capsulecorp-frontend
-    rootDir: CAPSULE CORP
+    rootDir: "CAPSULE CORP"
     buildCommand: npm ci && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     plan: free
     headers:
       - path: "/*"
