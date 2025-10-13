@@ -30,14 +30,12 @@ services:
         sync: false
       - key: EMAIL_TO
         sync: false
-      - key: PORT
-        value: 10000 # Render sets PORT env; app uses process.env.PORT
 
-  - type: static
+  - type: static_site
     name: capsulecorp-frontend
     rootDir: CAPSULE CORP
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    publishPath: dist
     plan: free
     headers:
       - path: "/*"
@@ -45,5 +43,5 @@ services:
         value: "public, max-age=600"
     routes:
       - type: rewrite
-        source: "/**"
+        source: "/*"
         destination: "/index.html"
