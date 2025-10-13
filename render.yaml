@@ -36,7 +36,7 @@ services:
     env: node
     rootDir: "CAPSULE CORP"
     buildCommand: npm ci && npm run build
-  startCommand: npm run start
+    startCommand: npm run start
     plan: free
     autoDeploy: true
     envVars:
