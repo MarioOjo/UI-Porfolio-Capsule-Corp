@@ -36,7 +36,7 @@ services:
     env: node
     rootDir: "CAPSULE CORP"
     buildCommand: npm ci && npm run build
-    startCommand: npx serve -s dist -l $PORT
+  startCommand: npm run start
     plan: free
     autoDeploy: true
     envVars:
