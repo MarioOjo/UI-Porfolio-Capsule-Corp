@@ -43,18 +43,14 @@ services:
       - key: EMAIL_TO
         sync: false
 
-  - type: web
+  - type: static
     name: capsulecorp-frontend
-    env: node
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    startCommand: npm run start
+    publish: dist
     plan: free
     autoDeploy: true
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: VITE_API_BASE
         sync: false
-    publish:
-      path: dist
