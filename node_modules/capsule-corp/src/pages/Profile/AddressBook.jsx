@@ -1,439 +1,296 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBuilding } from 'react-icons/fa';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from 'react-icons/fa';
 
 const AddressBook = () => {
   const { user } = useAuth();
-  const { isDarkMode } = useTheme();
-  const [addresses, setAddresses] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const { showSuccess, showError } = useNotifications();
+  const [addresses, setAddresses] = useState([
+    {
+      id: 1,
+      type: 'home',
+      name: 'Home',
+      fullName: 'Goku Son',
+      street: '439 East District',
+      city: 'Mount Paozu',
+      state: 'Earth',
+      zip: '12345',
+      phone: '555-KAMEHAMEHA',
+      isDefault: true
+    }
+  ]);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [formData, setFormData] = useState({
     type: 'home',
-    firstName: '',
-    lastName: '',
-    company: '',
-    address: '',
-    apartment: '',
+    name: '',
+    fullName: '',
+    street: '',
     city: '',
     state: '',
-    zipCode: '',
-    country: 'South Africa',
-    phone: '',
-    isDefault: false
+    zip: '',
+    phone: ''
   });
 
-  useEffect(() => {
-    // Load addresses from localStorage or API
-    const savedAddresses = localStorage.getItem(`addresses_${user?.id}`);
-    if (savedAddresses) {
-      setAddresses(JSON.parse(savedAddresses));
-    }
-  }, [user]);
-
-  const saveAddresses = (newAddresses) => {
-    setAddresses(newAddresses);
-    localStorage.setItem(`addresses_${user?.id}`, JSON.stringify(newAddresses));
-  };
-
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleAddAddress = () => {
+    if (!formData.fullName || !formData.street || !formData.city) {
+      showError('❌ Please fill in all required fields');
+      return;
+    }
+
     const newAddress = {
+      id: Date.now(),
       ...formData,
-      id: editingAddress ? editingAddress.id : Date.now()
+      isDefault: addresses.length === 0
     };
 
-    let updatedAddresses;
-    if (editingAddress) {
-      updatedAddresses = addresses.map(addr => 
-        addr.id === editingAddress.id ? newAddress : addr
-      );
-    } else {
-      updatedAddresses = [...addresses, newAddress];
-    }
-
-    // If this is set as default, remove default from others
-    if (newAddress.isDefault) {
-      updatedAddresses = updatedAddresses.map(addr => ({
-        ...addr,
-        isDefault: addr.id === newAddress.id
-      }));
-    }
-
-    saveAddresses(updatedAddresses);
-    resetForm();
-  };
-
-  const resetForm = () => {
+    setAddresses([...addresses, newAddress]);
+    setShowAddModal(false);
     setFormData({
       type: 'home',
-      firstName: '',
-      lastName: '',
-      company: '',
-      address: '',
-      apartment: '',
+      name: '',
+      fullName: '',
+      street: '',
       city: '',
       state: '',
-      zipCode: '',
-      country: 'South Africa',
-      phone: '',
-      isDefault: false
+      zip: '',
+      phone: ''
     });
-    setShowForm(false);
-    setEditingAddress(null);
+    showSuccess('✅ Address added successfully!');
   };
 
-  const handleEdit = (address) => {
-    setFormData(address);
-    setEditingAddress(address);
-    setShowForm(true);
+  const handleDeleteAddress = (id) => {
+    if (window.confirm('Are you sure you want to delete this address?')) {
+      setAddresses(addresses.filter(addr => addr.id !== id));
+      showSuccess('🗑️ Address deleted');
+    }
   };
 
-  const handleDelete = (addressId) => {
-    const updatedAddresses = addresses.filter(addr => addr.id !== addressId);
-    saveAddresses(updatedAddresses);
-  };
-
-  const setDefault = (addressId) => {
-    const updatedAddresses = addresses.map(addr => ({
+  const handleSetDefault = (id) => {
+    setAddresses(addresses.map(addr => ({
       ...addr,
-      isDefault: addr.id === addressId
-    }));
-    saveAddresses(updatedAddresses);
+      isDefault: addr.id === id
+    })));
+    showSuccess('✅ Default address updated');
   };
 
   return (
-    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
-      <div className="max-w-6xl mx-auto px-4">
-        <div className={`rounded-2xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
-          {/* Header */}
-          <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                  <FaMapMarkerAlt className="text-[#3B4CCA] text-2xl" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-white font-saiyan">ADDRESS BOOK</h1>
-                  <p className="text-blue-100">Manage your shipping and billing addresses</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-[#FFD700] to-[#FF9E00] text-[#3B4CCA] rounded-lg hover:from-[#E6C200] hover:to-[#E88900] transition-all font-saiyan font-bold shadow-lg"
-              >
-                <FaPlus />
-                <span>ADD ADDRESS</span>
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
+      <div className="max-w-5xl mx-auto px-4">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold font-saiyan mb-2">ADDRESS BOOK</h1>
+              <p className="text-blue-100">Manage your delivery addresses</p>
             </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-white text-[#3B4CCA] px-6 py-3 rounded-lg font-saiyan font-bold hover:bg-gray-100 transition-all flex items-center space-x-2"
+            >
+              <FaPlus />
+              <span>ADD ADDRESS</span>
+            </button>
           </div>
+        </div>
 
-          {/* Content */}
-          <div className="p-8">
-            {/* Address Form */}
-            {showForm && (
-              <div className={`mb-8 p-6 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-slate-600 bg-slate-700' : 'border-blue-300 bg-blue-50'}`}>
-                <h3 className={`text-xl font-bold mb-6 font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
-                  {editingAddress ? 'EDIT ADDRESS' : 'ADD NEW ADDRESS'}
-                </h3>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Address Type */}
-                  <div>
-                    <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      ADDRESS TYPE
-                    </label>
-                    <div className="flex space-x-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="home"
-                          checked={formData.type === 'home'}
-                          onChange={handleInputChange}
-                          className="mr-2"
-                        />
-                        <FaHome className="mr-1" />
-                        Home
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="type"
-                          value="work"
-                          checked={formData.type === 'work'}
-                          onChange={handleInputChange}
-                          className="mr-2"
-                        />
-                        <FaBuilding className="mr-1" />
-                        Work
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      placeholder="First Name"
-                      required
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
-                    />
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Last Name"
-                      required
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
-                    />
-                  </div>
-
-                  {formData.type === 'work' && (
-                    <input
-                      type="text"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleInputChange}
-                      placeholder="Company Name"
-                      className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
-                    />
+        {/* Address List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {addresses.map((address) => (
+            <div
+              key={address.id}
+              className={`bg-white rounded-xl shadow-lg p-6 border-2 transition-all hover:shadow-xl ${
+                address.isDefault ? 'border-[#3B4CCA]' : 'border-gray-200'
+              }`}
+            >
+              {/* Address Type Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  {address.type === 'home' ? (
+                    <FaHome className="text-[#3B4CCA]" />
+                  ) : (
+                    <FaBriefcase className="text-[#3B4CCA]" />
                   )}
+                  <span className="font-saiyan text-[#3B4CCA] font-bold">
+                    {address.name || address.type.toUpperCase()}
+                  </span>
+                </div>
+                {address.isDefault && (
+                  <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                    DEFAULT
+                  </span>
+                )}
+              </div>
 
+              {/* Address Details */}
+              <div className="space-y-2 mb-4">
+                <p className="font-bold text-gray-800">{address.fullName}</p>
+                <p className="text-gray-600">{address.street}</p>
+                <p className="text-gray-600">
+                  {address.city}, {address.state} {address.zip}
+                </p>
+                <p className="text-gray-600">{address.phone}</p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex space-x-2 pt-4 border-t border-gray-200">
+                {!address.isDefault && (
+                  <button
+                    onClick={() => handleSetDefault(address.id)}
+                    className="flex-1 bg-blue-50 text-[#3B4CCA] py-2 px-4 rounded-lg hover:bg-blue-100 transition-all font-saiyan text-sm"
+                  >
+                    SET DEFAULT
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDeleteAddress(address.id)}
+                  className="bg-red-50 text-red-600 py-2 px-4 rounded-lg hover:bg-red-100 transition-all"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {addresses.length === 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <FaMapMarkerAlt className="text-6xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2 font-saiyan">No Addresses Yet</h3>
+            <p className="text-gray-600 mb-6">Add your first delivery address to get started</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white px-6 py-3 rounded-lg font-saiyan font-bold hover:shadow-lg transition-all"
+            >
+              ADD YOUR FIRST ADDRESS
+            </button>
+          </div>
+        )}
+
+        {/* Add Address Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-2xl font-bold text-gray-800 font-saiyan mb-6">ADD NEW ADDRESS</h3>
+
+              <div className="space-y-4">
+                {/* Address Type */}
+                <div>
+                  <label className="block text-sm font-saiyan text-gray-700 mb-2">ADDRESS TYPE</label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                  >
+                    <option value="home">Home</option>
+                    <option value="work">Work</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Full Name */}
+                <div>
+                  <label className="block text-sm font-saiyan text-gray-700 mb-2">FULL NAME *</label>
                   <input
                     type="text"
-                    name="address"
-                    value={formData.address}
+                    name="fullName"
+                    value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder="Street Address"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
                     required
-                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
-                      isDarkMode 
-                        ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                        : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                    } focus:ring-2 focus:ring-blue-500`}
                   />
+                </div>
 
+                {/* Street Address */}
+                <div>
+                  <label className="block text-sm font-saiyan text-gray-700 mb-2">STREET ADDRESS *</label>
                   <input
                     type="text"
-                    name="apartment"
-                    value={formData.apartment}
+                    name="street"
+                    value={formData.street}
                     onChange={handleInputChange}
-                    placeholder="Apartment, suite, etc. (optional)"
-                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
-                      isDarkMode 
-                        ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                        : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                    } focus:ring-2 focus:ring-blue-500`}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                    required
                   />
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* City, State, Zip */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-saiyan text-gray-700 mb-2">CITY *</label>
                     <input
                       type="text"
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      placeholder="City"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
                       required
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-saiyan text-gray-700 mb-2">STATE</label>
                     <input
                       type="text"
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      placeholder="Province/State"
-                      required
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
-                    />
-                    <input
-                      type="text"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleInputChange}
-                      placeholder="Postal Code"
-                      required
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
                     />
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <select
-                      name="country"
-                      value={formData.country}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-saiyan text-gray-700 mb-2">ZIP CODE</label>
+                    <input
+                      type="text"
+                      name="zip"
+                      value={formData.zip}
                       onChange={handleInputChange}
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
-                    >
-                      <option value="South Africa">South Africa</option>
-                      <option value="Namibia">Namibia</option>
-                      <option value="Botswana">Botswana</option>
-                      <option value="Zimbabwe">Zimbabwe</option>
-                    </select>
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-saiyan text-gray-700 mb-2">PHONE</label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="Phone Number"
-                      className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                        isDarkMode 
-                          ? 'bg-slate-600 border-slate-500 text-white focus:border-blue-500' 
-                          : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                      } focus:ring-2 focus:ring-blue-500`}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
                     />
                   </div>
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="isDefault"
-                      checked={formData.isDefault}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                      Set as default address
-                    </span>
-                  </label>
-
-                  <div className="flex space-x-4">
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white rounded-lg hover:from-[#2A3B9A] hover:to-blue-700 transition-all font-saiyan font-bold"
-                    >
-                      {editingAddress ? 'UPDATE ADDRESS' : 'SAVE ADDRESS'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all font-saiyan font-bold"
-                    >
-                      CANCEL
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Address List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {addresses.map((address) => (
-                <div
-                  key={address.id}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    address.isDefault
-                      ? `${isDarkMode ? 'border-[#FFD700] bg-slate-700' : 'border-[#FFD700] bg-gradient-to-br from-yellow-50 to-orange-50'}`
-                      : `${isDarkMode ? 'border-slate-600 bg-slate-700 hover:border-slate-500' : 'border-gray-200 bg-white hover:border-gray-300'}`
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center space-x-2">
-                      {address.type === 'home' ? <FaHome className="text-[#3B4CCA]" /> : <FaBuilding className="text-[#3B4CCA]" />}
-                      <span className={`font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
-                        {address.type.toUpperCase()}
-                      </span>
-                      {address.isDefault && (
-                        <span className="bg-[#FFD700] text-[#3B4CCA] px-2 py-1 rounded-full text-xs font-bold">
-                          DEFAULT
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEdit(address)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors"
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(address.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className={`space-y-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <p className="font-semibold">{address.firstName} {address.lastName}</p>
-                    {address.company && <p>{address.company}</p>}
-                    <p>{address.address}</p>
-                    {address.apartment && <p>{address.apartment}</p>}
-                    <p>{address.city}, {address.state} {address.zipCode}</p>
-                    <p>{address.country}</p>
-                    {address.phone && <p>{address.phone}</p>}
-                  </div>
-
-                  {!address.isDefault && (
-                    <button
-                      onClick={() => setDefault(address.id)}
-                      className="mt-4 text-sm text-[#3B4CCA] hover:text-blue-700 font-semibold transition-colors"
-                    >
-                      Set as Default
-                    </button>
-                  )}
                 </div>
-              ))}
-            </div>
 
-            {addresses.length === 0 && !showForm && (
-              <div className="text-center py-12">
-                <FaMapMarkerAlt className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-                <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  NO ADDRESSES FOUND
-                </h3>
-                <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mb-6`}>
-                  Add your first address to get started with faster checkout
-                </p>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white rounded-lg hover:from-[#2A3B9A] hover:to-blue-700 transition-all font-saiyan font-bold"
-                >
-                  ADD YOUR FIRST ADDRESS
-                </button>
+                {/* Action Buttons */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={() => setShowAddModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-saiyan font-bold hover:bg-gray-400 transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={handleAddAddress}
+                    className="flex-1 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-3 px-4 rounded-lg font-saiyan font-bold hover:shadow-lg transition-all"
+                  >
+                    ADD ADDRESS
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

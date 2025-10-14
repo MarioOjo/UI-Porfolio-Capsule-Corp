@@ -1,126 +1,129 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { createContext, useContext, useState, useCallback } from 'react';
 
 const NotificationContext = createContext();
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
 
-  const addNotification = useCallback((notification) => {
-    const id = Date.now() + Math.random();
-    const newNotification = {
+  const showSuccess = useCallback((message, options = {}) => {
+    const id = Date.now();
+    const notification = {
       id,
-      type: 'info',
-      duration: 5000,
-      ...notification,
+      type: 'success',
+      message,
+      duration: options.duration || 3000,
+      ...options
     };
     
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications(prev => [...prev, notification]);
     
     // Auto remove after duration
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
-    }, newNotification.duration);
+    }, notification.duration);
+  }, []);
+
+  const showError = useCallback((message, options = {}) => {
+    const id = Date.now();
+    const notification = {
+      id,
+      type: 'error',
+      message,
+      duration: options.duration || 4000,
+      ...options
+    };
     
-    return id;
+    setNotifications(prev => [...prev, notification]);
+    
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, notification.duration);
+  }, []);
+
+  const showInfo = useCallback((message, options = {}) => {
+    const id = Date.now();
+    const notification = {
+      id,
+      type: 'info',
+      message,
+      duration: options.duration || 3000,
+      ...options
+    };
+    
+    setNotifications(prev => [...prev, notification]);
+    
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, notification.duration);
+  }, []);
+
+  const showWarning = useCallback((message, options = {}) => {
+    const id = Date.now();
+    const notification = {
+      id,
+      type: 'warning',
+      message,
+      duration: options.duration || 3500,
+      ...options
+    };
+    
+    setNotifications(prev => [...prev, notification]);
+    
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, notification.duration);
   }, []);
 
   const removeNotification = useCallback((id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
-  const showSuccess = useCallback((message, options = {}) => {
-    return addNotification({ ...options, message, type: 'success' });
-  }, [addNotification]);
-
-  const showError = useCallback((message, options = {}) => {
-    return addNotification({ ...options, message, type: 'error' });
-  }, [addNotification]);
-
-  const showInfo = useCallback((message, options = {}) => {
-    return addNotification({ ...options, message, type: 'info' });
-  }, [addNotification]);
-
   return (
-    <NotificationContext.Provider value={{
+    <NotificationContext.Provider value={{ 
       notifications,
-      addNotification,
-      removeNotification,
-      showSuccess,
-      showError,
-      showInfo,
+      showSuccess, 
+      showError, 
+      showInfo, 
+      showWarning,
+      removeNotification 
     }}>
       {children}
-      <NotificationContainer />
+      
+      {/* Notification Container */}
+      <div className="fixed top-4 right-4 z-[9999] space-y-2">
+        {notifications.map(notification => (
+          <div
+            key={notification.id}
+            className={`
+              min-w-[300px] max-w-md p-4 rounded-lg shadow-2xl
+              transform transition-all duration-300 ease-in-out
+              animate-slide-in-right
+              ${notification.type === 'success' ? 'bg-green-500 text-white' : ''}
+              ${notification.type === 'error' ? 'bg-red-500 text-white' : ''}
+              ${notification.type === 'info' ? 'bg-blue-500 text-white' : ''}
+              ${notification.type === 'warning' ? 'bg-yellow-500 text-white' : ''}
+            `}
+          >
+            <div className="flex items-start justify-between">
+              <p className="flex-1 font-medium">{notification.message}</p>
+              <button
+                onClick={() => removeNotification(notification.id)}
+                className="ml-3 text-white hover:text-gray-200 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </NotificationContext.Provider>
   );
 }
 
-function NotificationContainer() {
-  const { notifications, removeNotification } = useContext(NotificationContext);
-
-  if (notifications.length === 0) return null;
-
-  return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
-      {notifications.map(notification => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-          onClose={() => removeNotification(notification.id)}
-        />
-      ))}
-    </div>
-  );
-}
-
-function NotificationItem({ notification, onClose }) {
-  const { type, message, title } = notification;
-
-  const icons = {
-    success: FaCheckCircle,
-    error: FaExclamationCircle,
-    info: FaInfoCircle,
-  };
-
-  const colors = {
-    success: 'bg-green-500 border-green-600',
-    error: 'bg-red-500 border-red-600',
-    info: 'bg-blue-500 border-blue-600',
-  };
-
-  const Icon = icons[type];
-
-  return (
-    <div className={`${colors[type]} text-white p-4 rounded-xl shadow-lg border-2 min-w-80 max-w-md kamehameha-glow animate-slide-in`}>
-      <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-3">
-          <Icon className="text-xl mt-0.5 flex-shrink-0" />
-          <div>
-            {title && (
-              <h4 className="font-bold font-saiyan text-sm mb-1">{title}</h4>
-            )}
-            <p className="text-sm">{message}</p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-white hover:text-gray-200 transition-colors ml-4 flex-shrink-0"
-          aria-label="Close notification"
-        >
-          <FaTimes className="text-sm" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export const useNotifications = () => {
+export function useNotifications() {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
+    throw new Error('useNotifications must be used within NotificationProvider');
   }
   return context;
-};
-
-export default NotificationContext;
+}
