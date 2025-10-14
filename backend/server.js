@@ -65,6 +65,15 @@ app.use((err, req, res, next) => { // eslint-disable-line
 async function start() {
   try {
     await database.initialize();
+    // Log a masked summary of the resolved DB config to help debugging in hosted logs
+    try {
+      const dbInfo = database.getResolvedConfig && database.getResolvedConfig();
+      if (dbInfo) {
+        console.log('🔎 Resolved DB config:', Object.assign({}, dbInfo, { password: '****' }));
+      }
+    } catch (e) {
+      console.warn('⚠️  Could not read resolved DB config for logging:', e.message);
+    }
     await DatabaseMigration.runMigrations();
     await emailService.initialize(); // Initialize email service
     const PORT = process.env.PORT || 5000;

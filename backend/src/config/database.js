@@ -18,6 +18,49 @@ class DatabaseConnection {
       timezone: 'Z'
     };
 
+    // Support a single connection string commonly provided by hosts like
+    // Railway / Render (e.g. MYSQL_URL or DATABASE_URL with mysql://user:pass@host:port/db)
+  // Accept several possible connection string env names (Railway/Render and custom)
+  const connString = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.DATABASE_URL || process.env.CLEARDB_DATABASE_URL || process.env.MYSQL_CONNECTION_STRING;
+    if (connString) {
+      try {
+        // URL API requires a scheme; connection strings from providers usually include it.
+        const parsed = new URL(connString);
+        // Only proceed if scheme looks like mysql
+        if (['mysql:', 'mysql2:'].includes(parsed.protocol)) {
+          const urlUser = parsed.username ? decodeURIComponent(parsed.username) : undefined;
+          const urlPass = parsed.password ? decodeURIComponent(parsed.password) : undefined;
+          const urlHost = parsed.hostname;
+          const urlPort = parsed.port ? Number(parsed.port) : undefined;
+          const urlDb = parsed.pathname && parsed.pathname.length > 1 ? decodeURIComponent(parsed.pathname.slice(1)) : undefined;
+
+          if (urlHost) this.baseConfig.host = urlHost;
+          if (urlUser) this.baseConfig.user = urlUser;
+          if (urlPass) this.baseConfig.password = urlPass;
+          if (urlDb) this.baseConfig.database = urlDb;
+          if (urlPort) this.baseConfig.port = urlPort;
+        }
+      } catch (e) {
+        console.warn('\u26a0\ufe0f  Could not parse connection string in MYSQL_URL/DATABASE_URL:', e.message);
+      }
+    }
+
+    // If no URL-style connection string was provided, support Railway-provided parts as a fallback
+    if (!connString) {
+      const partHost = process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || process.env.DB_HOST;
+      const partUser = process.env.MYSQLUSER || process.env.DB_USER;
+      const partPass = process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD || process.env.DB_PASSWORD;
+      const partDb = process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || process.env.DB_NAME;
+      const partPort = process.env.MYSQLPORT || process.env.DB_PORT;
+      if (partHost) {
+        if (partHost) this.baseConfig.host = partHost;
+        if (partUser) this.baseConfig.user = partUser;
+        if (partPass) this.baseConfig.password = partPass;
+        if (partDb) this.baseConfig.database = partDb;
+        if (partPort) this.baseConfig.port = Number(partPort);
+      }
+    }
+
     // Optional SSL support for managed MySQL providers
     // Enable by setting DB_SSL=true (or 1). Optionally provide CA via DB_SSL_CA or base64 via DB_SSL_CA_B64.
     const wantSSL = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.DB_SSL || '').trim());
@@ -117,6 +160,20 @@ class DatabaseConnection {
       this.pool = null;
       console.log('🔌 Database connection closed');
     }
+  }
+
+  // Return a small masked summary of the resolved DB config for logging/debugging.
+  getResolvedConfig() {
+    const cfg = this.baseConfig || {};
+    return {
+      host: cfg.host,
+      port: cfg.port,
+      user: cfg.user,
+      database: cfg.database,
+      ssl: !!cfg.ssl,
+      // Never reveal passwords in logs
+      password: cfg.password ? '****' : undefined
+    };
   }
 }
 
