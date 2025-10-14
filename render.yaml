@@ -46,8 +46,8 @@ services:
   - type: web
     name: capsulecorp-frontend
     env: node
-    rootDir: "CAPSULE CORP"
-    buildCommand: npm ci && npm run build
+    rootDir: frontend
+    buildCommand: npm install && npm run build
     startCommand: npm run start
     plan: free
     autoDeploy: true
@@ -56,3 +56,5 @@ services:
         value: production
       - key: VITE_API_BASE
         sync: false
+    publish:
+      path: dist
