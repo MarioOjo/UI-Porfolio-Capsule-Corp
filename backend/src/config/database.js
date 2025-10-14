@@ -1,21 +1,36 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
 
 class DatabaseConnection {
   constructor() {
     this.pool = null;
     // Support both DB_PASSWORD and legacy DB_PASS
     const password = process.env.DB_PASSWORD || process.env.DB_PASS || '';
+    const port = Number(process.env.DB_PORT || 3306);
     this.baseConfig = {
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'root',
       password,
       database: process.env.DB_NAME || 'capsule_db',
+      port,
       connectionLimit: 20,
       queueLimit: 0,
       charset: 'utf8mb4',
       timezone: 'Z'
     };
+
+    // Optional SSL support for managed MySQL providers
+    // Enable by setting DB_SSL=true (or 1). Optionally provide CA via DB_SSL_CA or base64 via DB_SSL_CA_B64.
+    const wantSSL = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.DB_SSL || '').trim());
+    if (wantSSL) {
+      const ssl = { rejectUnauthorized: String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false' };
+      if (process.env.DB_SSL_CA) ssl.ca = process.env.DB_SSL_CA;
+      if (process.env.DB_SSL_CA_B64) {
+        try { ssl.ca = Buffer.from(process.env.DB_SSL_CA_B64, 'base64').toString('utf8'); } catch (e) {
+          console.warn('⚠️  DB_SSL_CA_B64 could not be decoded:', e.message);
+        }
+      }
+      this.baseConfig.ssl = ssl;
+    }
   }
 
   async initialize(options = {}) {
@@ -79,10 +94,19 @@ class DatabaseConnection {
 
   async executeQuery(query, params = []) {
     try {
-      const [rows] = await this.getPool().execute(query, params);
+      const trimmed = query.trim();
+      // Skip USE commands entirely (pool already selects DB)
+      if (/^USE\s+/i.test(trimmed)) {
+        console.log('[DB] ℹ️  Skipping redundant USE statement:', trimmed.slice(0, 50));
+        return [];
+      }
+      // Use .query() for DDL/admin commands (CREATE, DROP, etc.) to avoid ER_UNSUPPORTED_PS
+      // Use .execute() for parameterized DML (INSERT, SELECT, UPDATE, DELETE)
+      const method = params.length > 0 ? 'execute' : 'query';
+      const [rows] = await this.getPool()[method](query, params);
       return rows;
     } catch (error) {
-      console.error('Database query error:', error);
+      console.error('[DB] Query error for:', query.slice(0, 80), error.message);
       throw error;
     }
   }

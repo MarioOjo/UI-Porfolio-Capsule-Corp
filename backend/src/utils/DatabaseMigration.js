@@ -44,9 +44,12 @@ class DatabaseMigration {
       // Include base schema first if present, then layered product migrations
       const migrationFiles = [
         'capsule_db.sql',              // base schema (roles, users, categories, legacy products)
+        '001_create_users_table.sql',  // create users table with proper schema
         '002_create_products_table.sql',
         '003_seed_products_data.sql',
-        '004_add_capsule_products.sql'
+        '004_add_capsule_products.sql',
+        '005_create_contact_messages_table.sql', // contact messages table
+        '006_create_orders_tables.sql' // orders, order_items, order_status_history tables
       ];
 
       for (const file of migrationFiles) {
@@ -61,7 +64,8 @@ class DatabaseMigration {
           const statements = sql
             .split(';')
             .map(s => s.trim())
-            .filter(s => s.length && !s.startsWith('--'));
+            .filter(s => s.length && !s.startsWith('--'))
+            .filter(s => !s.match(/^USE\s+/i)); // skip USE commands (pool already targets DB)
 
           for (const statement of statements) {
             try {
@@ -78,21 +82,22 @@ class DatabaseMigration {
           
           console.log(`✅ Executed migration: ${file}`);
         } catch (error) {
-          // For data seeding, ignore duplicate entry errors
-          if (error.message.includes('Duplicate entry') || error.message.includes('already exists')) {
+          // For data seeding or schema mismatches, log and continue
+          const msg = error.message || '';
+          if (msg.includes('Duplicate entry') || msg.includes('already exists')) {
             console.log(`ℹ️  Skipping ${file} - data already exists`);
+          } else if (msg.includes('Unknown column') || msg.includes('ER_BAD_FIELD_ERROR')) {
+            console.warn(`⚠️  Migration ${file} schema warning (non-fatal):`, msg.slice(0, 100));
           } else {
-            console.warn(`⚠️  Migration ${file} warning:`, error.message);
+            console.warn(`⚠️  Migration ${file} warning:`, msg.slice(0, 150));
           }
         }
       }
     } catch (error) {
-      console.error('❌ SQL migrations failed:', error);
-      throw error;
+      console.error('❌ SQL migrations failed (outer):', error.message);
+      // Don't throw—allow server to start even if some migrations have warnings
     }
   }
 }
-
-module.exports = DatabaseMigration;
 
 module.exports = DatabaseMigration;
