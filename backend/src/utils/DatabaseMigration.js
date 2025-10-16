@@ -112,6 +112,7 @@ class DatabaseMigration {
 
           const pending = new Set(statements);
           const executed = new Set();
+          const fkStatements = [];
           const maxPasses = 6;
 
           for (let pass = 1; pass <= maxPasses && pending.size > 0; pass++) {
@@ -160,6 +161,46 @@ class DatabaseMigration {
                   continue;
                 }
 
+                // If CREATE TABLE failed because referenced table missing, try creating
+                // the table without FOREIGN KEY clauses and schedule FK additions.
+                if (/^CREATE\s+TABLE/i.test(statement) && msg.match(/referenced table|doesn't exist|ER_NO_REFERENCED_TABLE/i)) {
+                  try {
+                    // Remove FOREIGN KEY (...) REFERENCES ... clauses (simple regex-based)
+                    const cleaned = statement.replace(/,?\s*FOREIGN KEY\s*\([^\)]+\)\s*REFERENCES\s*[^,\)]+/gi, '');
+                    await database.executeQuery(cleaned);
+                    // Extract FK clauses to run later as ALTER TABLE statements
+                    const fkMatches = [];
+                    const fkRegex = /FOREIGN KEY\s*\(([^\)]+)\)\s*REFERENCES\s*([`\w$.]+)\s*\(([^\)]+)\)/gi;
+                    let m;
+                    while ((m = fkRegex.exec(statement)) !== null) {
+                      // m[1]=columns, m[2]=ref table, m[3]=ref columns
+                      // Build an ALTER TABLE ... ADD CONSTRAINT ... statement
+                      // Use a generated constraint name
+                      const cols = m[1].trim();
+                      const refTable = m[2].trim();
+                      const refCols = m[3].trim();
+                      // Attempt to determine the base table name from the CREATE statement header
+                      const headerMatch = statement.match(/CREATE\s+TABLE\s+`?([\w$]+)`?/i);
+                      const baseTable = headerMatch ? headerMatch[1] : null;
+                      if (baseTable) {
+                        const constraintName = `fk_${baseTable}_${refTable}`.replace(/[`\.]/g, '_');
+                        const alter = `ALTER TABLE ${baseTable} ADD CONSTRAINT ${constraintName} FOREIGN KEY (${cols}) REFERENCES ${refTable}(${refCols})`;
+                        fkMatches.push(alter);
+                      }
+                    }
+                    for (const fk of fkMatches) fkStatements.push(fk);
+
+                    pending.delete(statement);
+                    executed.add(statement);
+                    progress = true;
+                    continue;
+                  } catch (fallbackErr) {
+                    // If fallback failed, log and keep pending
+                    console.warn('⚠️  Fallback create without FKs failed:', fallbackErr.message);
+                    continue;
+                  }
+                }
+
                 // For other errors, log a warning and drop the statement to avoid infinite loop
                 console.warn(`⚠️  Migration statement warning (dropping): ${msg.slice(0,120)}`);
                 pending.delete(statement);
@@ -178,6 +219,19 @@ class DatabaseMigration {
             console.warn('⚠️  Some migration statements could not be applied after retries:');
             for (const stmt of pending) {
               console.warn(' -', stmt.slice(0, 200));
+            }
+          }
+
+          // Attempt to apply any collected FK ALTER statements now that base
+          // tables may exist. These are best-effort; log warnings if they fail.
+          if (fkStatements.length > 0) {
+            for (const fk of fkStatements) {
+              try {
+                await database.executeQuery(fk);
+                console.log('✅ Applied FK constraint:', fk.slice(0, 120));
+              } catch (fkErr) {
+                console.warn('⚠️  Could not apply FK constraint (non-fatal):', fkErr.message.slice(0, 150));
+              }
             }
           }
           
