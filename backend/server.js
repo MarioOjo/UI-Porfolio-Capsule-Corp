@@ -49,6 +49,22 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Optional HTTP endpoint to run a raw TCP check to the resolved DB host/port.
+// Enable only when DB_ALLOW_HTTP_TCP_CHECK=true to avoid exposing this in production unintentionally.
+app.get('/db-tcp-check', async (req, res) => {
+  const allow = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.DB_ALLOW_HTTP_TCP_CHECK || '').trim());
+  if (!allow) return res.status(404).json({ error: 'Not found' });
+  try {
+    const cfg = database.getResolvedConfig();
+    if (!cfg || !cfg.host) return res.status(400).json({ error: 'DB host not configured' });
+    const timeout = Number(process.env.DB_DEBUG_TCP_CHECK_TIMEOUT_MS || 3000);
+    await database._tcpCheck(cfg.host, cfg.port || 3306, timeout);
+    res.json({ ok: true, host: cfg.host, port: cfg.port || 3306 });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes); // For /api/me endpoint
