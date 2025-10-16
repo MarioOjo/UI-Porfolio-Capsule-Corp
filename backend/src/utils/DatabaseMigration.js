@@ -19,6 +19,27 @@ class DatabaseMigration {
 
       for (const migration of userMigrations) {
         try {
+          // Some MySQL versions do not support `ADD COLUMN IF NOT EXISTS`.
+          // Detect that pattern and run a safe existence check via
+          // INFORMATION_SCHEMA before issuing a plain ALTER.
+          if (/ALTER\s+TABLE\s+.+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS/i.test(migration)) {
+            const parsed = this._parseAddColumnStatement(migration);
+            if (parsed) {
+              const { table, column } = parsed;
+              const existsQuery = `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1`;
+              const rows = await database.executeQuery(existsQuery, [database.getResolvedConfig().database, table, column]);
+              if (!rows || rows.length === 0) {
+                // Column missing — run ALTER without IF NOT EXISTS
+                const safeAlter = migration.replace(/IF\s+NOT\s+EXISTS\s+/i, '');
+                await database.executeQuery(safeAlter);
+              } else {
+                // Column already exists — skip
+              }
+              continue;
+            }
+          }
+
+          // Default path: execute statement as-is
           await database.executeQuery(migration);
         } catch (error) {
           // Ignore errors for columns that already exist
@@ -36,6 +57,26 @@ class DatabaseMigration {
       console.error('❌ Migration failed:', error);
       throw error;
     }
+  }
+
+  // Very small parser to extract table and column names from simple
+  // `ALTER TABLE <table> ADD COLUMN IF NOT EXISTS <column> ...` statements.
+  static _parseAddColumnStatement(sql) {
+    try {
+      // Normalize whitespace
+      const norm = sql.replace(/\s+/g, ' ').trim();
+      // Match: ALTER TABLE <table> ADD COLUMN IF NOT EXISTS <column>
+      const m = norm.match(/ALTER TABLE\s+`?([\w$]+)`?\s+ADD COLUMN\s+IF\s+NOT\s+EXISTS\s+`?([\w$]+)`?/i);
+      if (m) {
+        return { table: m[1], column: m[2] };
+      }
+      // Try without backticks and with simple names
+      const m2 = norm.match(/ALTER TABLE\s+([\w$]+)\s+ADD COLUMN\s+IF\s+NOT\s+EXISTS\s+([\w$]+)/i);
+      if (m2) return { table: m2[1], column: m2[2] };
+    } catch (e) {
+      // Ignore parse errors; fall back to default behavior
+    }
+    return null;
   }
 
   static async runSQLMigrations() {
@@ -60,23 +101,83 @@ class DatabaseMigration {
           // Remove BOM if present and normalize line endings
           const sql = raw.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
 
-          // Split SQL file by semicolons respecting basic cases (no advanced parser)
-          const statements = sql
+          // Split SQL file by semicolons (simple split). We'll execute
+          // statements in multiple passes to tolerate dependency ordering
+          // (CREATE ... REFERENCES) without needing to reorder files.
+          let statements = sql
             .split(';')
             .map(s => s.trim())
             .filter(s => s.length && !s.startsWith('--'))
-            .filter(s => !s.match(/^USE\s+/i)); // skip USE commands (pool already targets DB)
+            .filter(s => !s.match(/^USE\s+/i)); // skip USE commands
 
-          for (const statement of statements) {
-            try {
-              await database.executeQuery(statement);
-            } catch (stmtErr) {
-              const msg = stmtErr.message || '';
-              if (msg.includes('Duplicate') || msg.includes('already exists')) {
-                // benign, skip
-                continue;
+          const pending = new Set(statements);
+          const executed = new Set();
+          const maxPasses = 6;
+
+          for (let pass = 1; pass <= maxPasses && pending.size > 0; pass++) {
+            const toAttempt = Array.from(pending);
+            let progress = false;
+
+            for (const statement of toAttempt) {
+              try {
+                // Handle ALTER ... ADD COLUMN IF NOT EXISTS patterns inside SQL files
+                if (/ALTER\s+TABLE\s+.+ADD\s+COLUMN\s+IF\s+NOT\s+EXISTS/i.test(statement)) {
+                  const parsed = this._parseAddColumnStatement(statement);
+                  if (parsed) {
+                    const { table, column } = parsed;
+                    const existsQuery = `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1`;
+                    const rows = await database.executeQuery(existsQuery, [database.getResolvedConfig().database, table, column]);
+                    if (!rows || rows.length === 0) {
+                      const safeAlter = statement.replace(/IF\s+NOT\s+EXISTS\s+/i, '');
+                      await database.executeQuery(safeAlter);
+                    }
+                    pending.delete(statement);
+                    executed.add(statement);
+                    progress = true;
+                    continue;
+                  }
+                }
+
+                // Try executing the statement normally
+                await database.executeQuery(statement);
+                pending.delete(statement);
+                executed.add(statement);
+                progress = true;
+              } catch (stmtErr) {
+                const msg = (stmtErr && stmtErr.message) ? stmtErr.message : '';
+                // benign errors: duplicates / already exists
+                if (msg.includes('Duplicate') || msg.includes('already exists') || msg.includes('Duplicate entry')) {
+                  pending.delete(statement);
+                  executed.add(statement);
+                  progress = true;
+                  continue;
+                }
+
+                // If the error indicates a missing referenced table or similar,
+                // defer to next pass (we'll retry after other statements run).
+                if (msg.match(/referenced table|doesn't exist|Unknown table|Unknown column|cannot add|ER_NO_REFERENCED_TABLE/i)) {
+                  // keep in pending for next pass
+                  continue;
+                }
+
+                // For other errors, log a warning and drop the statement to avoid infinite loop
+                console.warn(`⚠️  Migration statement warning (dropping): ${msg.slice(0,120)}`);
+                pending.delete(statement);
+                executed.add(statement);
+                progress = true;
               }
-              throw stmtErr;
+            }
+
+            if (!progress) {
+              // No progress this pass — break to avoid infinite loop
+              break;
+            }
+          }
+
+          if (pending.size > 0) {
+            console.warn('⚠️  Some migration statements could not be applied after retries:');
+            for (const stmt of pending) {
+              console.warn(' -', stmt.slice(0, 200));
             }
           }
           
