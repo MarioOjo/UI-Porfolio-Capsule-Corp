@@ -27,11 +27,17 @@ const corsOptions = (process.env.NODE_ENV === 'development')
   ? { origin: true, credentials: true } // reflect request origin (safe for dev only)
   : {
       origin: function(origin, callback) {
+        // Allow non-browser requests (no origin) and match explicit allowed origins
         if (!origin) return callback(null, true);
         if (FRONTEND_ORIGINS.includes(origin)) return callback(null, true);
         return callback(new Error('Not allowed by CORS'));
       },
-      credentials: true
+      credentials: true,
+      // Explicitly allow these headers and methods so preflight succeeds when Authorization is present
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     };
 
 app.use(cors(corsOptions));
