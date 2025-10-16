@@ -147,8 +147,8 @@ function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 p-4">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 font-saiyan mb-2">

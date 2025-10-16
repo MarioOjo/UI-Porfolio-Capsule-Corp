@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const ProductCardSkeleton = () => (
-  <div className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+  <div className="bg-white rounded-xl shadow-lg overflow-x-hidden animate-pulse p-4">
     <div className="h-64 bg-gray-200"></div>
     <div className="p-6">
       <div className="h-4 bg-gray-200 rounded mb-2"></div>

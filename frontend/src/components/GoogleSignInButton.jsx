@@ -56,7 +56,7 @@ function GoogleSignInButton({ variant = 'primary', className = '' }) {
     >
       <FaGoogle className="text-xl" />
       {loading ? (
-        <span className="flex items-center gap-2">
+  <span className="flex items-center gap-2 p-2 sm:p-0">
           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
           Connecting...
         </span>

@@ -91,8 +91,8 @@ const AddressBook = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
-      <div className="max-w-5xl mx-auto px-4">
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 overflow-x-hidden">
+  <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
           <div className="flex items-center justify-between">
@@ -111,7 +111,7 @@ const AddressBook = () => {
         </div>
 
         {/* Address List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {addresses.map((address) => (
             <div
               key={address.id}
@@ -186,9 +186,9 @@ const AddressBook = () => {
 
         {/* Add Address Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="text-2xl font-bold text-gray-800 font-saiyan mb-6">ADD NEW ADDRESS</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-2">
+            <div className="bg-white rounded-2xl p-8 sm:p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-2xl sm:text-xl font-bold text-gray-800 font-saiyan mb-6">ADD NEW ADDRESS</h3>
 
               <div className="space-y-4">
                 {/* Address Type */}
@@ -233,7 +233,7 @@ const AddressBook = () => {
                 </div>
 
                 {/* City, State, Zip */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-saiyan text-gray-700 mb-2">CITY *</label>
                     <input
@@ -257,7 +257,7 @@ const AddressBook = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-saiyan text-gray-700 mb-2">ZIP CODE</label>
                     <input
@@ -281,7 +281,7 @@ const AddressBook = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4">
+                <div className="flex space-x-3 pt-4 sm:flex-col sm:space-y-2 sm:space-x-0">
                   <button
                     onClick={() => setShowAddModal(false)}
                     className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-saiyan font-bold hover:bg-gray-400 transition-colors"

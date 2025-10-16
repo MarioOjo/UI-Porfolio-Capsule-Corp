@@ -49,8 +49,8 @@ function Contact() {
   };
 
   return (
-    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
-      <div className="max-w-7xl mx-auto px-4">
+    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'} overflow-x-hidden`}>
+      <div className="max-w-7xl mx-auto px-4 p-4">
         {/* Hero Section */}
         <div className={`rounded-2xl shadow-2xl overflow-hidden mb-12 ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 px-8 py-12">

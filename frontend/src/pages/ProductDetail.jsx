@@ -95,8 +95,8 @@ function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="max-w-6xl mx-auto px-4 py-16">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-4 py-16 p-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-gray-600 font-saiyan">Loading product...</p>

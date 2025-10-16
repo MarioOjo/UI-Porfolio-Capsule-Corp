@@ -109,7 +109,7 @@ function Navbar() {
   const { formatPrice } = useCurrency();
 
   return (
-  <header className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
+  <header className="max-w-6xl mx-auto px-4 py-4 overflow-x-hidden p-4">
       <div className="flex items-center justify-between min-w-0 gap-2 sm:gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">

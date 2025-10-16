@@ -67,10 +67,10 @@ function Wishlist() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8 p-4">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 font-saiyan flex items-center">
+          <h1 className="text-2xl xs:text-base sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 font-saiyan flex items-center">
             <FaHeart className="text-red-500 mr-2 sm:mr-4 text-xl sm:text-3xl" />
             <span className="hidden sm:inline">SAIYAN WISHLIST</span>
             <span className="sm:hidden">WISHLIST</span>
@@ -107,7 +107,7 @@ function Wishlist() {
                   <img
                     src={item.image || '/images/placeholder.jpg'}
                     alt={item.name || 'Product'}
-                    className="w-full h-48 object-cover"
+                    className="w-full sm:h-48 h-32 object-cover"
                     onError={(e) => {
                       e.target.src = '/images/placeholder.jpg';
                     }}
@@ -156,7 +156,7 @@ function Wishlist() {
                     </span>
                   </div>
                   
-                  <div className="flex space-x-2">
+                  <div className="sm:flex-row flex flex-col space-y-2 sm:space-y-0 sm:space-x-2">
                     <button
                       onClick={() => handleAddToCart(item)}
                       disabled={item.inStock === false}

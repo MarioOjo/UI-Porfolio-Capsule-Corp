@@ -36,7 +36,7 @@ function Home() {
   }, [user, showSuccess]);
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
+  <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} overflow-x-hidden p-4`}>
       <HeroSection />
       {/* TimeChamberPass was removed per user request */}
       <ProductCarousel />

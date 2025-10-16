@@ -46,7 +46,7 @@ const PageTransition = ({ children }) => {
       animate="in"
       exit="out"
       variants={pageVariants}
-      className="w-full"
+  className="w-full overflow-x-hidden p-2"
     >
       {/* Consistent energy aura effect for all pages */}
       <motion.div
