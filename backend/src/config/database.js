@@ -84,8 +84,22 @@ class DatabaseConnection {
     } = options;
 
     const targetDb = this.baseConfig.database;
+    // Optional raw TCP-level check to help diagnose private-network overlays (fd12 IPv6 addresses).
+    // Enable by setting DB_DEBUG_TCP_CHECK=true in the environment where the backend runs.
+    const doTcpDebug = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.DB_DEBUG_TCP_CHECK || '').trim());
+    const tcpTimeout = Number(process.env.DB_DEBUG_TCP_CHECK_TIMEOUT_MS || 3000);
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        // If configured, attempt a raw TCP connect to the resolved host/port to get clearer socket errors in logs.
+        if (doTcpDebug && this.baseConfig && this.baseConfig.host) {
+          try {
+            await this._tcpCheck(this.baseConfig.host, this.baseConfig.port || 3306, tcpTimeout);
+            console.log(`🔍 TCP check succeeded to ${this.baseConfig.host}:${this.baseConfig.port || 3306}`);
+          } catch (tcpErr) {
+            console.warn(`🔍 TCP check failed to ${this.baseConfig.host}:${this.baseConfig.port || 3306} — ${tcpErr.message}`);
+            // Continue — we'll still try the mysql driver connection which will produce the original error.
+          }
+        }
         // Try connecting directly first
         this.pool = mysql.createPool(this.baseConfig);
         const connection = await this.pool.getConnection();
@@ -127,6 +141,34 @@ class DatabaseConnection {
   }
 
   _sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // Perform a raw TCP connect to help differentiate overlay/DNS issues vs MySQL server not listening.
+  _tcpCheck(host, port, timeoutMs = 3000) {
+    return new Promise((resolve, reject) => {
+      try {
+        const net = require('net');
+        const socket = new net.Socket();
+        let resolved = false;
+        const onError = (err) => {
+          if (resolved) return;
+          resolved = true;
+          socket.destroy();
+          reject(err);
+        };
+        socket.setTimeout(timeoutMs, () => onError(new Error('TCP timeout')));
+        socket.once('error', onError);
+        socket.once('connect', () => {
+          if (resolved) return;
+          resolved = true;
+          socket.end();
+          resolve();
+        });
+        socket.connect(port, host);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
 
   getPool() {
     if (!this.pool) {
