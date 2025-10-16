@@ -12,11 +12,32 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
-    
+
+    // If Firebase auth is not configured, fall back to backend session check.
+    if (!auth) {
+      (async () => {
+        try {
+          const res = await apiFetch('/api/me');
+          if (mounted && res.user) {
+            setUser(res.user);
+          } else {
+            setUser(null);
+            localStorage.removeItem('authToken');
+          }
+        } catch (e) {
+          setUser(null);
+          localStorage.removeItem('authToken');
+        }
+        if (mounted) setLoading(false);
+      })();
+
+      return () => { mounted = false; };
+    }
+
     // Listen to Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!mounted) return;
-      
+
       if (firebaseUser) {
         // User is signed in with Firebase
         const userData = {
@@ -60,10 +81,10 @@ export function AuthProvider({ children }) {
       
       if (mounted) setLoading(false);
     });
-    
+
     return () => {
       mounted = false;
-      unsubscribe();
+      if (typeof unsubscribe === 'function') unsubscribe();
     };
   }, []);
 
@@ -90,7 +111,7 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       // Sign out from Firebase
-      await signOut(auth);
+      if (auth) await signOut(auth);
       
       // Also logout from backend if needed
       try {

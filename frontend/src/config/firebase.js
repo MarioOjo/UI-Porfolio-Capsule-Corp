@@ -2,30 +2,49 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-};
+// Read build-time envs (VITE_*)
+const FIREBASE_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
+const FIREBASE_AUTH_DOMAIN = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+const FIREBASE_PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+const FIREBASE_STORAGE_BUCKET = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const FIREBASE_MESSAGING_SENDER_ID = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+const FIREBASE_APP_ID = import.meta.env.VITE_FIREBASE_APP_ID;
+const FIREBASE_MEASUREMENT_ID = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const required = FIREBASE_KEY && FIREBASE_AUTH_DOMAIN && FIREBASE_PROJECT_ID && FIREBASE_APP_ID;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+// Top-level exports (initialized to null). We assign to them below to avoid exporting inside blocks.
+let auth = null;
+let googleProvider = null;
+let firebaseApp = null;
 
-// Initialize Google Auth Provider
-export const googleProvider = new GoogleAuthProvider();
+if (!required) {
+  // Missing Firebase config — avoid throwing so the UI can still render a helpful message
+  // and other non-auth functionality can remain available.
+  // eslint-disable-next-line no-console
+  console.warn('[firebase] Missing VITE_FIREBASE_* env vars. Firebase auth disabled.');
+} else {
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: FIREBASE_KEY,
+    authDomain: FIREBASE_AUTH_DOMAIN,
+    projectId: FIREBASE_PROJECT_ID,
+    storageBucket: FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+    appId: FIREBASE_APP_ID,
+    measurementId: FIREBASE_MEASUREMENT_ID
+  };
 
-// Configure Google provider
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
+  // Initialize Firebase
+  firebaseApp = initializeApp(firebaseConfig);
 
-export default app;
+  // Initialize Firebase Authentication and get a reference to the service
+  auth = getAuth(firebaseApp);
+
+  // Initialize Google Auth Provider
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
+}
+
+export { auth, googleProvider };
+export default firebaseApp;

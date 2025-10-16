@@ -12,6 +12,9 @@ export const useGoogleAuth = () => {
   const signInWithGoogle = async (useRedirect = false) => {
     setLoading(true);
     try {
+      if (!auth || !googleProvider) {
+        throw new Error('Firebase auth not configured.');
+      }
       let result;
       
       if (useRedirect) {
@@ -73,6 +76,10 @@ export const useGoogleAuth = () => {
 
   const handleRedirectResult = async () => {
     try {
+      if (!auth) {
+        console.warn('Firebase auth not configured; skipping redirect result handling.');
+        return null;
+      }
       const result = await getRedirectResult(auth);
       if (result?.user) {
         const userData = {

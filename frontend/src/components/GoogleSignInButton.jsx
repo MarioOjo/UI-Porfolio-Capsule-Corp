@@ -1,5 +1,6 @@
 import { FaGoogle } from 'react-icons/fa';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { auth } from '../config/firebase';
 import { useNavigate } from 'react-router-dom';
 
 function GoogleSignInButton({ variant = 'primary', className = '' }) {
@@ -43,10 +44,13 @@ function GoogleSignInButton({ variant = 'primary', className = '' }) {
     `
   };
 
+  const disabled = loading || !auth;
+
   return (
     <button
       onClick={handleGoogleSignIn}
-      disabled={loading}
+      disabled={disabled}
+      title={!auth ? 'Firebase not configured locally' : undefined}
       className={`${baseClasses} ${variantClasses[variant]}`}
       type="button"
     >
