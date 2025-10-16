@@ -52,6 +52,30 @@ class DatabaseMigration {
       // Run SQL file migrations
       await this.runSQLMigrations();
 
+      // Ensure user_addresses table exists (lightweight, idempotent)
+      try {
+        const createAddr = `
+          CREATE TABLE IF NOT EXISTS user_addresses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            line1 VARCHAR(255) NOT NULL,
+            line2 VARCHAR(255),
+            city VARCHAR(100),
+            state VARCHAR(100),
+            zip VARCHAR(50),
+            country VARCHAR(100) DEFAULT 'USA',
+            label VARCHAR(100) DEFAULT 'Home',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NULL,
+            deleted_at TIMESTAMP NULL
+          ) ENGINE=InnoDB;
+        `;
+        await database.executeQuery(createAddr);
+        console.log('✅ Ensured user_addresses table exists');
+      } catch (e) {
+        console.warn('⚠️ Could not ensure user_addresses table:', e.message);
+      }
+
       console.log('✅ Database migrations completed successfully!');
     } catch (error) {
       console.error('❌ Migration failed:', error);

@@ -1,25 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import apiFetch from '../../utils/api';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from 'react-icons/fa';
 
 const AddressBook = () => {
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      type: 'home',
-      name: 'Home',
-      fullName: 'Goku Son',
-      street: '439 East District',
-      city: 'Mount Paozu',
-      state: 'Earth',
-      zip: '12345',
-      phone: '555-KAMEHAMEHA',
-      isDefault: true
-    }
-  ]);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [formData, setFormData] = useState({
@@ -45,42 +34,61 @@ const AddressBook = () => {
       showError('❌ Please fill in all required fields');
       return;
     }
-
-    const newAddress = {
-      id: Date.now(),
-      ...formData,
-      isDefault: addresses.length === 0
-    };
-
-    setAddresses([...addresses, newAddress]);
-    setShowAddModal(false);
-    setFormData({
-      type: 'home',
-      name: '',
-      fullName: '',
-      street: '',
-      city: '',
-      state: '',
-      zip: '',
-      phone: ''
-    });
-    showSuccess('✅ Address added successfully!');
+    (async () => {
+      try {
+        const res = await apiFetch('/api/addresses', { method: 'POST', body: JSON.stringify(formData) });
+        setAddresses(prev => [res.address, ...prev]);
+        setShowAddModal(false);
+        setFormData({ type: 'home', name: '', fullName: '', street: '', city: '', state: '', zip: '', phone: '' });
+        showSuccess('✅ Address added successfully!');
+      } catch (e) {
+        showError('❌ Could not add address');
+      }
+    })();
   };
 
   const handleDeleteAddress = (id) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
-      setAddresses(addresses.filter(addr => addr.id !== id));
-      showSuccess('🗑️ Address deleted');
+      (async () => {
+        try {
+          await apiFetch(`/api/addresses/${id}`, { method: 'DELETE' });
+          setAddresses(prev => prev.filter(a => a.id !== id));
+          showSuccess('🗑️ Address deleted');
+        } catch (e) {
+          showError('❌ Could not delete address');
+        }
+      })();
     }
   };
 
   const handleSetDefault = (id) => {
-    setAddresses(addresses.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id
-    })));
-    showSuccess('✅ Default address updated');
+    (async () => {
+      try {
+        // Backend doesn't have explicit default flag; we'll emulate by updating labels or client-side preference.
+        // For now, mark client-side default by reordering
+        setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+        showSuccess('✅ Default address updated');
+      } catch (e) {
+        showError('❌ Could not set default');
+      }
+    })();
   };
+
+  // Load addresses from backend
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await apiFetch('/api/addresses');
+        if (mounted) setAddresses(res.addresses || []);
+      } catch (e) {
+        // ignore - user might be unauthenticated
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">

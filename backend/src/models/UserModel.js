@@ -59,9 +59,20 @@ class UserModel {
   }
 
   async updateProfile(id, profileData) {
-    const { username, email } = profileData;
-    const query = `UPDATE ${this.table} SET username = ?, email = ?, updated_at = NOW() WHERE id = ?`;
-    await this.db.executeQuery(query, [username, email, id]);
+    // Accept all editable fields, but only update those present in profileData
+    const allowedFields = ['username', 'email', 'firstName', 'lastName', 'phone', 'dateOfBirth'];
+    const updates = [];
+    const values = [];
+    for (const field of allowedFields) {
+      if (field in profileData) {
+        updates.push(`${field} = ?`);
+        values.push(profileData[field]);
+      }
+    }
+    if (updates.length === 0) return; // Nothing to update
+    const query = `UPDATE ${this.table} SET ${updates.join(', ')}, updated_at = NOW() WHERE id = ?`;
+    values.push(id);
+    await this.db.executeQuery(query, values);
   }
 
   async softDelete(id) {

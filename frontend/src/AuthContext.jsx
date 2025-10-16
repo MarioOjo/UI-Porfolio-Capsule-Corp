@@ -48,19 +48,30 @@ export function AuthProvider({ children }) {
           emailVerified: firebaseUser.emailVerified,
           provider: firebaseUser.providerData[0]?.providerId || 'email'
         };
+        // First set a lightweight firebase user to update UI quickly
         setUser(userData);
-        
-        // Optionally sync with your backend
+
+        // Sync with backend: exchange Firebase identity for our backend JWT and user record
         try {
-          const token = await firebaseUser.getIdToken();
-          localStorage.setItem('authToken', token);
-          // You can send this token to your backend for verification
-          // await apiFetch('/api/auth/firebase-verify', {
-          //   method: 'POST',
-          //   body: JSON.stringify({ token })
-          // });
+          // Ensure we have a fresh Firebase ID token (not strictly required by our backend but useful)
+          const idToken = await firebaseUser.getIdToken();
+          // POST minimal identity to backend to create/link a user and receive a backend JWT
+          // We intentionally post uid/email/displayName so backend can create or link the user.
+          const syncRes = await apiFetch('/api/auth/firebase-sync', {
+            method: 'POST',
+            body: JSON.stringify({ uid: firebaseUser.uid, email: firebaseUser.email, displayName: firebaseUser.displayName }),
+            // Don't include credentials by default; apiFetch will attach existing backend token if present
+          });
+
+          if (syncRes.token) {
+            localStorage.setItem('authToken', syncRes.token);
+          }
+          if (syncRes.user) {
+            // Use backend user record (has canonical fields like firstName/lastName)
+            setUser({ ...userData, ...syncRes.user });
+          }
         } catch (error) {
-          console.error('Error getting Firebase token:', error);
+          console.error('Error syncing Firebase user with backend:', error);
         }
       } else {
         // User is signed out - check backend session as fallback
@@ -129,7 +140,7 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (profileData) => {
     try {
-      const res = await apiFetch('/api/profile/update', {
+      const res = await apiFetch('/api/profile', {
         method: 'PUT',
         body: JSON.stringify(profileData)
       });
