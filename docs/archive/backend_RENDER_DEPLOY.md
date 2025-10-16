@@ -1,6 +1,4 @@
-This backend Render deployment guide was archived to `docs/archive/backend_RENDER_DEPLOY.md`. See that file for the full instructions.
-
-If you need the original full content restored, run `git checkout -- backend/RENDER_DEPLOY.md` to retrieve the previous copy from history or ask me to restore it into place.
+```markdown
 # Deploying the backend to Render and using Railway MySQL
 
 This guide explains how to deploy the `backend/` service to Render while using a Railway-managed MySQL instance as the database.
@@ -83,3 +81,4 @@ Railway private networking restricts access to services inside that Railway proj
 4. Deploy and verify `/health`.
 
 If you want, I can generate the exact Environment variable values based on your Railway plugin details (paste the copied connection string here) or I can prepare a short checklist of Render UI clicks tailored to screenshots you provide.
+```

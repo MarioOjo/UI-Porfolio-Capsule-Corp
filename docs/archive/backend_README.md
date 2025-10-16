@@ -1,6 +1,4 @@
-This backend README was archived to `docs/archive/backend_README.md` during repository cleanup. See that file for developer notes about image uploads and environment variables.
-
-If you need the original full content restored, run `git checkout -- backend/README.md` to retrieve the previous copy from history or ask me to restore it into place.
+```markdown
 Backend notes
 
 Image uploads:
@@ -17,3 +15,4 @@ Environment:
 
 Security:
 - These endpoints are intended for admin-only use; ensure your auth middleware restricts access in production.
+```
