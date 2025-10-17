@@ -23,10 +23,7 @@ CREATE TABLE IF NOT EXISTS capsule_products (
   INDEX idx_slug (slug),
   INDEX idx_price (price)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
--- Base schema for Capsule Corp database
--- Database creation (run once at setup)
-CREATE DATABASE IF NOT EXISTS capsule_db CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Note: Connection pool already targets capsule_db, so USE command removed to avoid ER_UNSUPPORTED_PS
+-- Note: Database creation removed for cloud compatibility. Connection pool already targets the correct DB.
 
 CREATE TABLE IF NOT EXISTS roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
