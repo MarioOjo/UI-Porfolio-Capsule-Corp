@@ -1,7 +1,7 @@
 -- Migration: Add Capsule Category Products
 -- Description: Adds products specifically for the Capsules category page
 
-INSERT INTO capsule_products (
+INSERT INTO products (
     id, name, slug, description, category, price, original_price, power_level,
     image, gallery, in_stock, stock, featured, tags, specifications
 ) VALUES

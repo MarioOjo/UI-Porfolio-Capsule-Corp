@@ -1,7 +1,7 @@
 -- Migration: Seed capsule_products table with initial data
 -- Description: Populates the capsule_products table with Capsule Corp store products
 
-INSERT INTO capsule_products (
+INSERT INTO products (
     id, name, slug, description, category, price, original_price, power_level,
     image, gallery, in_stock, stock, featured, tags, specifications
 ) VALUES
@@ -124,7 +124,7 @@ ON DUPLICATE KEY UPDATE
     updated_at = CURRENT_TIMESTAMP;
 
 -- Ensure Potara Earrings exists with the glowing image
-INSERT INTO capsule_products (id, name, slug, description, category, price, original_price, power_level, image, gallery, in_stock, stock, featured, tags, specifications)
+INSERT INTO products (id, name, slug, description, category, price, original_price, power_level, image, gallery, in_stock, stock, featured, tags, specifications)
 VALUES (
     19,
     'Potara Earrings',
