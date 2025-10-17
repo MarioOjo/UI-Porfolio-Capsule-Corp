@@ -101,7 +101,7 @@ async function start() {
       console.warn('⚠️  Could not read resolved DB config for logging:', e.message);
     }
     await DatabaseMigration.runMigrations();
-    await emailService.initialize(); // Initialize email service
+  // await emailService.initialize(); // No longer needed with Resend
     const PORT = process.env.PORT || 5000;
     const server = app.listen(PORT, () => {
       console.log(`✅ Server successfully listening on port ${PORT}`);
