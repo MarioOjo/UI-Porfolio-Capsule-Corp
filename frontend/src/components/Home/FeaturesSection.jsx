@@ -162,7 +162,7 @@ function FeaturesSection() {
                       : 'border-[#3B4CCA] text-[#3B4CCA] hover:bg-[#3B4CCA] hover:text-white'
                   }`}
                 >
-                  Sign In
+                  Login
                 </a>
               </div>
             </div>
