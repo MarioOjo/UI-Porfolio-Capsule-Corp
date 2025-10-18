@@ -23,10 +23,13 @@ const app = express();
 // CORS: in development reflect the request origin so Vite can run on different ports.
 // In production use an explicit FRONTEND_ORIGIN environment variable.
 
-// Update your FRONTEND_ORIGINS to include your actual frontend URL
-const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || 'http://localhost:3000,https://porfolio-app-ub7q.onrender.com')
-  .split(',')
-  .map(s => s.trim());
+
+// Always include your deployed frontend and localhost for dev
+const FRONTEND_ORIGINS = [
+  'https://porfolio-app-ub7q.onrender.com',
+  'http://localhost:3000'
+];
+console.log('CORS allowed origins:', FRONTEND_ORIGINS);
 
 // Simplify CORS for production - allow all your frontend origins
 const corsOptions = {
