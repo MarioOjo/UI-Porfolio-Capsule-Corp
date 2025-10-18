@@ -1,3 +1,49 @@
+// Helper to robustly parse JSON fields for a product
+function parseProductFields(product) {
+  try {
+    // Safely parse gallery field
+    if (product.gallery && typeof product.gallery === 'string') {
+      if (product.gallery.trim().startsWith('[') || product.gallery.trim().startsWith('{')) {
+        product.gallery = JSON.parse(product.gallery);
+      } else {
+        product.gallery = [product.gallery];
+      }
+    } else if (!product.gallery) {
+      product.gallery = [];
+    }
+    // Safely parse tags field
+    if (product.tags && typeof product.tags === 'string') {
+      if (product.tags.trim().startsWith('[')) {
+        product.tags = JSON.parse(product.tags);
+      } else {
+        product.tags = [product.tags];
+      }
+    } else if (!product.tags) {
+      product.tags = [];
+    }
+    // Safely parse specifications field
+    if (product.specifications && typeof product.specifications === 'string') {
+      if (product.specifications.trim().startsWith('{')) {
+        product.specifications = JSON.parse(product.specifications);
+      } else {
+        product.specifications = {};
+      }
+    } else if (!product.specifications) {
+      product.specifications = {};
+    }
+    product.in_stock = Boolean(product.in_stock);
+    product.featured = Boolean(product.featured);
+    return product;
+  } catch (parseError) {
+    console.warn(`⚠️ JSON parse error for product ${product.id}:`, parseError.message);
+    product.gallery = Array.isArray(product.gallery) ? product.gallery : [];
+    product.tags = Array.isArray(product.tags) ? product.tags : [];
+    product.specifications = typeof product.specifications === 'object' ? product.specifications : {};
+    product.in_stock = Boolean(product.in_stock);
+    product.featured = Boolean(product.featured);
+    return product;
+  }
+}
 const dbConnection = require('../config/database');
 
 class ProductModel {
@@ -26,18 +72,8 @@ class ProductModel {
         FROM capsule_products 
         ORDER BY created_at DESC
       `;
-      
       const [results] = await pool.execute(query);
-      
-      // Parse JSON fields
-      return results.map(product => ({
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      }));
+      return results.map(parseProductFields);
     } catch (error) {
       console.error('Error fetching all products:', error);
       throw error;
@@ -69,24 +105,9 @@ class ProductModel {
         FROM capsule_products 
         WHERE id = ?
       `;
-      
       const [results] = await pool.execute(query, [id]);
-      
-      if (results.length === 0) {
-        return null;
-      }
-      
-      const product = results[0];
-      
-      // Parse JSON fields
-      return {
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      };
+      if (results.length === 0) return null;
+      return parseProductFields(results[0]);
     } catch (error) {
       console.error('Error fetching product by ID:', error);
       throw error;
@@ -118,24 +139,9 @@ class ProductModel {
         FROM capsule_products 
         WHERE slug = ?
       `;
-      
       const [results] = await pool.execute(query, [slug]);
-      
-      if (results.length === 0) {
-        return null;
-      }
-      
-      const product = results[0];
-      
-      // Parse JSON fields
-      return {
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      };
+      if (results.length === 0) return null;
+      return parseProductFields(results[0]);
     } catch (error) {
       console.error('Error fetching product by slug:', error);
       throw error;
@@ -168,18 +174,8 @@ class ProductModel {
         WHERE category = ?
         ORDER BY created_at DESC
       `;
-      
       const [results] = await pool.execute(query, [category]);
-      
-      // Parse JSON fields
-      return results.map(product => ({
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      }));
+      return results.map(parseProductFields);
     } catch (error) {
       console.error('Error fetching products by category:', error);
       throw error;
@@ -222,22 +218,12 @@ class ProductModel {
           END,
           created_at DESC
       `;
-      
       const searchPattern = `%${searchTerm}%`;
       const [results] = await pool.execute(query, [
         searchPattern, searchPattern, searchPattern, searchPattern,
         searchPattern, searchPattern
       ]);
-      
-      // Parse JSON fields
-      return results.map(product => ({
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      }));
+      return results.map(parseProductFields);
     } catch (error) {
       console.error('Error searching products:', error);
       throw error;
@@ -401,18 +387,8 @@ class ProductModel {
         WHERE featured = 1
         ORDER BY created_at DESC
       `;
-      
       const [results] = await pool.execute(query);
-      
-      // Parse JSON fields
-      return results.map(product => ({
-        ...product,
-        gallery: product.gallery ? JSON.parse(product.gallery) : [],
-        tags: product.tags ? JSON.parse(product.tags) : [],
-        specifications: product.specifications ? JSON.parse(product.specifications) : {},
-        in_stock: Boolean(product.in_stock),
-        featured: Boolean(product.featured)
-      }));
+      return results.map(parseProductFields);
     } catch (error) {
       console.error('Error fetching featured products:', error);
       throw error;
