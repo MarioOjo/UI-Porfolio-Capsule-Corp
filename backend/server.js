@@ -26,39 +26,31 @@ const app = express();
 
 
 
-// Allow only a single origin for testing
-const SINGLE_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://porfolio-app-ub7q.onrender.com';
-console.log('CORS allowed origin:', SINGLE_ORIGIN);
-app.use(cors({
-  origin: SINGLE_ORIGIN,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
 
-// Simplify CORS for production - allow all your frontend origins
-const corsOptions = {
+// Handle preflight requests globally
+
+// CORS: Allow both deployed and local frontend origins in development, only deployed in production
+const DEPLOYED_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://porfolio-app-ub7q.onrender.com';
+const LOCAL_ORIGIN = 'http://localhost:3000';
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [DEPLOYED_ORIGIN]
+  : [DEPLOYED_ORIGIN, LOCAL_ORIGIN];
+
+console.log('CORS allowed origins:', allowedOrigins);
+app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    // Check against allowed origins
-    if (FRONTEND_ORIGINS.includes(origin)) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    // For development, you might want to be more permissive
-    if (process.env.NODE_ENV === 'development') {
-      console.log('⚠️  Allowing origin in development:', origin);
-      return callback(null, true);
-    }
-    return callback(new Error(`Not allowed by CORS: ${origin}. Allowed: ${FRONTEND_ORIGINS.join(', ')}`));
+    return callback(new Error(`Not allowed by CORS: ${origin}. Allowed: ${allowedOrigins.join(', ')}`));
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-// Handle preflight requests globally
+}));
 
 app.use(express.json());
 
