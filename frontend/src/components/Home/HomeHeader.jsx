@@ -92,18 +92,17 @@ function HomeHeader() {
 
   return (
     <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg overflow-visible">
-      <div className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
-        <div className="flex items-center justify-between space-x-2 sm:space-x-4 min-w-0">
-          <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-              <FaCapsules className="text-[#3B4CCA] text-lg sm:text-xl" />
+      <div className="max-w-6xl mx-auto px-2 py-2 sm:px-4 sm:py-4 overflow-visible">
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-4 min-w-0 w-full">
+          <Link to="/" className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
+            <div className="w-10 h-10 xs:w-12 xs:h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+              <FaCapsules className="text-[#3B4CCA] text-lg xs:text-xl" />
             </div>
-            <h1 className="text-lg sm:text-2xl font-bold text-white font-saiyan hidden xs:block">CAPSULE CORP</h1>
-            <h1 className="text-sm font-bold text-white font-saiyan xs:hidden">CAPSULE CORP</h1>
+            <h1 className="text-base xs:text-lg sm:text-2xl font-bold text-white font-saiyan">CAPSULE CORP</h1>
           </Link>
 
           {/* Enhanced Search Bar */}
-          <div className="flex-1 max-w-md mx-2 sm:mx-4 lg:mx-8 relative" ref={searchRef}>
+          <div className="w-full xs:flex-1 max-w-full xs:max-w-md mx-0 xs:mx-2 sm:mx-4 lg:mx-8 relative" ref={searchRef}>
             <form onSubmit={handleSearchSubmit}>
               <div className="relative">
                 <input
@@ -160,9 +159,14 @@ function HomeHeader() {
             </form>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Currency Selector */}
-            <CurrencySelector size="small" showLabel={false} />
+          <div className="flex flex-wrap items-center gap-2 xs:gap-4 justify-end w-full xs:w-auto mt-2 xs:mt-0">
+      {/* Currency Selector: show below navbar on mobile, inline on desktop */}
+      <div className="block xs:hidden w-full px-2 py-2 bg-gradient-to-r from-[#3B4CCA] to-blue-600">
+        <CurrencySelector size="large" showLabel={true} />
+      </div>
+      <div className="hidden xs:block absolute top-2 right-2">
+        <CurrencySelector size="small" showLabel={false} />
+      </div>
             
             {/* Theme Toggle */}
             <button
@@ -363,15 +367,17 @@ function HomeHeader() {
               <>
                 <Link
                   to="/auth"
-                  className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
+                  className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide px-3 py-2 rounded-lg xs:px-4 xs:py-2"
                   aria-label="Login"
+                  style={{ minWidth: 80, textAlign: 'center' }}
                 >
                   LOGIN
                 </Link>
                 <Link
                   to="/auth?tab=signup"
-                  className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
+                  className="text-sm font-medium text-white hover:text-[#FFD700] transition-colors font-saiyan tracking-wide px-3 py-2 rounded-lg xs:px-4 xs:py-2"
                   aria-label="Register"
+                  style={{ minWidth: 80, textAlign: 'center' }}
                 >
                   REGISTER
                 </Link>
