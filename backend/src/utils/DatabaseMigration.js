@@ -66,13 +66,14 @@ class DatabaseMigration {
   static async runSQLMigrations() {
     try {
       const sqlDir = path.join(__dirname, '../../sql');
-      // Updated migration order: run initial schema first
+
+      // Use only present, correct migration files in proper order
       const migrationFiles = [
-        '000_initial_schema.sql',      // new base schema (roles, users, categories, products, capsule_products)
-        'capsule_db.sql',              // legacy base schema (safe to run after)
+        '000_create_roles_table.sql',
         '001_create_users_table.sql',
-        '002_create_products_table.sql',
+        '002_create_categories_table.sql',
         '003_seed_products_data.sql',
+        '004_create_capsule_products_table.sql',
         '004_add_capsule_products.sql',
         '005_create_contact_messages_table.sql',
         '006_create_orders_tables.sql'
