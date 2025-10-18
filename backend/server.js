@@ -24,12 +24,16 @@ const app = express();
 // In production use an explicit FRONTEND_ORIGIN environment variable.
 
 
-// Always include your deployed frontend and localhost for dev
-const FRONTEND_ORIGINS = [
-  'https://porfolio-app-ub7q.onrender.com',
-  'http://localhost:3000'
-];
-console.log('CORS allowed origins:', FRONTEND_ORIGINS);
+
+
+// Allow only a single origin for testing
+const SINGLE_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://porfolio-app-ub7q.onrender.com';
+console.log('CORS allowed origin:', SINGLE_ORIGIN);
+app.use(cors({
+  origin: SINGLE_ORIGIN,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 // Simplify CORS for production - allow all your frontend origins
 const corsOptions = {
