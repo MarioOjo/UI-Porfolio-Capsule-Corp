@@ -100,7 +100,7 @@ const SearchAndFilter = ({
   const { formatPrice } = useCurrency();
 
   return (
-  <div className="bg-white rounded-lg shadow-md p-6 mb-6 overflow-x-hidden p-2">
+  <div className="bg-white rounded-lg shadow-md p-6 mb-6 overflow-x-hidden">
       {/* Search Bar */}
       <div className="relative mb-4">
         <input
