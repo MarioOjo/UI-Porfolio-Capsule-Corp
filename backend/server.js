@@ -22,27 +22,37 @@ const app = express();
 
 // CORS: in development reflect the request origin so Vite can run on different ports.
 // In production use an explicit FRONTEND_ORIGIN environment variable.
-const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || 'http://localhost:3000')
+
+// Update your FRONTEND_ORIGINS to include your actual frontend URL
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || process.env.FRONTEND_ORIGIN || 'http://localhost:3000,https://porfolio-app-ub7q.onrender.com')
   .split(',')
   .map(s => s.trim());
-const corsOptions = (process.env.NODE_ENV === 'development')
-  ? { origin: true, credentials: true } // reflect request origin (safe for dev only)
-  : {
-      origin: function(origin, callback) {
-        // Allow non-browser requests (no origin) and match explicit allowed origins
-        if (!origin) return callback(null, true);
-        if (FRONTEND_ORIGINS.includes(origin)) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
-      },
-      credentials: true,
-      // Explicitly allow these headers and methods so preflight succeeds when Authorization is present
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      preflightContinue: false,
-      optionsSuccessStatus: 204
-    };
+
+// Simplify CORS for production - allow all your frontend origins
+const corsOptions = {
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Check against allowed origins
+    if (FRONTEND_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    // For development, you might want to be more permissive
+    if (process.env.NODE_ENV === 'development') {
+      console.log('⚠️  Allowing origin in development:', origin);
+      return callback(null, true);
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}. Allowed: ${FRONTEND_ORIGINS.join(', ')}`));
+  },
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  optionsSuccessStatus: 200
+};
 
 app.use(cors(corsOptions));
+// Handle preflight requests globally
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
