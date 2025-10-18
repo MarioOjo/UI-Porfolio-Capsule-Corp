@@ -45,7 +45,7 @@ function AuthPage() {
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              SIGN IN
+              LOGIN
             </button>
             <button
               onClick={() => handleTabChange('signup')}

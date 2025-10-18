@@ -291,9 +291,9 @@ function Navbar() {
               <Link
                 to="/auth"
                 className="text-sm font-medium text-[#3B4CCA] hover:text-[#FFD700] transition-colors font-saiyan tracking-wide"
-                aria-label="Sign In"
+                aria-label="Login"
               >
-                SIGN IN
+                LOGIN
               </Link>
               <Link
                 to="/auth?tab=signup"

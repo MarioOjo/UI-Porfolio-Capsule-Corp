@@ -46,7 +46,7 @@ export function WishlistProvider({ children }) {
 
   const addToWishlist = (product) => {
     if (!user) {
-      showInfo('🔐 Please sign in to save items to your wishlist!');
+  showInfo('🔐 Please login to save items to your wishlist!');
       return false;
     }
 

@@ -231,7 +231,7 @@ function Cart() {
                   onClick={handleCheckout}
                   className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl mb-4"
                 >
-                  {user ? 'PROCEED TO CHECKOUT' : 'SIGN IN TO CHECKOUT'}
+                  {user ? 'PROCEED TO CHECKOUT' : 'LOGIN TO CHECKOUT'}
                 </button>
 
                 <Link

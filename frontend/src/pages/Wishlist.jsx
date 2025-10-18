@@ -38,13 +38,13 @@ function Wishlist() {
               SAIYAN WISHLIST
             </h1>
             <p className="text-gray-600 mb-8">
-              Sign in to save your favorite Capsule Corp. gear for later!
+              Login to save your favorite Capsule Corp. gear for later!
             </p>
             <Link
               to="/auth"
               className="inline-block bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-3 rounded-xl font-saiyan font-bold kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
             >
-              POWER UP (SIGN IN)
+              POWER UP (LOGIN)
             </Link>
           </div>
         </div>
