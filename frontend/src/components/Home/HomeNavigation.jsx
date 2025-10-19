@@ -1,3 +1,4 @@
+import React from 'react';
 import { NavLink } from "react-router-dom";
 import { FaHome, FaBoxOpen, FaShieldAlt, FaCapsules, FaDumbbell, FaTruck, FaEnvelope, FaShoppingCart } from "react-icons/fa";
 import { useState } from "react";

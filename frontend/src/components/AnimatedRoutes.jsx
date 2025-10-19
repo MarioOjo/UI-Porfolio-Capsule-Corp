@@ -1,7 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { Suspense, lazy } from 'react';
-import PageTransition from './PageTransition';
+// Lazy-load PageTransition (and thus framer-motion) so the motion runtime
+// is only fetched when the transition component is rendered.
+const PageTransition = lazy(() => import('./PageTransition'));
 import LoadingSpinner from './LoadingSpinner';
 
 // Lazy load pages for better performance
@@ -46,10 +47,10 @@ const AnimatedRoutes = () => {
 
   return (
     <div className="w-full min-h-screen">
-      <AnimatePresence mode="wait" initial={false}>
+      {/* PageTransition is lazy-loaded. Suspense fallback will show while it loads. */}
+      <Suspense fallback={loadingComponent}>
         <PageTransition key={location.pathname}>
-          <Suspense fallback={loadingComponent}>
-            <Routes location={location}>
+          <Routes location={location}>
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
@@ -78,9 +79,8 @@ const AnimatedRoutes = () => {
               
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </Suspense>
         </PageTransition>
-      </AnimatePresence>
+      </Suspense>
     </div>
   );
 };

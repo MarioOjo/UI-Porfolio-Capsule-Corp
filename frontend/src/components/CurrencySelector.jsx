@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FaGlobe, FaCheck } from 'react-icons/fa';
 import { useCurrency } from '../contexts/CurrencyContext';
 
