@@ -17,6 +17,19 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
+// Lightweight health endpoint for probes
+app.get('/health', (req, res) => {
+  try {
+    // Optionally ensure the built index exists
+    const indexPath = path.join(distPath, 'index.html');
+    const fs = require('fs');
+    const exists = fs.existsSync(indexPath);
+    return res.json({ ok: true, built: exists });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Frontend listening on port ${port}`);
 });

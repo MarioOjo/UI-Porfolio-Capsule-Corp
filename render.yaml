@@ -43,12 +43,12 @@ services:
       - key: EMAIL_TO
         sync: false
 
-  - type: static
+  - type: web
     name: capsulecorp-frontend
-    env: static
+    env: node
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    publish: dist
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: npm start
     plan: free
     autoDeploy: true
     envVars:
