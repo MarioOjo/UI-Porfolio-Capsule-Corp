@@ -9,17 +9,6 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { apiFetch } from "../../utils/api";
 import CurrencySelector from "../CurrencySelector";
-import CapsuleLogo from "../CapsuleLogo";
-import CapsuleImg from "../../../public/images/CAPSULE CORP IMG.svg";
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../AuthContext";
-import { useNotifications } from "../../contexts/NotificationContext";
-import { useCart } from "../../contexts/CartContext";
-import { useWishlist } from "../../contexts/WishlistContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useCurrency } from "../../contexts/CurrencyContext";
-import { apiFetch } from "../../utils/api";
-import CurrencySelector from "../CurrencySelector";
 
 function HomeHeader() {
   const [search, setSearch] = useState("");
@@ -110,7 +99,7 @@ function HomeHeader() {
         </button>
         {/* Logo image only, no text */}
         <Link to="/" className="flex items-center justify-center w-12 h-12">
-          <img src={CapsuleImg} alt="Capsule Corp Logo" className="w-12 h-12 object-contain" />
+          <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp Logo" className="w-12 h-12 object-contain" />
         </Link>
         {/* Floating search bar */}
         <div className="flex-1 mx-2 relative" ref={searchRef}>

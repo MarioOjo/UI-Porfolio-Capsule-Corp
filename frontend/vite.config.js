@@ -17,5 +17,25 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Separate React and React-dom into their own chunk
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) return 'vendor_react';
+            if (id.includes('framer-motion')) return 'vendor_framer-motion';
+            // Anything else from node_modules goes into a generic vendor chunk
+            return 'vendor';
+          }
+
+          // Split large route pages into separate chunks
+          if (id.includes('/src/pages/Admin')) return 'admin';
+          if (id.includes('/src/pages/ProductDetail')) return 'product-detail';
+        }
+      }
+    }
   }
 })
