@@ -19,6 +19,8 @@ const addressRoutes = require('./routes/addresses');
 const profileRoutes = require('./routes/profile');
 
 const app = express();
+// Explicit handler for OPTIONS requests to ensure proper CORS preflight responses
+app.options('*', cors());
 
 // CORS: Allow localhost only for development
 const allowedOrigins = [
