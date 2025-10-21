@@ -1,40 +1,5 @@
-# General
-.DS_Store
-Thumbs.db
-
-# Node
 node_modules/
-**/node_modules/
-
-# Build outputs
-/dist/
-**/dist/
-.vite/
-.next/
-coverage/
-
-# Env & local
+dist/
+build/
 .env
-**/.env
-.env.local
-**/.env.local
-.npmrc
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Editor
-.vscode/
-.idea/
-
-# OS
-*.swp
-*.swo
-
-# Package managers lockfiles (optional - keep if you prefer lockfiles)
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
+*.log

@@ -1,8 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
+<<<<<<< HEAD:frontend/src/pages/Products.jsx
 import ProductCard from "../components/Product/ProductCard";
 import { useProducts } from "../hooks/useProducts";
+=======
+import { Suspense, lazy } from "react";
+const ProductCard = lazy(() => import("../components/Product/ProductCard"));
+import { apiFetch } from "../utils/api";
+>>>>>>> capsule-corp-:CAPSULE CORP/src/pages/Products.jsx
 
 function Products() {
   const [searchParams] = useSearchParams();
@@ -193,13 +199,15 @@ function Products() {
               <p className="mt-2 opacity-90 text-sm sm:text-base">Ultra-rare gear for elite warriors</p>
             </div>
             <div className="mobile-grid">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  size="large"
-                />
-              ))}
+              <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
+                {featuredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    size="large"
+                  />
+                ))}
+              </Suspense>
             </div>
           </section>
         )}
@@ -213,13 +221,15 @@ function Products() {
               </h2>
             )}
             <div className="mobile-grid">
-              {regularProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  size="medium"
-                />
-              ))}
+              <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
+                {regularProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    size="medium"
+                  />
+                ))}
+              </Suspense>
             </div>
           </section>
         )}

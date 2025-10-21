@@ -6,7 +6,9 @@ import { useWishlist } from "../../contexts/WishlistContext";
 import Price from "../../components/Price";
 import ImageCover from "../ImageCover";
 
-function ProductCard({ product, size = "medium" }) {
+import React from "react";
+
+const ProductCard = React.memo(function ProductCard({ product, size = "medium" }) {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -165,6 +167,6 @@ function ProductCard({ product, size = "medium" }) {
       </div>
     </div>
   );
-}
+});
 
 export default ProductCard;
