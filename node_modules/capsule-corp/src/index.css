@@ -43,11 +43,21 @@
 
 
 /* Prevent horizontal overflow globally */
-html, body {
-  overflow-x: hidden;
-  /* Use 100% rather than 100vw to avoid creating horizontal scroll when
-     the browser adds a vertical scrollbar (100vw includes the scrollbar). */
+html {
+  overflow: hidden; /* Hide all scrollbars on html */
   max-width: 100%;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: auto; /* Only show vertical scrollbar when needed */
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -58,10 +68,10 @@ html, body {
 
 /* Ensure main app container doesn't overflow */
 #root {
-  /* Avoid 100vw here as well; prefer 100% so layout doesn't overflow
-     when scrollbars appear. */
   max-width: 100%;
   width: 100%;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 /* Prevent dropdown overflows */
@@ -234,6 +244,10 @@ body {
 }
 
 /* Footer */
+footer {
+  margin-top: 0 !important; /* Remove any margin-top that might push footer down */
+}
+
 .dark footer {
   background-color: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
