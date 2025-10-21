@@ -1,9 +1,0 @@
-# GitHub Pages/Jekyll config for this repo
-# This repository is a full-stack app (frontend + backend) and is NOT a Jekyll site.
-# We exclude app folders so the default Pages Jekyll build doesn't parse node_modules
-# or Markdown in dependencies, which causes Liquid syntax errors.
-
-exclude:
-  - "CAPSULE CORP/**"
-  - "backend/**"
-  - "**/node_modules/**"
