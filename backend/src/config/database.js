@@ -17,6 +17,10 @@ class DatabaseConnection {
       charset: 'utf8mb4',
       timezone: 'Z'
     };
+  // Mark the default source; we'll override below depending on whether a
+  // connection string or explicit parts are used. Store this separately so
+  // it is not passed into the mysql2 connection options.
+  this._source = 'default_parts';
 
     // Support a single connection string commonly provided by hosts like
     // Railway / Render (e.g. MYSQL_URL or DATABASE_URL with mysql://user:pass@host:port/db)
@@ -46,6 +50,7 @@ class DatabaseConnection {
           if (urlPass) this.baseConfig.password = urlPass;
           if (urlDb) this.baseConfig.database = urlDb;
           if (urlPort) this.baseConfig.port = urlPort;
+          this._source = 'connString';
         }
       } catch (e) {
         console.warn('\u26a0\ufe0f  Could not parse connection string in MYSQL_URL/DATABASE_URL:', e.message);
@@ -55,7 +60,7 @@ class DatabaseConnection {
     // If no URL-style connection string was provided (or we deliberately prefer
     // explicit parts via DB_HOST), support Railway-provided parts as a fallback
     if (!connString) {
-      const partHost = process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || process.env.DB_HOST;
+  const partHost = process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || process.env.DB_HOST;
       const partUser = process.env.MYSQLUSER || process.env.DB_USER;
       const partPass = process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD || process.env.DB_PASSWORD;
       const partDb = process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || process.env.DB_NAME;
@@ -66,6 +71,7 @@ class DatabaseConnection {
         if (partPass) this.baseConfig.password = partPass;
         if (partDb) this.baseConfig.database = partDb;
         if (partPort) this.baseConfig.port = Number(partPort);
+    this._source = 'parts';
       }
     }
 
@@ -101,6 +107,16 @@ class DatabaseConnection {
         // If configured, attempt a raw TCP connect to the resolved host/port to get clearer socket errors in logs.
         if (doTcpDebug && this.baseConfig && this.baseConfig.host) {
           try {
+            // Attempt to DNS-resolve the host first to provide clearer diagnostics
+            // in overlay/private-network environments.
+            try {
+              const dns = require('dns').promises;
+              const addrs = await dns.lookup(this.baseConfig.host, { all: true });
+              const ips = (addrs || []).map(a => a.address).join(', ');
+              console.log(`🔎 Resolved ${this.baseConfig.host} -> ${ips}`);
+            } catch (dnsErr) {
+              console.log(`🔎 DNS lookup for ${this.baseConfig.host} failed: ${dnsErr.message}`);
+            }
             await this._tcpCheck(this.baseConfig.host, this.baseConfig.port || 3306, tcpTimeout);
             console.log(`🔍 TCP check succeeded to ${this.baseConfig.host}:${this.baseConfig.port || 3306}`);
           } catch (tcpErr) {
@@ -222,7 +238,8 @@ class DatabaseConnection {
       database: cfg.database,
       ssl: !!cfg.ssl,
       // Never reveal passwords in logs
-      password: cfg.password ? '****' : undefined
+      password: cfg.password ? '****' : undefined,
+      source: this._source
     };
   }
 }

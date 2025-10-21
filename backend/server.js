@@ -95,7 +95,10 @@ async function start() {
     try {
       const dbInfo = database.getResolvedConfig && database.getResolvedConfig();
       if (dbInfo) {
-        console.log('🔎 Resolved DB config:', Object.assign({}, dbInfo, { password: '****' }));
+        // Print a short, masked summary including the source if the DB module set it.
+  const summary = { host: dbInfo.host, port: dbInfo.port, database: dbInfo.database, ssl: dbInfo.ssl };
+  if (dbInfo.source) summary.source = dbInfo.source;
+        console.log('🔎 Resolved DB config:', summary);
       }
     } catch (e) {
       console.warn('⚠️  Could not read resolved DB config for logging:', e.message);
@@ -113,7 +116,8 @@ async function start() {
       process.exit(1);
     });
   } catch (e) {
-    console.error('❌ Startup failure:', e);
+    // Show only a concise startup failure message to avoid noisy objects in logs.
+    console.error('❌ Startup failure:', e && e.message ? e.message : String(e));
     process.exit(1);
   }
 }
