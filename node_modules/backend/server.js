@@ -25,9 +25,9 @@ app.options('*', cors());
 // CORS: Allow localhost only for development
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://ui-porfolio-capsule-corp-production.up.railway.app',
+  process.env.FRONTEND_ORIGIN,
   'https://invigorating-mercy-production-9989.up.railway.app'
-];
+].filter(Boolean);
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
