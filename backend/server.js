@@ -21,7 +21,10 @@ const profileRoutes = require('./routes/profile');
 const app = express();
 
 // CORS: Allow localhost only for development
-const allowedOrigins = ['http://localhost:3000'];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://ui-porfolio-capsule-corp-production.up.railway.app'
+];
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
