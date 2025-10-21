@@ -1,4 +1,4 @@
-// Load local env only in non-production to avoid overriding Render/hosted env vars
+// Local environment setup for development only
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -20,28 +20,11 @@ const profileRoutes = require('./routes/profile');
 
 const app = express();
 
-// CORS: in development reflect the request origin so Vite can run on different ports.
-// In production use an explicit FRONTEND_ORIGIN environment variable.
-
-
-
-
-
-// Handle preflight requests globally
-
-// CORS: Allow both deployed and local frontend origins in development, only deployed in production
-const DEPLOYED_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://porfolio-app-ub7q.onrender.com';
-const LOCAL_ORIGIN = 'http://localhost:3000';
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [DEPLOYED_ORIGIN]
-  : [DEPLOYED_ORIGIN, LOCAL_ORIGIN];
-
-console.log('CORS allowed origins:', allowedOrigins);
+// CORS: Allow localhost only for development
+const allowedOrigins = ['http://localhost:3000'];
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error(`Not allowed by CORS: ${origin}. Allowed: ${allowedOrigins.join(', ')}`));
