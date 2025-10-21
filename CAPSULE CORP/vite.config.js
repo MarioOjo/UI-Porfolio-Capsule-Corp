@@ -18,4 +18,7 @@ export default defineConfig({
       }
     }
   }
+  ,preview: {
+    allowedHosts: ['ui-porfolio-capsule-corp-production.up.railway.app']
+  }
 })
