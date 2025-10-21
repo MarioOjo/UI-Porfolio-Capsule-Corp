@@ -23,7 +23,8 @@ const app = express();
 // CORS: Allow localhost only for development
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://ui-porfolio-capsule-corp-production.up.railway.app'
+  'https://ui-porfolio-capsule-corp-production.up.railway.app',
+  'https://invigorating-mercy-production-9989.up.railway.app'
 ];
 app.use(cors({
   origin: function(origin, callback) {
