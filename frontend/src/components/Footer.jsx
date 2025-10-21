@@ -3,11 +3,7 @@ import { FaCapsules, FaFacebook, FaTwitter, FaInstagram, FaMapMarkerAlt, FaPhone
 
 function Footer({ className = "" }) {
   return (
-<<<<<<< HEAD:frontend/src/components/Footer.jsx
-  <footer className="bg-neutral-900 text-white py-12 mt-16 overflow-x-hidden p-4">
-=======
     <footer className={`bg-neutral-900 text-white py-12 ${className}`}>
->>>>>>> capsule-corp-:CAPSULE CORP/src/components/Footer.jsx
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -15,10 +11,10 @@ function Footer({ className = "" }) {
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                 <FaCapsules className="text-neutral-900" />
               </div>
-              <h5 className="font-saiyan text-lg tracking-wide">CAPSULE CORP</h5>
+              <h5 className="font-saiyan text-lg tracking-wide">CAPSULE CORP.</h5>
             </div>
             <p className="text-neutral-400 text-sm mb-4">
-              Founded by Dr. Brief, Capsule Corp has been Earth's leading technology company since Age 712.
+              Founded by Dr. Brief, Capsule Corp. has been Earth's leading technology company since Age 712.
             </p>
             {/* Contact Info */}
             <div className="space-y-2 text-sm">

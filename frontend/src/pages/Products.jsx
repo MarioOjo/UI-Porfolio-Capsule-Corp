@@ -1,39 +1,32 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
-<<<<<<< HEAD:frontend/src/pages/Products.jsx
-import ProductCard from "../components/Product/ProductCard";
-import { useProducts } from "../hooks/useProducts";
-=======
 import { Suspense, lazy } from "react";
 const ProductCard = lazy(() => import("../components/Product/ProductCard"));
 import { apiFetch } from "../utils/api";
->>>>>>> capsule-corp-:CAPSULE CORP/src/pages/Products.jsx
 
 function Products() {
   const [searchParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState(searchParams.get('search') || "");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch products from backend via React Query
-  const filters = useMemo(() => {
-    const f = {};
-    if (search.trim()) f.search = search.trim();
-    if (selectedCategory !== "all") f.category = selectedCategory;
-    return f;
-  }, [search, selectedCategory]);
-
-  const { data: fetchedProducts = [], isLoading, isError, error } = useProducts(filters);
+  // Sync search state with URL parameters
+  useEffect(() => {
+    const searchParam = searchParams.get('search') || "";
+    setSearch(searchParam);
+  }, [searchParams]);
 
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "Battle Gear", label: "⚔️ Battle Gear" },
     { value: "Training", label: "💪 Training" },
-    { value: "Tech", label: "📡 Tech" },
-    { value: "Capsules", label: "🏠 Capsules" },
-    { value: "Consumables", label: "🍃 Consumables" }
+    { value: "Technology", label: "📡 Technology" },
+    { value: "Capsules", label: "🧪 Capsules" }
   ];
 
   const sortOptions = [
@@ -45,77 +38,69 @@ function Products() {
     { value: "name", label: "Name A-Z" }
   ];
 
-  // Sort products client-side
-  const products = useMemo(() => {
-    if (!fetchedProducts || fetchedProducts.length === 0) return [];
-    
-    const sorted = [...fetchedProducts].sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return parseFloat(a.price) - parseFloat(b.price);
-        case "price-high":
-          return parseFloat(b.price) - parseFloat(a.price);
-        case "power-high":
-          return (b.power_level || 0) - (a.power_level || 0);
-        case "power-low":
-          return (a.power_level || 0) - (b.power_level || 0);
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "featured":
-        default:
-          // Featured first, then by power level
-          if (a.featured && !b.featured) return -1;
-          if (!a.featured && b.featured) return 1;
-          return (b.power_level || 0) - (a.power_level || 0);
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        let apiPath = '/api/products';
+        const params = new URLSearchParams();
+        
+        // Add filters to API call
+        if (search.trim()) {
+          params.append('search', search.trim());
+        }
+        
+        if (selectedCategory !== "all") {
+          params.append('category', selectedCategory);
+        }
+        
+        if (sortBy === "featured") {
+          params.append('featured', 'true');
+        }
+        
+        if (params.toString()) {
+          apiPath += '?' + params.toString();
+        }
+        
+        const response = await apiFetch(apiPath);
+        let fetchedProducts = response.products || [];
+        
+        // Sort products locally since backend doesn't handle all sort options
+        const sortedProducts = [...fetchedProducts].sort((a, b) => {
+          switch (sortBy) {
+            case "price-low":
+              return a.price - b.price;
+            case "price-high":
+              return b.price - a.price;
+            case "power-high":
+              return (b.power_level || 0) - (a.power_level || 0);
+            case "power-low":
+              return (a.power_level || 0) - (b.power_level || 0);
+            case "name":
+              return a.name.localeCompare(b.name);
+            case "featured":
+            default:
+              return (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || (b.power_level || 0) - (a.power_level || 0);
+          }
+        });
+        
+        setProducts(sortedProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again.');
+      } finally {
+        setLoading(false);
       }
-    });
-    return sorted;
-  }, [fetchedProducts, sortBy]);
+    };
+
+    fetchProducts();
+  }, [search, selectedCategory, sortBy]);
 
   const featuredProducts = products.filter(product => product.featured);
   const regularProducts = products.filter(product => !product.featured);
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4 animate-pulse">⚡</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 font-saiyan">
-              LOADING CAPSULES...
-            </h3>
-            <p className="text-gray-600">Gathering legendary gear from the vault...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (isError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 font-saiyan">
-              CONNECTION ERROR
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {error?.message || "Failed to load products. Please try again."}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-3 rounded-xl font-saiyan font-bold kamehameha-glow transition-all hover:scale-105"
-            >
-              RETRY
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
@@ -188,6 +173,58 @@ function Products() {
             </p>
           </div>
         </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-16">
+            <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600 font-saiyan">LOADING CAPSULES...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 mb-8">
+            <div className="text-center">
+              <div className="text-4xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-red-800 mb-2 font-saiyan">ERROR</h3>
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 text-white px-6 py-2 rounded-xl font-saiyan hover:bg-red-700 transition-all"
+              >
+                TRY AGAIN
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Products Content - only show when not loading and no error */}
+        {!loading && !error && (
+          <>
+            {/* Search Results Indicator */}
+            {search.trim() && (
+              <div className="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg">
+                <h2 className="text-lg font-bold text-blue-800 font-saiyan">
+                  🔍 SEARCH RESULTS FOR: "{search.trim()}"
+                </h2>
+                <p className="text-blue-600 text-sm mt-1">
+                  {products.length} {products.length === 1 ? 'item' : 'items'} found
+                </p>
+              </div>
+            )}
+
+            {/* Category Filter Indicator */}
+            {selectedCategory !== 'all' && (
+              <div className="mb-6 p-4 bg-orange-100 border-l-4 border-orange-500 rounded-lg">
+                <h2 className="text-lg font-bold text-orange-800 font-saiyan">
+                  📂 CATEGORY: {selectedCategory.toUpperCase()}
+                </h2>
+                <p className="text-orange-600 text-sm mt-1">
+                  {products.length} {products.length === 1 ? 'item' : 'items'} in this category
+                </p>
+              </div>
+            )}
 
         {/* Featured Products */}
         {featuredProducts.length > 0 && (
@@ -265,6 +302,8 @@ function Products() {
             Combine multiple items for devastating power combos! Mix training gear with battle equipment for maximum effectiveness.
           </p>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
