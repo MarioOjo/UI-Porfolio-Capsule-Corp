@@ -19,8 +19,9 @@ const addressRoutes = require('./routes/addresses');
 const profileRoutes = require('./routes/profile');
 
 const app = express();
-// Explicit handler for OPTIONS requests to ensure proper CORS preflight responses
-app.options('*', cors());
+// No explicit app.options handler needed — the CORS middleware configured
+// below will handle OPTIONS (preflight) requests. Removing the explicit
+// handler avoids path-to-regexp parsing issues on some router versions.
 
 // CORS: Allow localhost only for development
 const allowedOrigins = [

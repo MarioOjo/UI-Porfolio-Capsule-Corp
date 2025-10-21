@@ -20,8 +20,15 @@ class DatabaseConnection {
 
     // Support a single connection string commonly provided by hosts like
     // Railway / Render (e.g. MYSQL_URL or DATABASE_URL with mysql://user:pass@host:port/db)
-  // Accept several possible connection string env names (Railway/Render and custom)
-  const connString = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.DATABASE_URL || process.env.CLEARDB_DATABASE_URL || process.env.MYSQL_CONNECTION_STRING;
+    // Accept several possible connection string env names (Railway/Render and custom)
+  const rawConnString = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.DATABASE_URL || process.env.CLEARDB_DATABASE_URL || process.env.MYSQL_CONNECTION_STRING;
+    // If the environment explicitly provides DB_HOST (private networking on Railway
+    // or similar) prefer the explicit host/user/password parts. This avoids accidentally
+    // using a public/proxy host from MYSQL_URL which may present different credentials
+    // or connectivity semantics. If DB_HOST is not set, fall back to parsing the
+    // connection string.
+    const preferParts = !!process.env.DB_HOST;
+    const connString = !preferParts ? rawConnString : null;
     if (connString) {
       try {
         // URL API requires a scheme; connection strings from providers usually include it.
@@ -45,7 +52,8 @@ class DatabaseConnection {
       }
     }
 
-    // If no URL-style connection string was provided, support Railway-provided parts as a fallback
+    // If no URL-style connection string was provided (or we deliberately prefer
+    // explicit parts via DB_HOST), support Railway-provided parts as a fallback
     if (!connString) {
       const partHost = process.env.MYSQLHOST || process.env.RAILWAY_PRIVATE_DOMAIN || process.env.DB_HOST;
       const partUser = process.env.MYSQLUSER || process.env.DB_USER;
