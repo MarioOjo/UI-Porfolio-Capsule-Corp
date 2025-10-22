@@ -102,7 +102,6 @@ class DatabaseConnection {
     // Enable by setting DB_DEBUG_TCP_CHECK=true in the environment where the backend runs.
     const doTcpDebug = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.DB_DEBUG_TCP_CHECK || '').trim());
     const tcpTimeout = Number(process.env.DB_DEBUG_TCP_CHECK_TIMEOUT_MS || 3000);
-    let triedConnStringFallback = false;
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         // If configured, attempt a raw TCP connect to the resolved host/port to get clearer socket errors in logs.
@@ -141,37 +140,6 @@ class DatabaseConnection {
           // Loop will retry creating pool next iteration
         } else if (error.code === 'ECONNREFUSED') {
           console.warn(`⏳ MySQL not reachable (attempt ${attempt}/${retries}) - ECONNREFUSED`);
-          // If we have a provider-style connection string available and we haven't
-          // already tried it as a fallback, attempt a single fallback connection
-          // using the parsed connection string. This helps in cases where a
-          // private host is supplied but temporarily refuses connections while
-          // the public/proxy host may still work.
-          const rawConnString = process.env.MYSQL_URL || process.env.RAILWAY_MYSQL_URL || process.env.DATABASE_URL || process.env.CLEARDB_DATABASE_URL || process.env.MYSQL_CONNECTION_STRING;
-          if (rawConnString && !triedConnStringFallback) {
-            triedConnStringFallback = true;
-            console.log('🔁 Attempting fallback to connection string (MYSQL_URL) after ECONNREFUSED...');
-            try {
-              const parsed = new URL(rawConnString);
-              if (['mysql:', 'mysql2:'].includes(parsed.protocol)) {
-                const urlUser = parsed.username ? decodeURIComponent(parsed.username) : undefined;
-                const urlPass = parsed.password ? decodeURIComponent(parsed.password) : undefined;
-                const urlHost = parsed.hostname;
-                const urlPort = parsed.port ? Number(parsed.port) : undefined;
-                const urlDb = parsed.pathname && parsed.pathname.length > 1 ? decodeURIComponent(parsed.pathname.slice(1)) : undefined;
-                if (urlHost) this.baseConfig.host = urlHost;
-                if (urlUser) this.baseConfig.user = urlUser;
-                if (urlPass) this.baseConfig.password = urlPass;
-                if (urlDb) this.baseConfig.database = urlDb;
-                if (urlPort) this.baseConfig.port = urlPort;
-                this._source = 'connString-fallback';
-                console.log('🔎 Fallback config set from MYSQL_URL — will retry connection.');
-                // continue to next attempt which will try the new settings
-                continue;
-              }
-            } catch (e) {
-              console.warn('⚠️  Fallback parse of MYSQL_URL failed:', e.message);
-            }
-          }
         } else {
           console.warn(`⚠️  DB connection attempt ${attempt} failed: ${msg}`);
         }
