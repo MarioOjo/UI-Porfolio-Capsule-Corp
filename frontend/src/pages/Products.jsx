@@ -1,14 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
-<<<<<<< HEAD:frontend/src/pages/Products.jsx
-import ProductCard from "../components/Product/ProductCard";
-import { useProducts } from "../hooks/useProducts";
-=======
-import { Suspense, lazy } from "react";
 const ProductCard = lazy(() => import("../components/Product/ProductCard"));
-import { apiFetch } from "../utils/api";
->>>>>>> capsule-corp-:CAPSULE CORP/src/pages/Products.jsx
+import { useProducts } from "../hooks/useProducts";
 
 function Products() {
   const [searchParams] = useSearchParams();

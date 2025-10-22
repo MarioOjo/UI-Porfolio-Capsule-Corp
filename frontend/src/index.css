@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* === Popover & Scroll Utilities (added) =============================== */
 .no-scrollbar::-webkit-scrollbar { display: none; }
