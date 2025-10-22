@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
-import { Suspense, lazy } from "react";
-const ProductCard = lazy(() => import("../components/Product/ProductCard"));
+import ProductCard from "../components/Product/ProductCard";
 import { apiFetch } from "../utils/api";
 
 function Products() {
@@ -236,15 +235,13 @@ function Products() {
               <p className="mt-2 opacity-90 text-sm sm:text-base">Ultra-rare gear for elite warriors</p>
             </div>
             <div className="mobile-grid">
-              <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
-                {featuredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    size="large"
-                  />
-                ))}
-              </Suspense>
+              {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  size="large"
+                />
+              ))}
             </div>
           </section>
         )}
@@ -258,15 +255,13 @@ function Products() {
               </h2>
             )}
             <div className="mobile-grid">
-              <Suspense fallback={<div className="text-center py-8">Loading products...</div>}>
-                {regularProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    size="medium"
-                  />
-                ))}
-              </Suspense>
+              {regularProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  size="medium"
+                />
+              ))}
             </div>
           </section>
         )}
