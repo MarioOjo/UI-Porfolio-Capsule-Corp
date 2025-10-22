@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "preinstall": "node -e \"const fs=require('fs');const p='node_modules/.cache';if(fs.existsSync(p)){try{fs.rmSync(p,{ recursive:true, force:true });console.log('Removed',p);}catch(e){console.warn('Could not remove',p,e.message);} }\"",
     "dev": "vite",
     "prebuild": "node -e \"const fs=require('fs');const p='node_modules/.cache';if(fs.existsSync(p)){try{fs.rmSync(p,{ recursive:true, force:true });console.log('Removed',p);}catch(e){console.warn('Could not remove',p,e.message);} }\"",
     "build": "vite build",
