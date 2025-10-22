@@ -201,6 +201,18 @@ function Navbar() {
           </div>
         </div>
       </header>
+      {/* Secondary category navigation (desktop) */}
+      <nav className="hidden sm:block bg-white border-b">
+        <div className="max-w-6xl mx-auto px-4">
+          <ul className="flex items-center gap-6 py-3 text-sm text-gray-700">
+            {mobileMenuItems.map(item => (
+              <li key={item.label}>
+                <Link to={item.to} className="hover:text-[#3B4CCA] transition-colors">{item.label}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
 
       {/* Mobile sticky bottom bar */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white shadow-lg py-2">
