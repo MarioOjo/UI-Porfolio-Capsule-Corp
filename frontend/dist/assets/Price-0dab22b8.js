@@ -1,1 +1,0 @@
-import{a6 as i,a as o}from"./index-49c0c10e.js";const c=({value:r=0,decimals:n,className:s=""})=>{const{formatPrice:e}=i();return r==null||Number.isNaN(Number(r))?null:o("span",{className:s,children:e(Number(r),{decimals:n})})};export{c as P};
