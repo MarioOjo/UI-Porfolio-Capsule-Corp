@@ -1,0 +1,19 @@
+# Minimal railway.toml to pin services and paths
+# This tells Railway which folders correspond to which services.
+# It does not override build commands unless explicitly added in the Railway UI or by expanding this file.
+
+[project]
+name = "UI-Porfolio-Capsule-Corp"
+
+[service.frontend]
+path = "frontend"
+# type left unspecified to allow Railway to auto-detect (Dockerfile present)
+
+[service.backend]
+path = "backend"
+
+# Optional: you can explicitly set type = "docker" for a service to force Docker builds
+# Example:
+# [service.frontend]
+# path = "frontend"
+# type = "docker"
