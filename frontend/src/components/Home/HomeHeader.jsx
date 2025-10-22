@@ -1,19 +1,8 @@
-﻿import { FaBars } from "react-icons/fa";
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Product categories/items for mobile menu
-  const mobileMenuItems = [
-    { label: "Home", to: "/" },
-    { label: "Products", to: "/products" },
-    { label: "Battle Gear", to: "/products?category=Battle%20Gear" },
-    { label: "Capsules", to: "/products?category=Capsules" },
-    { label: "Training", to: "/products?category=Training" },
-    { label: "Track Order", to: "/order-tracking" },
-    { label: "Contact", to: "/contact" },
-    { label: "Cart", to: "/cart" },
-  ];
+﻿import React from 'react';
 import { Link, useNavigate } from "react-router-dom";
-import { FaCapsules, FaUser, FaShoppingCart, FaSearch, FaHeart, FaSignOutAlt, FaMinus, FaPlus, FaTrash, FaTimes, FaUserCircle, FaBox, FaMapMarkerAlt, FaLock, FaUserShield, FaMoon, FaSun } from "react-icons/fa";
+import { FaUser, FaShoppingCart, FaSearch, FaHeart, FaMoon, FaSun, FaBars } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+// lightweight: use CSS transitions instead of framer-motion to reduce bundle size and avoid test warnings
 import { useAuth } from "../../AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { useCart } from "../../contexts/CartContext";
@@ -22,15 +11,15 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { apiFetch } from "../../utils/api";
 import CurrencySelector from "../CurrencySelector";
+import HomeNavigation from "./HomeNavigation";
 
 function HomeHeader() {
+  // shared state
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [showCartPreview, setShowCartPreview] = useState(false);
-  const [showWishlistPreview, setShowWishlistPreview] = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const { user, logout } = useAuth();
   const { showSuccess } = useNotifications();
   const { cartItems, updateQuantity, removeFromCart, getCartCount, getCartTotal } = useCart();
@@ -38,16 +27,14 @@ function HomeHeader() {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
-  
+
   const searchRef = useRef(null);
   const cartRef = useRef(null);
   const wishlistRef = useRef(null);
-  const profileRef = useRef(null);
-  
+
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
 
-  // Handle search
   useEffect(() => {
     if (search.trim() && search.trim().length >= 2) {
       const searchProducts = async () => {
@@ -61,9 +48,7 @@ function HomeHeader() {
           setShowSearchResults(false);
         }
       };
-      
-      // Debounce search
-      const timeoutId = setTimeout(searchProducts, 800);
+      const timeoutId = setTimeout(searchProducts, 600);
       return () => clearTimeout(timeoutId);
     } else {
       setSearchResults([]);
@@ -71,28 +56,15 @@ function HomeHeader() {
     }
   }, [search]);
 
-  // Handle clicks outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSearchResults(false);
       }
-      if (cartRef.current && !cartRef.current.contains(event.target)) {
-        setShowCartPreview(false);
-      }
-      if (wishlistRef.current && !wishlistRef.current.contains(event.target)) {
-        setShowWishlistPreview(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setShowProfileDropdown(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Note: Scroll lock removed as it was causing content visibility issues
-  // Dropdowns now use proper z-indexing instead
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -100,123 +72,253 @@ function HomeHeader() {
       navigate(`/products?search=${encodeURIComponent(search)}`);
       setShowSearchResults(false);
       setSearch("");
+      if (mobileMenuOpen) setMobileMenuOpen(false);
     }
   };
 
+  // Accessibility: focus trap and Escape handling for mobile menu
+  const menuRef = useRef(null);
+  const lastFocusedEl = useRef(null);
+  const [liveMessage, setLiveMessage] = useState('');
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!mobileMenuOpen) return;
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+      if (e.key === 'Tab') {
+        // focus trap
+        const focusable = menuRef.current ? menuRef.current.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])') : [];
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    if (mobileMenuOpen) {
+      // lock body scroll
+      document.body.style.overflow = 'hidden';
+      lastFocusedEl.current = document.activeElement;
+      // focus first focusable element inside menu
+      setTimeout(() => {
+        const focusable = menuRef.current ? menuRef.current.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])') : [];
+        if (focusable.length) focusable[0].focus();
+      }, 50);
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+      if (lastFocusedEl.current && lastFocusedEl.current.focus) lastFocusedEl.current.focus();
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
+  // announce open/close for screen readers
+  useEffect(() => {
+    if (mobileMenuOpen) setLiveMessage('Menu opened');
+    else setLiveMessage('Menu closed');
+  }, [mobileMenuOpen]);
+
+  // Nav links (kept in sync with HomeNavigation)
+  const navLinks = [
+    { name: "Home", to: "/" },
+    { name: "Products", to: "/products" },
+    { name: "Battle Gear", to: "/battle-gear" },
+    { name: "Capsules", to: "/capsules" },
+    { name: "Training", to: "/training" },
+    { name: "Track Order", to: "/track-order" },
+    { name: "Contact", to: "/contact" },
+    { name: "Cart", to: "/cart" },
+  ];
+
   return (
     <>
-      {/* Desktop/Large screens */}
-      <header className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 shadow-lg overflow-visible hidden sm:block">
-        <div className="max-w-6xl mx-auto px-4 py-4 overflow-visible">
-          {/* ...existing code for desktop header... */}
-          {/* ...existing code... */}
+      {/* Screen-reader live region for menu open/close announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only" data-testid="menu-live">{liveMessage}</div>
+      {/* ---------- Desktop Header (preserve original desktop state) ---------- */}
+      <header className="hidden md:block bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Left: logo */}
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp" className="w-12 h-12 object-contain" />
+            {/* If you had desktop text logo previously, you can re-enable it here */}
+          </Link>
+
+          {/* Center: desktop navigation (keeps original desktop layout) */}
+          <div className="flex-1 mx-6">
+            <HomeNavigation />
+          </div>
+
+          {/* Right: desktop actions */}
+          <div className="flex items-center gap-4">
+            <button onClick={toggleDarkMode} aria-label="Toggle theme" className="p-2">
+              {isDarkMode ? <FaSun /> : <FaMoon />}
+            </button>
+
+            {user ? (
+              <Link to="/profile" className="p-2 flex items-center gap-2">
+                <FaUser /> <span className="hidden sm:inline">Profile</span>
+              </Link>
+            ) : (
+              <Link to="/auth" className="p-2 flex items-center gap-2">
+                <FaUser /> <span className="hidden sm:inline">Login</span>
+              </Link>
+            )}
+
+            <Link to="/wishlist" className="relative p-2">
+              <FaHeart />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{wishlistCount}</span>
+              )}
+            </Link>
+
+            <Link to="/cart" className="relative p-2">
+              <FaShoppingCart />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#FF9E00] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{cartCount}</span>
+              )}
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* Mobile/Small screens */}
-      <header className="sm:hidden px-4 py-2 bg-[#3B4CCA] flex items-center justify-between relative">
-        {/* Logo only */}
-        <Link to="/" className="flex items-center">
-          <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
-            <FaCapsules className="text-white text-lg" />
-          </div>
-        </Link>
-        {/* Enlarged Search Bar */}
-        <div className="flex-1 mx-4">
-          <form onSubmit={handleSearchSubmit}>
-            <div className="relative">
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onFocus={() => search.trim() && setShowSearchResults(true)}
-                placeholder="Find Dragon Balls..."
-                className="w-full px-4 py-2 rounded-xl pr-10 focus:border-yellow-400 focus:outline-none transition-all duration-300 bg-white/90 text-sm"
-                aria-label="Search products"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-yellow-500 hover:text-white transition-colors p-1"
-              >
-                <FaSearch className="text-lg" />
-              </button>
-            </div>
-          </form>
-        </div>
-        {/* Hamburger Menu */}
-        <button
-          className="ml-2 p-2 rounded-xl bg-white text-[#3B4CCA] shadow-lg"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
-        </button>
+      {/* ---------- Mobile Header (Evetech-like) ---------- */}
+      <header className="block md:hidden bg-white shadow-md">
+        <div className="px-3 py-2 flex items-center justify-between">
+          {/* Logo (left) - image only */}
+          <Link to="/" className="flex items-center">
+            <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp" className="w-10 h-10 object-contain" />
+          </Link>
 
-        {/* Hamburger Dropdown Overlay */}
+          {/* Search (center) */}
+          <div className="flex-1 px-3" ref={searchRef}>
+            <form onSubmit={handleSearchSubmit} className="w-full">
+              <div className="relative">
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  type="search"
+                  placeholder="Search products..."
+                  aria-label="Search products"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none"
+                />
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600">
+                  <FaSearch />
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Hamburger (right) - animated with simple CSS */}
+          <button
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 relative w-10 h-10 flex items-center justify-center"
+          >
+            {/* CSS hamburger that morphs to X using transforms and opacity */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <rect className={`hamburger-line top ${mobileMenuOpen ? 'open' : ''}`} x="3" y="5" width="18" height="2.2" rx="1" fill="currentColor" />
+              <rect className={`hamburger-line middle ${mobileMenuOpen ? 'open' : ''}`} x="3" y="11" width="18" height="2.2" rx="1" fill="currentColor" />
+              <rect className={`hamburger-line bottom ${mobileMenuOpen ? 'open' : ''}`} x="3" y="17" width="18" height="2.2" rx="1" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile menu overlay (full screen). Use CSS transitions for enter/exit to keep things lightweight. */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex flex-col" onClick={() => setMobileMenuOpen(false)}>
-            <div className="bg-white rounded-t-2xl shadow-xl mx-2 mt-16 pb-4 pt-6 flex flex-col items-center" style={{ minHeight: '60vh' }} onClick={e => e.stopPropagation()}>
-              <button
-                className="absolute top-4 right-6 p-2 rounded-xl bg-[#3B4CCA] text-white"
-                aria-label="Close menu"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <FaTimes className="text-xl" />
-              </button>
-              <nav className="w-full flex flex-col gap-4 mt-6">
-                {mobileMenuItems.map(item => (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    className="w-full text-center py-3 rounded-xl font-saiyan text-lg text-[#3B4CCA] bg-gradient-to-r from-blue-50 to-orange-50 shadow hover:bg-orange-100 transition-all"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.label}
+          <div className="fixed inset-0 z-50 bg-white overflow-auto mobile-menu-overlay" aria-modal="true" role="dialog">
+              <div className="px-4 pt-6 pb-36" ref={menuRef}>
+                <div className="flex items-center justify-between">
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                    <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp" className="w-12 h-12 object-contain" />
                   </Link>
-                ))}
-              </nav>
-            </div>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2" aria-label="Close menu">
+                    <svg className="w-6 h-6 text-[#FFD700]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4 4L20 20" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                      <path d="M20 4L4 20" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-6">
+                  {/* Evetech-like tattoo dropdown style for product items */}
+                  <ul className="flex flex-col gap-3">
+                    {navLinks.map(link => (
+                      <li key={link.to} className="relative overflow-hidden">
+                        <div className="hover-translate">
+                          <Link
+                            to={link.to}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block px-4 py-5 text-lg text-[#111827] font-semibold bg-gradient-to-r from-white to-gray-50 rounded-lg shadow-sm border-l-4 border-transparent hover:border-l-4 hover:border-[#3B4CCA] transition-all"
+                          >
+                            <span className="uppercase text-sm text-gray-500 block mb-1">Category</span>
+                            <span className="text-xl">{link.name}</span>
+                          </Link>
+                        </div>
+                        {/* decorative tattoo line */}
+                        <span className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#3B4CCA] to-transparent opacity-30" />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Sticky bottom action bar similar to Evetech: centered encased group for toggle+currency, and icons/text around it */}
+              <div className="fixed left-0 right-0 bottom-0 bg-white border-t border-gray-200 px-4 py-2 z-50 mobile-bottom-bar">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
+                  {/* Left group: profile icon, login text, register text (compact) */}
+                  <div className="flex items-center gap-4">
+                    <Link to="/profile" className="flex items-center gap-2 text-sm" onClick={() => setMobileMenuOpen(false)}>
+                      <FaUser className="text-xl" />
+                    </Link>
+                    {!user && (
+                      <Link to="/auth" className="text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                    )}
+                    <Link to="/register" className="text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>Register</Link>
+                  </div>
+
+                  {/* Center group: encased theme + currency (like Evetech) */}
+                  <div className="flex items-center gap-3 bg-gray-100 rounded-full px-3 py-1">
+                    <button onClick={toggleDarkMode} className="p-1 text-sm" aria-label="Toggle theme">
+                      {isDarkMode ? <FaSun className="text-base" /> : <FaMoon className="text-base" />}
+                    </button>
+                    <div className="w-28">
+                      <CurrencySelector size="small" showLabel={false} />
+                    </div>
+                  </div>
+
+                  {/* Right group: cart icon only and wishlist icon only */}
+                  <div className="flex items-center gap-4">
+                    <Link to="/cart" className="relative p-1" onClick={() => setMobileMenuOpen(false)}>
+                      <FaShoppingCart className="text-xl" />
+                      {cartCount > 0 && <span className="absolute -top-1 -right-2 bg-[#FF9E00] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{cartCount}</span>}
+                    </Link>
+                    <Link to="/wishlist" className="p-1" onClick={() => setMobileMenuOpen(false)}>
+                      <FaHeart className="text-xl" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
           </div>
         )}
       </header>
-
-      {/* Sticky Bottom Bar for Mobile */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white shadow-lg py-2 flex justify-center items-center">
-        <div className="flex gap-4 px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-100 to-orange-100 shadow-xl border border-[#3B4CCA]/20 mx-auto">
-          {/* Profile Icon */}
-          <Link to={user ? "/profile" : "/auth"} aria-label={user ? "Profile" : "Login"} className="flex flex-col items-center text-[#3B4CCA]">
-            <FaUser className="text-xl" />
-            <span className="text-xs">{user ? "Profile" : "Login"}</span>
-          </Link>
-          {/* Login/Register (if not logged in) */}
-          {!user && (
-            <Link to="/auth?tab=signup" aria-label="Register" className="flex flex-col items-center text-[#3B4CCA]">
-              <span className="font-bold text-base">REGISTER</span>
-              <span className="text-xs">Register</span>
-            </Link>
-          )}
-          {/* Cart Icon */}
-          <Link to="/cart" aria-label="Cart" className="flex flex-col items-center text-[#3B4CCA] relative">
-            <FaShoppingCart className="text-xl" />
-            <span className="text-xs">Cart</span>
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow animate-bounce">
-                {cartCount}
-              </span>
-            )}
-          </Link>
-          {/* Currency Selector */}
-          <button className="flex flex-col items-center text-[#3B4CCA]" aria-label="Currency">
-            <span className="font-bold text-base">ZA</span>
-            <span className="text-xs">Currency</span>
-          </button>
-          {/* Light/Dark Mode Toggle */}
-          <button onClick={toggleDarkMode} className="flex flex-col items-center text-[#3B4CCA]" aria-label={isDarkMode ? "Light Mode" : "Dark Mode"}>
-            {isDarkMode ? <FaSun className="text-xl" /> : <FaMoon className="text-xl" />}
-            <span className="text-xs">{isDarkMode ? "Light" : "Dark"}</span>
-          </button>
-        </div>
-      </nav>
     </>
   );
 }

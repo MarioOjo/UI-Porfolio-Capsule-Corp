@@ -21,11 +21,11 @@ function App() {
       <div className="min-h-screen flex flex-col">
         <HomeHeader />
         <HomeNavigation />
-
+        
         <main className="flex-1 flex flex-col">
           <AnimatedRoutes />
         </main>
-
+        
         <Footer className="mt-auto" />
       </div>
     </ErrorBoundary>
