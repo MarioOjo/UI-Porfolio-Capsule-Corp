@@ -123,15 +123,21 @@ function Navbar() {
 
   return (
     <>
-      {/* Desktop / large screens */}
-      <header className="hidden sm:block bg-[#3B4CCA] text-white">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Left: Logo */}
-          <div className="flex items-center">
-            <CapsuleCorpLogo variant="white" size="md" to="/" />
+      {/* Desktop / large screens - Evetech-like layout: left icons/logo, centered search pill, right controls */}
+      <header className="hidden sm:block bg-[#0f1724] text-white">{/* darker base to match the Evetech top strip */}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center">
+          {/* Left: compact logo + menu icon */}
+          <div className="flex items-center gap-4">
+            <button className="hidden lg:inline-flex items-center gap-2 text-lg font-semibold text-white">
+              <CapsuleCorpLogo variant="white" size="md" to="/" />
+            </button>
+            <button className="inline-flex items-center gap-2 text-white/90 hover:text-white px-2 py-1 rounded-md">
+              <FaBars />
+              <span className="hidden xl:inline text-sm">Menu</span>
+            </button>
           </div>
 
-          {/* Center: Search */}
+          {/* Center: Search pill */}
           <div className="flex-1 px-6">
             <form onSubmit={handleSearchSubmit} className="max-w-3xl mx-auto">
               <div className="relative" ref={searchRef}>
@@ -140,14 +146,13 @@ function Navbar() {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   onFocus={() => search.trim() && setShowSearchResults(true)}
-                  placeholder="Search for products, categories or keywords"
-                  className="w-full px-4 py-3 rounded-full pr-12 bg-white text-gray-800 border border-white/20 focus:border-white/40 shadow-sm focus:outline-none"
+                  placeholder="Search for products, capsules or categories"
+                  className="w-full px-4 py-3 rounded-full pr-12 bg-white text-gray-800 shadow-sm focus:outline-none"
                   aria-label="Search products"
                 />
                 <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 p-1">
                   <FaSearch />
                 </button>
-
                 {showSearchResults && searchResults.length > 0 && (
                   <div className="popover-panel absolute top-full left-0 right-0 mt-2 bg-white border rounded-xl z-50">
                     {searchResults.map(p => (
@@ -174,26 +179,21 @@ function Navbar() {
             <button onClick={toggleDarkMode} className="p-2 rounded-md hover:bg-white/10">
               {isDarkMode ? <FaSun /> : <FaMoon />}
             </button>
-
-            {/* Profile / Auth */}
             {user ? (
-              <Link to="/profile" className="flex items-center gap-2">
+              <Link to="/profile" className="hidden lg:flex items-center gap-2">
                 <FaUser />
-                <span className="hidden md:inline">{user.name || 'Account'}</span>
+                <span className="hidden xl:inline">{user.name || 'Account'}</span>
               </Link>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="hidden lg:flex items-center gap-4">
                 <Link to="/auth" className="uppercase tracking-wider text-sm">Sign In</Link>
                 <Link to="/auth?tab=signup" className="uppercase tracking-wider text-sm">Register</Link>
               </div>
             )}
 
-            {/* Settings / quick action */}
-            <button className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-white shadow">
+            <button className="w-10 h-10 bg-[#FF9E00] rounded-full flex items-center justify-center text-white shadow">
               <FaCapsules />
             </button>
-
-            {/* Cart */}
             <Link to="/cart" className="relative">
               <FaShoppingCart className="text-xl" />
               {cartCount > 0 && <span className="absolute -top-2 -right-3 bg-[#FF9E00] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
@@ -202,12 +202,13 @@ function Navbar() {
         </div>
       </header>
       {/* Secondary category navigation (desktop) */}
-      <nav className="hidden sm:block bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4">
-          <ul className="flex items-center gap-4 py-3 text-sm text-gray-700 overflow-x-auto">
+      {/* Secondary dark category bar */}
+      <nav className="hidden sm:block bg-[#0b1220] border-b">
+        <div className="max-w-7xl mx-auto px-4">
+          <ul className="flex items-center gap-3 py-3 text-sm text-gray-200 overflow-x-auto">
             {mobileMenuItems.map(item => (
               <li key={item.label}>
-                <Link to={item.to} className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-50 transition-colors text-[#3B4CCA] font-medium">
+                <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
                   {item.label}
                 </Link>
               </li>
