@@ -133,15 +133,15 @@ function Navbar() {
 
           {/* Center: Search */}
           <div className="flex-1 px-6">
-            <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto">
+            <form onSubmit={handleSearchSubmit} className="max-w-3xl mx-auto">
               <div className="relative" ref={searchRef}>
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   onFocus={() => search.trim() && setShowSearchResults(true)}
-                  placeholder="Find Dragon Balls..."
-                  className="w-full px-4 py-3 rounded-full pr-12 bg-white text-gray-800 shadow-sm focus:outline-none"
+                  placeholder="Search for products, categories or keywords"
+                  className="w-full px-4 py-3 rounded-full pr-12 bg-white text-gray-800 border border-white/20 focus:border-white/40 shadow-sm focus:outline-none"
                   aria-label="Search products"
                 />
                 <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 p-1">
@@ -204,10 +204,12 @@ function Navbar() {
       {/* Secondary category navigation (desktop) */}
       <nav className="hidden sm:block bg-white border-b">
         <div className="max-w-6xl mx-auto px-4">
-          <ul className="flex items-center gap-6 py-3 text-sm text-gray-700">
+          <ul className="flex items-center gap-4 py-3 text-sm text-gray-700 overflow-x-auto">
             {mobileMenuItems.map(item => (
               <li key={item.label}>
-                <Link to={item.to} className="hover:text-[#3B4CCA] transition-colors">{item.label}</Link>
+                <Link to={item.to} className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-50 transition-colors text-[#3B4CCA] font-medium">
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>

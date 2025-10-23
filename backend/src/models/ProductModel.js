@@ -73,7 +73,21 @@ class ProductModel {
         ORDER BY created_at DESC
       `;
       const [results] = await pool.execute(query);
-      return results.map(parseProductFields);
+      const parsed = results.map(parseProductFields);
+
+      // Fallback: some deployments historically used a `products` table.
+      // If `capsule_products` exists but is empty, attempt to read the
+      // legacy `products` table so hosted instances with older seeds still
+      // surface product data.
+      if ((!parsed || parsed.length === 0)) {
+        try {
+          const [legacy] = await pool.execute(query.replace(/capsule_products/g, 'products'));
+          if (legacy && legacy.length) return legacy.map(parseProductFields);
+        } catch (e) {
+          // ignore legacy fallback errors
+        }
+      }
+      return parsed;
     } catch (error) {
       console.error('Error fetching all products:', error);
       throw error;
@@ -175,7 +189,15 @@ class ProductModel {
         ORDER BY created_at DESC
       `;
       const [results] = await pool.execute(query, [category]);
-      return results.map(parseProductFields);
+      const parsed = results.map(parseProductFields);
+      if ((!parsed || parsed.length === 0)) {
+        try {
+          const legacyQuery = query.replace(/capsule_products/g, 'products');
+          const [legacy] = await pool.execute(legacyQuery, [category]);
+          if (legacy && legacy.length) return legacy.map(parseProductFields);
+        } catch (e) {}
+      }
+      return parsed;
     } catch (error) {
       console.error('Error fetching products by category:', error);
       throw error;
@@ -223,7 +245,18 @@ class ProductModel {
         searchPattern, searchPattern, searchPattern, searchPattern,
         searchPattern, searchPattern
       ]);
-      return results.map(parseProductFields);
+      const parsed = results.map(parseProductFields);
+      if ((!parsed || parsed.length === 0)) {
+        try {
+          const legacyQuery = query.replace(/capsule_products/g, 'products');
+          const [legacy] = await pool.execute(legacyQuery, [
+            searchPattern, searchPattern, searchPattern, searchPattern,
+            searchPattern, searchPattern
+          ]);
+          if (legacy && legacy.length) return legacy.map(parseProductFields);
+        } catch (e) {}
+      }
+      return parsed;
     } catch (error) {
       console.error('Error searching products:', error);
       throw error;
@@ -388,7 +421,14 @@ class ProductModel {
         ORDER BY created_at DESC
       `;
       const [results] = await pool.execute(query);
-      return results.map(parseProductFields);
+      const parsed = results.map(parseProductFields);
+      if ((!parsed || parsed.length === 0)) {
+        try {
+          const [legacy] = await pool.execute(query.replace(/capsule_products/g, 'products'));
+          if (legacy && legacy.length) return legacy.map(parseProductFields);
+        } catch (e) {}
+      }
+      return parsed;
     } catch (error) {
       console.error('Error fetching featured products:', error);
       throw error;
