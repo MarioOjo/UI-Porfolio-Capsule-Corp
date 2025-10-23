@@ -182,9 +182,9 @@ function ProductCarousel() {
                 {/* Product Content */}
                 <div className="relative h-full flex items-center px-6 md:px-12 py-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 w-full max-w-6xl mx-auto">
-                    {/* Product Image */}
+                    {/* Product Image - mobile: image is link, no buttons */}
                     <div className="flex items-center justify-center">
-                      <div className="relative">
+                      <Link to={`/product/${product.slug}`} className="relative block focus:outline-none">
                         <div className="w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-1 kamehameha-glow">
                           <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
                             <img
@@ -197,12 +197,11 @@ function ProductCarousel() {
                             />
                           </div>
                         </div>
-                        
                         {/* Power Level Indicator */}
                         <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 md:px-3 md:py-2 rounded-full font-bold text-xs md:text-sm kamehameha-glow">
                           {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
                         </div>
-                      </div>
+                      </Link>
                     </div>
 
                     {/* Product Details */}
@@ -228,7 +227,7 @@ function ProductCarousel() {
                       </div>
 
                       {/* Price */}
-                      <div className="flex items-center space-x-3 md:space-x-4">
+                      <div className="hidden md:flex items-center space-x-3 md:space-x-4">
                           {(product.originalPrice || product.original_price) && (
                             <span className="text-lg md:text-xl text-white/60 line-through">
                               <Price value={product.originalPrice || product.original_price} />
@@ -238,9 +237,8 @@ function ProductCarousel() {
                             <Price value={product.price} />
                           </span>
                       </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-2 md:gap-3">
+                      {/* Action Buttons - only show on desktop */}
+                      <div className="hidden md:flex flex-wrap gap-2 md:gap-3">
                         <button
                           onClick={(e) => handleAddToCart(e, product)}
                           disabled={!(product.inStock || product.in_stock || product.stock > 0)}

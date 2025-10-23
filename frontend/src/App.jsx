@@ -3,8 +3,7 @@ import { useGoogleAuth } from "./hooks/useGoogleAuth";
 import { usePerformanceMonitor } from "./hooks/usePerformance";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AnimatedRoutes from "./components/AnimatedRoutes";
-import HomeHeader from "./components/Home/HomeHeader";
-import HomeNavigation from "./components/Home/HomeNavigation";
+import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer";
 
 function App() {
@@ -19,8 +18,7 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col">
-        <HomeHeader />
-        <HomeNavigation />
+  <Navbar />
         
         <main className="flex-1 flex flex-col">
           <AnimatedRoutes />

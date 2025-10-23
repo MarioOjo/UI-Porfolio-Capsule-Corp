@@ -1,3 +1,43 @@
+      {/* Mobile horizontal category bar (Evetech style, DBZ colors) */}
+      <nav className="sm:hidden w-full bg-[#0b1220] border-b z-40 overflow-x-auto">
+        <ul className="flex items-center gap-2 py-2 px-2 text-xs font-saiyan text-white whitespace-nowrap">
+          <li>
+            <Link to="/products" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow hover:scale-105 transition">
+              <span role="img" aria-label="products">🛒</span> Products
+            </Link>
+          </li>
+          <li>
+            <Link to="/products?category=Battle%20Gear" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 shadow hover:scale-105 transition">
+              <span role="img" aria-label="battle gear">⚔️</span> Battle Gear
+            </Link>
+          </li>
+          <li>
+            <Link to="/products?category=Capsules" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 shadow hover:scale-105 transition">
+              <span role="img" aria-label="capsules">🏠</span> Capsules
+            </Link>
+          </li>
+          <li>
+            <Link to="/products?category=Training" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-orange-400 to-red-500 shadow hover:scale-105 transition">
+              <span role="img" aria-label="training">💪</span> Training
+            </Link>
+          </li>
+          <li>
+            <Link to="/order-tracking" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-gray-700 to-gray-900 shadow hover:scale-105 transition">
+              <span role="img" aria-label="track order">📦</span> Track Order
+            </Link>
+          </li>
+          <li>
+            <Link to="/contact" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-green-400 to-green-600 shadow hover:scale-105 transition">
+              <span role="img" aria-label="contact">📞</span> Contact
+            </Link>
+          </li>
+          <li>
+            <Link to="/cart" className="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 shadow hover:scale-105 transition">
+              <span role="img" aria-label="cart">🛒</span> Cart
+            </Link>
+          </li>
+        </ul>
+      </nav>
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaUser,
@@ -27,10 +67,14 @@ function Navbar() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCartPreview, setShowCartPreview] = useState(false);
   const [showWishlistPreview, setShowWishlistPreview] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  // Improved dark mode: detect system preference on first load
+  const getInitialTheme = () => {
     const saved = localStorage.getItem('capsule-theme');
-    return saved ? JSON.parse(saved) : false;
-  });
+    if (saved !== null) return JSON.parse(saved);
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
+    return false;
+  };
+  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
 
   const { user, logout } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, getCartCount } = useCart();
@@ -53,13 +97,27 @@ function Navbar() {
     { label: "Cart", to: "/cart" },
   ];
 
+  // Desktop submenu state (for Products)
+  const [activeMenu, setActiveMenu] = useState(null);
+
+  const desktopProductsSubmenu = [
+    { label: 'All Products', to: '/products' },
+    { label: '⚔️ Battle Gear', to: '/products?category=Battle%20Gear' },
+    { label: '🏠 Capsules', to: '/products?category=Capsules' },
+    { label: '💪 Training', to: '/products?category=Training' },
+    { label: '📡 Tech', to: '/products?category=Tech' },
+    { label: '🍃 Consumables', to: '/products?category=Consumables' },
+  ];
+
   // Handle dark mode toggle
   useEffect(() => {
     localStorage.setItem('capsule-theme', JSON.stringify(isDarkMode));
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     }
   }, [isDarkMode]);
 
@@ -102,6 +160,16 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Lock body scroll when mobile menu is open to avoid layout shifts and overlapping interactions
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+    return undefined;
+  }, [mobileMenuOpen]);
+
   const handleLogout = async () => {
     try { await logout(); } catch (e) { console.error(e); }
   };
@@ -124,17 +192,11 @@ function Navbar() {
   return (
     <>
       {/* Desktop / large screens - Evetech-like layout: left icons/logo, centered search pill, right controls */}
-      <header className="hidden sm:block bg-[#0f1724] text-white">{/* darker base to match the Evetech top strip */}
+  <header className="hidden sm:block bg-[#0f1724] text-white z-50">{/* darker base to match the Evetech top strip */}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center">
-          {/* Left: compact logo + menu icon */}
+          {/* Left: CapsuleCorpLogo only, with correct font/style */}
           <div className="flex items-center gap-4">
-            <button className="hidden lg:inline-flex items-center gap-2 text-lg font-semibold text-white">
-              <CapsuleCorpLogo variant="white" size="md" to="/" />
-            </button>
-            <button className="inline-flex items-center gap-2 text-white/90 hover:text-white px-2 py-1 rounded-md">
-              <FaBars />
-              <span className="hidden xl:inline text-sm">Menu</span>
-            </button>
+            <CapsuleCorpLogo variant="white" size="md" />
           </div>
 
           {/* Center: Search pill */}
@@ -154,7 +216,7 @@ function Navbar() {
                   <FaSearch />
                 </button>
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="popover-panel absolute top-full left-0 right-0 mt-2 bg-white border rounded-xl z-50">
+                  <div className="popover-panel absolute top-full left-0 right-0 mt-2 bg-white border rounded-xl z-60">
                     {searchResults.map(p => (
                       <Link key={p.id} to={`/product/${p.slug}`} className="flex items-center p-3 hover:bg-gray-50" onClick={() => { setShowSearchResults(false); setSearch(""); }}>
                         <img src={p.image} alt={p.name} className="w-12 h-12 rounded-lg mr-3 object-cover" />
@@ -175,9 +237,11 @@ function Navbar() {
 
           {/* Right: Controls */}
           <div className="flex items-center gap-4">
-            <CurrencySelector showLabel={false} size="small" />
+            <div className={isDarkMode ? "text-white" : "text-gray-800"}>
+              <CurrencySelector showLabel={false} size="small" />
+            </div>
             <button onClick={toggleDarkMode} className="p-2 rounded-md hover:bg-white/10">
-              {isDarkMode ? <FaSun /> : <FaMoon />}
+              {isDarkMode ? <FaMoon /> : <FaSun />}
             </button>
             {user ? (
               <Link to="/profile" className="hidden lg:flex items-center gap-2">
@@ -186,14 +250,12 @@ function Navbar() {
               </Link>
             ) : (
               <div className="hidden lg:flex items-center gap-4">
-                <Link to="/auth" className="uppercase tracking-wider text-sm">Sign In</Link>
+                <Link to="/auth" className="uppercase tracking-wider text-sm">Login</Link>
                 <Link to="/auth?tab=signup" className="uppercase tracking-wider text-sm">Register</Link>
               </div>
             )}
 
-            <button className="w-10 h-10 bg-[#FF9E00] rounded-full flex items-center justify-center text-white shadow">
-              <FaCapsules />
-            </button>
+            {/* Removed extra logo/button on right */}
             <Link to="/cart" className="relative">
               <FaShoppingCart className="text-xl" />
               {cartCount > 0 && <span className="absolute -top-2 -right-3 bg-[#FF9E00] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
@@ -203,16 +265,29 @@ function Navbar() {
       </header>
       {/* Secondary category navigation (desktop) */}
       {/* Secondary dark category bar */}
-      <nav className="hidden sm:block bg-[#0b1220] border-b">
+      <nav className="hidden sm:block bg-[#0b1220] border-b z-40">
         <div className="max-w-7xl mx-auto px-4">
           <ul className="flex items-center gap-3 py-3 text-sm text-gray-200 overflow-x-auto">
-            {mobileMenuItems.map(item => (
-              <li key={item.label}>
-                <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {mobileMenuItems.map(item => {
+              // Render Products as a simple link, no dropdown
+              if (item.label === 'Products') {
+                return (
+                  <li key={item.label}>
+                    <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              }
+
+              return (
+                <li key={item.label}>
+                  <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </nav>
@@ -220,57 +295,83 @@ function Navbar() {
       {/* Mobile sticky bottom bar */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white shadow-lg py-2">
         <div className="flex justify-between max-w-md mx-auto px-4">
-          <Link to={user ? "/profile" : "/auth"} className="flex flex-col items-center text-center text-xs text-[#3B4CCA]">
-            <FaUser />
-            <span>{user ? 'Profile' : 'Login'}</span>
-          </Link>
-          <Link to="/products" className="flex flex-col items-center text-center text-xs text-[#3B4CCA]">
-            <FaSearch />
-            <span>Explore</span>
-          </Link>
-          <Link to="/cart" className="flex flex-col items-center text-center text-xs text-[#3B4CCA] relative">
-            <FaShoppingCart />
-            <span>Cart</span>
-            {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-[#FF9E00] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
-          </Link>
-          <button onClick={toggleDarkMode} className="flex flex-col items-center text-center text-xs text-[#3B4CCA]">
-            {isDarkMode ? <FaSun /> : <FaMoon />}
-            <span>{isDarkMode ? 'Light' : 'Dark'}</span>
-          </button>
+            <Link to={user ? "/profile" : "/auth"} className="flex flex-col items-center text-center text-xs font-saiyan text-white">
+              <div className="bg-[#FFD700] p-2 rounded-full shadow-lg mb-1">
+                <FaUser className="text-[#3B4CCA] text-lg" />
+              </div>
+              <span>{user ? 'Profile' : 'Login'}</span>
+            </Link>
+            <Link to="/products" className="flex flex-col items-center text-center text-xs font-saiyan text-white">
+              <div className="bg-[#3B4CCA] p-2 rounded-full shadow-lg mb-1">
+                <FaSearch className="text-[#FFD700] text-lg" />
+              </div>
+              <span>Explore</span>
+            </Link>
+            <Link to="/cart" className="flex flex-col items-center text-center text-xs font-saiyan text-white relative">
+              <div className="bg-[#FF9E00] p-2 rounded-full shadow-lg mb-1">
+                <FaShoppingCart className="text-white text-lg" />
+              </div>
+              <span>Cart</span>
+              {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
+            </Link>
+            <button onClick={toggleDarkMode} className="flex flex-col items-center text-center text-xs font-saiyan text-white">
+              <div className={`p-2 rounded-full shadow-lg mb-1 ${isDarkMode ? 'bg-[#3B4CCA]' : 'bg-[#FFD700]'}`}> 
+                {isDarkMode ? <FaMoon className="text-[#FFD700] text-lg" /> : <FaSun className="text-[#3B4CCA] text-lg" />}
+              </div>
+              <span>{isDarkMode ? 'Dark' : 'Light'}</span>
+            </button>
+            <Link to="/notifications" className="flex flex-col items-center text-center text-xs font-saiyan text-white relative">
+              <div className="bg-red-500 p-2 rounded-full shadow-lg mb-1">
+                <FaHeart className="text-white text-lg" />
+              </div>
+              <span>Alerts</span>
+              {/* Example notification dot */}
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs"></span>
+            </Link>
         </div>
       </nav>
 
       {/* Mobile header with hamburger */}
-      <header className="sm:hidden px-4 py-3 bg-[#3B4CCA] flex items-center justify-between">
-        <CapsuleCorpLogo variant="white" size="sm" to="/" />
-        <div className="flex-1 mx-3" ref={searchRef}>
-          <form onSubmit={handleSearchSubmit}>
-            <div className="relative">
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                onFocus={() => search.trim() && setShowSearchResults(true)}
-                placeholder="Search..."
-                className="w-full px-3 py-2 rounded-lg text-sm"
-                aria-label="Search products"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-yellow-500">
-                <FaSearch />
-              </button>
-            </div>
-          </form>
+      <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md">
+        <div className="flex items-center">
+          <div className="rounded-full overflow-hidden">
+            <img src="/assets/images/capsule-logo.png" alt="Capsule Corp Logo" className="w-10 h-10" />
+          </div>
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 bg-white rounded">
-          {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+        <form onSubmit={handleSearchSubmit} className="flex-1 mx-2">
+          <div className="relative">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onFocus={() => search.trim() && setShowSearchResults(true)}
+              placeholder="Search..."
+              className="w-full px-3 py-2 rounded-full text-sm bg-white text-gray-800 shadow focus:outline-none"
+              aria-label="Search products"
+            />
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-[#FF9E00]">
+              <FaSearch />
+            </button>
+          </div>
+        </form>
+        <button
+          className="p-2 rounded-full bg-[#FFD700] text-[#3B4CCA] shadow-lg"
+          aria-label="Open menu"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <FaBars className="text-2xl" />
         </button>
       </header>
 
-      {/* Mobile slide-over menu */}
+      {/* Mobile slide-over menu with hamburger in submenu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-black/60" onClick={() => setMobileMenuOpen(false)}>
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4" onClick={e => e.stopPropagation()}>
             <div className="grid gap-3">
+              <button className="flex items-center gap-2 justify-center py-3 rounded-lg bg-gradient-to-r from-blue-100 to-orange-100 text-[#3B4CCA] font-saiyan font-bold text-base mb-2" disabled>
+                <FaBars className="text-xl" />
+                MENU
+              </button>
               {mobileMenuItems.map(i => (
                 <Link key={i.label} to={i.to} className="py-3 text-center rounded-lg bg-gradient-to-r from-blue-50 to-orange-50 text-[#3B4CCA]" onClick={() => setMobileMenuOpen(false)}>
                   {i.label}

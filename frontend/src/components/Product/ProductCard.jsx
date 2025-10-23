@@ -46,7 +46,7 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200 w-full max-w-sm mx-auto sm:max-w-none">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200 w-full max-w-sm mx-auto sm:max-w-none p-2 sm:p-0">
       <Link to={`/product/${product.slug}`} className="block">
         <div className="relative">
           {/* Product Image */}
@@ -149,8 +149,8 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
           </div>
       </Link>
       
-      {/* Action Button */}
-      <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+      {/* Action Button - hidden on mobile, visible on desktop */}
+      <div className="hidden sm:block px-3 sm:px-4 pb-3 sm:pb-4">
         <button
           onClick={handleAddToCart}
           disabled={!(product.inStock || product.in_stock || product.stock > 0)}

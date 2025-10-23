@@ -45,6 +45,7 @@ function CapsuleCorpLogo({
 
   const config = sizeConfig[size] || sizeConfig.md;
   const iconClasses = `capsule-logo-icon ${config.icon} ${glow ? 'glow' : ''} ${pulse ? 'animate-pulse' : ''}`;
+  // Use the site's established font (Orbitron)
   const textClasses = variant === 'blue' ? 'capsule-logo-text-blue' : 'capsule-logo-text';
 
   return (
@@ -53,7 +54,7 @@ function CapsuleCorpLogo({
         <FaCapsules className={config.iconText} />
       </div>
       <h1 className={`${textClasses} ${config.text}`}>
-        CAPSULE CORP.
+        CAPSULE CORP
       </h1>
     </Link>
   );

@@ -1,0 +1,9 @@
+/* DBZ Saiyan-Sans font import */
+@font-face {
+  font-family: 'Saiyan-Sans';
+  src: url('/assets/fonts/Saiyan-Sans.woff2') format('woff2'),
+       url('/assets/fonts/Saiyan-Sans.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
