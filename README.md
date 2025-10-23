@@ -34,3 +34,40 @@ If anything important from the previous docs is missing, tell me what to keep an
 
 ---
 Generated on 2025-10-16
+
+## Runtime env.json (optional)
+
+This project supports a runtime `env.json` file served from the frontend root (useful for static hosts where build-time VITE_* vars aren't available). Place a file at `frontend/public/env.json` (or generate it during deployment) with the same shape as `frontend/public/env.template.json`.
+
+Security note: Do not commit secrets (private keys) to the repository. The template contains only placeholders for public client keys (Firebase client config) and the public `VITE_API_BASE` URL.
+
+Local testing checklist
+1. Start the backend (from the `backend` folder):
+
+```powershell
+cd backend
+npm install    # if you haven't already
+npm run dev    # or `npm start`
+```
+
+2. Confirm the backend serves runtime values (provided by the server) and the products API:
+
+```powershell
+# check runtime env served by backend
+curl -sS -D - "http://localhost:5000/env.json" -o /dev/stdout
+
+# check products endpoint
+curl -sS -D - "http://localhost:5000/api/products" -o /dev/stdout
+```
+
+3. Start the frontend dev server (from the `frontend` folder):
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+4. Open `http://localhost:5173` in your browser. The app will fetch `/env.json` at startup (no-build required) and use the values for `VITE_API_BASE` and Firebase client config.
+
+If you prefer to provide values at build time, set `VITE_API_BASE` and the `VITE_FIREBASE_*` env vars in your CI/hosting build step and rebuild the frontend.

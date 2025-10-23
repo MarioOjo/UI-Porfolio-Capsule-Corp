@@ -1,7 +1,7 @@
 ﻿// ...existing code...
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './config/firebase';
+import { getAuthInstance, initFirebase } from './config/firebase';
 import apiFetch from './utils/api';
 
 const AuthContext = createContext(null);
@@ -13,8 +13,13 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    // If Firebase auth is not configured, fall back to backend session check.
-    if (!auth) {
+  // Initialize Firebase (reads runtime config if present). If it's not configured
+  // the initFirebase() will return nulls and we fall back to backend session check.
+  initFirebase();
+  const auth = getAuthInstance();
+
+  // If Firebase auth is not configured, fall back to backend session check.
+  if (!auth) {
       (async () => {
         try {
           const res = await apiFetch('/api/me');
@@ -34,8 +39,9 @@ export function AuthProvider({ children }) {
       return () => { mounted = false; };
     }
 
-    // Listen to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+  // Listen to Firebase auth state changes
+  const authLive = getAuthInstance();
+  const unsubscribe = onAuthStateChanged(authLive, async (firebaseUser) => {
       if (!mounted) return;
 
       if (firebaseUser) {

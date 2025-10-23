@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth, googleProvider } from '../config/firebase';
+import { getAuthInstance, getGoogleProvider, initFirebase } from '../config/firebase';
 import { useAuth } from '../AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 
@@ -12,6 +12,11 @@ export const useGoogleAuth = () => {
   const signInWithGoogle = async (useRedirect = false) => {
     setLoading(true);
     try {
+      // Ensure firebase is initialized (reads runtime env.json if present)
+      initFirebase();
+      const auth = getAuthInstance();
+      const googleProvider = getGoogleProvider();
+
       if (!auth || !googleProvider) {
         throw new Error('Firebase auth not configured.');
       }
@@ -76,6 +81,7 @@ export const useGoogleAuth = () => {
 
   const handleRedirectResult = async () => {
     try {
+      const auth = getAuthInstance();
       if (!auth) {
         console.warn('Firebase auth not configured; skipping redirect result handling.');
         return null;
