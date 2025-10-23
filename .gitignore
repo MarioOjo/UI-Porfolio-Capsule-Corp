@@ -1,3 +1,8 @@
 node_modules/
 node_modules/.cache
 frontend/public/env.json
+
+# Explicit per-project ignores (keeps repo tidy)
+frontend/node_modules/
+backend/node_modules/
+"CAPSULE CORP"/node_modules/

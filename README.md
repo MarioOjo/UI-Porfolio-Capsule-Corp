@@ -41,6 +41,30 @@ This project supports a runtime `env.json` file served from the frontend root (u
 
 Security note: Do not commit secrets (private keys) to the repository. The template contains only placeholders for public client keys (Firebase client config) and the public `VITE_API_BASE` URL.
 
+
+## Bootstrapping dependencies (recommended)
+
+This repo keeps frontend and backend projects separate. To make local setup reliable and avoid accidentally committing `node_modules`, follow the steps below.
+
+- Install dependencies once per machine:
+
+  PowerShell (Windows):
+
+  ```powershell
+  # from repo root
+  .\scripts\bootstrap.ps1
+  ```
+
+  POSIX/macOS/Linux:
+
+  ```bash
+  # from repo root
+  ./scripts/bootstrap.sh
+  ```
+
+- These scripts will run `npm ci` if a lockfile exists, otherwise `npm install` for each project (`frontend` and `backend`).
+
+- If you prefer to keep `node_modules` versioned (not recommended), see the project lead for instructions — by default `node_modules` is ignored.
 Local testing checklist
 1. Start the backend (from the `backend` folder):
 
