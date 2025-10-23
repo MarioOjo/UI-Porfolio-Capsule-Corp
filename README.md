@@ -71,3 +71,33 @@ npm run dev
 4. Open `http://localhost:5173` in your browser. The app will fetch `/env.json` at startup (no-build required) and use the values for `VITE_API_BASE` and Firebase client config.
 
 If you prefer to provide values at build time, set `VITE_API_BASE` and the `VITE_FIREBASE_*` env vars in your CI/hosting build step and rebuild the frontend.
+
+Fastest fix for deployed site (no rebuild)
+---------------------------------------
+If your deployed frontend is returning index.html for `/api/*` requests, point the frontend to the running backend using a runtime `env.json` file. Create a file named `env.json` at the root of your deployed frontend (same place as `index.html`) with this content:
+
+```json
+{
+  "VITE_API_BASE": "https://invigorating-mercy-production-9989.up.railway.app"
+}
+```
+
+This tells the client to call the backend at the correct Railway hostname. The frontend is already configured to fetch `/env.json` at startup and will use `VITE_API_BASE` from that file.
+
+Quick CI/PowerShell snippet (generate env.json during deploy)
+
+```powershell
+# Example: in your CI or deploy step, write env.json from secure env var FRONTEND_API
+$envJson = @{ VITE_API_BASE = $env:FRONTEND_API } | ConvertTo-Json
+Set-Content -Path "frontend/dist/env.json" -Value $envJson -Encoding utf8
+```
+
+Or in a Unix-like CI shell:
+
+```sh
+echo "{ \"VITE_API_BASE\": \"${FRONTEND_API}\" }" > frontend/dist/env.json
+```
+
+Notes
+- Keep `frontend/public/env.template.json` as the template, but do not commit actual `env.json` to the repo.
+- I added `.gitignore` to ignore `frontend/public/env.json` to prevent accidental commits.

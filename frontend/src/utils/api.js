@@ -1,8 +1,10 @@
 ﻿
-// Prefer runtime-loaded config (window.__RUNTIME_CONFIG__) when available.
-// This allows changing API_BASE without rebuilding the bundle.
-const RUNTIME = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
-const API_BASE = RUNTIME.VITE_API_BASE || import.meta.env.VITE_API_BASE || '';
+// Resolve API base at call-time (reads window.__RUNTIME_CONFIG__ if present)
+// This avoids a race where modules are evaluated before /env.json is fetched.
+function getApiBase() {
+  const RUNTIME = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
+  return RUNTIME.VITE_API_BASE || import.meta.env.VITE_API_BASE || '';
+}
 const FALLBACK_ERROR = 'Network error. Please check your connection or try again later.';
 
 
@@ -15,7 +17,8 @@ export async function apiFetch(path, options = {}) {
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   try {
-    const res = await fetch(API_BASE + path, {
+    const base = getApiBase();
+    const res = await fetch(base + path, {
       credentials: options.credentials ?? 'omit',
       ...options,
       headers
@@ -27,7 +30,7 @@ export async function apiFetch(path, options = {}) {
     // to fail and return null. Detect that early and throw a clear error
     // so callers don't attempt to read properties of `null`.
     if (body === null) {
-      const e = new Error(`Invalid/non-JSON response from ${API_BASE || 'origin'}${path} - check VITE_API_BASE and backend availability`);
+      const e = new Error(`Invalid/non-JSON response from ${base || 'origin'}${path} - check VITE_API_BASE and backend availability`);
       // mark so the catch below can rethrow this message instead of overwriting it
       e.isApiError = true;
       throw e;
