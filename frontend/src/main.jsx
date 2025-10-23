@@ -27,30 +27,70 @@ if (process.env.NODE_ENV === 'development') {
   observer.observe({ entryTypes: ['measure'] });
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider>
-          <NotificationProvider>
-            <CurrencyProvider>
-              <AuthProvider>
-                <ReviewProvider>
-                  <CartProvider>
-                    <WishlistProvider>
-                      <App />
-                    </WishlistProvider>
-                  </CartProvider>
-                </ReviewProvider>
-              </AuthProvider>
-            </CurrencyProvider>
-          </NotificationProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </StrictMode>
-)
+// Ensure runtime config is fetched before hydrating the app. This lets the
+// same build be deployed to multiple environments and pick up the backend
+// URL at runtime without rebuilding.
+async function bootstrap() {
+  try {
+    if (typeof window !== 'undefined') {
+      // Default runtime config placeholder
+      window.__RUNTIME_CONFIG__ = window.__RUNTIME_CONFIG__ || {};
+      try {
+        const resp = await fetch('/env.json', { cache: 'no-cache' });
+        if (resp.ok) {
+          const json = await resp.json().catch(() => null);
+          if (json && typeof json === 'object') {
+            window.__RUNTIME_CONFIG__ = Object.assign({}, window.__RUNTIME_CONFIG__, json);
+          }
+        }
+      } catch (e) {
+        // ignore - runtime config is optional
+        // eslint-disable-next-line no-console
+        console.warn('Could not load /env.json runtime config', e);
+      }
+    }
+
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <ThemeProvider>
+              <NotificationProvider>
+                <CurrencyProvider>
+                  <AuthProvider>
+                    <ReviewProvider>
+                      <CartProvider>
+                        <WishlistProvider>
+                          <App />
+                        </WishlistProvider>
+                      </CartProvider>
+                    </ReviewProvider>
+                  </AuthProvider>
+                </CurrencyProvider>
+              </NotificationProvider>
+            </ThemeProvider>
+          </BrowserRouter>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </StrictMode>
+    );
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to bootstrap app', e);
+    // Fallback: try to render anyway so devs can see console errors
+    createRoot(document.getElementById('root')).render(
+      <StrictMode>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </StrictMode>
+    );
+  }
+}
+
+bootstrap();
 
 // Development-only helpers
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {

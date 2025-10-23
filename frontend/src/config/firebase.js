@@ -2,14 +2,18 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
-// Read build-time envs (VITE_*)
-const FIREBASE_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
-const FIREBASE_AUTH_DOMAIN = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
-const FIREBASE_PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-const FIREBASE_STORAGE_BUCKET = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
-const FIREBASE_MESSAGING_SENDER_ID = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
-const FIREBASE_APP_ID = import.meta.env.VITE_FIREBASE_APP_ID;
-const FIREBASE_MEASUREMENT_ID = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
+// Prefer runtime-loaded config (from /env.json -> window.__RUNTIME_CONFIG__) when available.
+// This lets you change API_BASE or Firebase settings at deploy-time without rebuilding.
+const RUNTIME = typeof window !== 'undefined' && window.__RUNTIME_CONFIG__ ? window.__RUNTIME_CONFIG__ : {};
+
+// Read envs: prefer runtime then build-time VITE_ vars.
+const FIREBASE_KEY = RUNTIME.VITE_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY;
+const FIREBASE_AUTH_DOMAIN = RUNTIME.VITE_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+const FIREBASE_PROJECT_ID = RUNTIME.VITE_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID;
+const FIREBASE_STORAGE_BUCKET = RUNTIME.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const FIREBASE_MESSAGING_SENDER_ID = RUNTIME.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+const FIREBASE_APP_ID = RUNTIME.VITE_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID;
+const FIREBASE_MEASUREMENT_ID = RUNTIME.VITE_FIREBASE_MEASUREMENT_ID || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID;
 
 const required = FIREBASE_KEY && FIREBASE_AUTH_DOMAIN && FIREBASE_PROJECT_ID && FIREBASE_APP_ID;
 

@@ -1,5 +1,8 @@
 ﻿
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+// Prefer runtime-loaded config (window.__RUNTIME_CONFIG__) when available.
+// This allows changing API_BASE without rebuilding the bundle.
+const RUNTIME = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
+const API_BASE = RUNTIME.VITE_API_BASE || import.meta.env.VITE_API_BASE || '';
 const FALLBACK_ERROR = 'Network error. Please check your connection or try again later.';
 
 

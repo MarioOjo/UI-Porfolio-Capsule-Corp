@@ -57,6 +57,19 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Runtime public config for frontend (small, safe set)
+// This endpoint returns a JSON with only safe-to-expose values the frontend
+// can read at runtime without a rebuild. Keep the surface minimal.
+app.get('/env.json', (req, res) => {
+  const publicConfig = {
+    VITE_API_BASE: process.env.VITE_API_BASE || process.env.FRONTEND_API_BASE || '',
+    FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || ''
+  };
+  // Short cache header to allow updates within minutes but still be cached by CDNs
+  res.set('Cache-Control', 'public, max-age=60');
+  res.json(publicConfig);
+});
+
 // Optional HTTP endpoint to run a raw TCP check to the resolved DB host/port.
 // Enable only when DB_ALLOW_HTTP_TCP_CHECK=true to avoid exposing this in production unintentionally.
 app.get('/db-tcp-check', async (req, res) => {

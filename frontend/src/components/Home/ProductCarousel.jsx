@@ -97,7 +97,43 @@ function ProductCarousel() {
   }
 
   if (error || products.length === 0) {
-    return null;
+    return (
+      <div className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-r from-blue-50 to-orange-50'}`}>
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h3 className={`text-2xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+            No legendary gear available right now
+          </h3>
+          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>We're recharging our capsule inventory — check back soon or try refreshing.</p>
+          <div className="flex items-center justify-center space-x-3">
+            <button
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                // trigger a refetch
+                (async () => {
+                  try {
+                    const response = await apiFetch('/api/products?limit=5&offset=3');
+                    setProducts((response.products || []).slice(0, 5));
+                  } catch (err) {
+                    setError('Failed to load products');
+                    setProducts([]);
+                  } finally {
+                    setLoading(false);
+                  }
+                })();
+              }}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-600 text-white font-bold hover:scale-105 transition-transform"
+            >
+              Try again
+            </button>
+
+            <Link to="/capsules" className="px-4 py-2 rounded-lg bg-white/20 text-white font-bold hover:bg-white/30 transition-colors">
+              Browse Capsules
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const currentProduct = products[currentSlide];
