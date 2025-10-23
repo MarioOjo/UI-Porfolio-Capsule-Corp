@@ -17,6 +17,7 @@ const contactRoutes = require('./routes/contact');
 const orderRoutes = require('./routes/orders');
 const addressRoutes = require('./routes/addresses');
 const profileRoutes = require('./routes/profile');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 // No explicit app.options handler needed — the CORS middleware configured
@@ -96,6 +97,7 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/profile', profileRoutes);
 const cartRoutes = require('./routes/cart');
 app.use('/api/cart', cartRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
