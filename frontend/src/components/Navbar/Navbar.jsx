@@ -267,7 +267,7 @@ function Navbar() {
       {/* Secondary dark category bar */}
       <nav className="hidden sm:block bg-[#0b1220] border-b z-40">
         <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex items-center gap-3 py-3 text-sm text-gray-200 overflow-x-auto">
+          <ul className="flex items-center gap-3 py-3 text-sm text-gray-200 overflow-x-auto justify-center">
             {mobileMenuItems.map(item => {
               // Render Products as a simple link, no dropdown
               if (item.label === 'Products') {
@@ -334,9 +334,7 @@ function Navbar() {
       {/* Mobile header with hamburger */}
       <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md">
         <div className="flex items-center">
-          <div className="rounded-full overflow-hidden">
-            <img src="/assets/images/capsule-logo.png" alt="Capsule Corp Logo" className="w-10 h-10" />
-          </div>
+          <CapsuleCorpLogo variant="white" size="sm" text={false} />
         </div>
         <form onSubmit={handleSearchSubmit} className="flex-1 mx-2">
           <div className="relative">

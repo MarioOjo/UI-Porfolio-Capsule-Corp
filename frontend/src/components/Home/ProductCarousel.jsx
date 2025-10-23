@@ -197,10 +197,6 @@ function ProductCarousel() {
                             />
                           </div>
                         </div>
-                        {/* Power Level Indicator */}
-                        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 md:px-3 md:py-2 rounded-full font-bold text-xs md:text-sm kamehameha-glow">
-                          {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
-                        </div>
                       </Link>
                     </div>
 
@@ -213,18 +209,8 @@ function ProductCarousel() {
                         <h3 className="text-2xl md:text-3xl lg:text-4xl font-black font-saiyan mb-2 md:mb-3 leading-tight">
                           {product.name}
                         </h3>
-                        <p className="text-sm md:text-base lg:text-lg text-white/90 leading-relaxed line-clamp-2 md:line-clamp-3">
-                          {product.description}
-                        </p>
                       </div>
 
-                      {/* Power Level Display */}
-                      <div className="flex items-center space-x-2">
-                        <FaStar className="text-yellow-400 text-lg md:text-xl" />
-                        <span className="text-sm md:text-base lg:text-lg font-bold">
-                          Power Level: {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
-                        </span>
-                      </div>
 
                       {/* Price */}
                       <div className="hidden md:flex items-center space-x-3 md:space-x-4">

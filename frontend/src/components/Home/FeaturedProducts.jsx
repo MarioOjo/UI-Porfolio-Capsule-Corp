@@ -173,7 +173,7 @@ function FeaturedProducts() {
                     disabled={!(product.stock > 0)}
                     className={`w-full px-6 py-3 rounded-xl font-semibold transition-all shadow-lg flex items-center justify-center gap-2 ${
                       (product.stock > 0)
-                        ? 'bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black'
+                        ? 'bg-gradient-to-r from-orange-400 to-orange-600 text-white hover:from-orange-500 hover:to-orange-700 hover:text-white kamehameha-glow'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >

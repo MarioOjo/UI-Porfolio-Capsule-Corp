@@ -94,6 +94,8 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/profile', profileRoutes);
+const cartRoutes = require('./routes/cart');
+app.use('/api/cart', cartRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line

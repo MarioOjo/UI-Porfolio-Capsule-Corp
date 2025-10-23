@@ -150,7 +150,7 @@ function FeaturesSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
                   href="/auth?tab=signup"
-                  className="bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white px-8 py-3 rounded-xl font-bold hover:from-[#FF9E00] hover:to-[#3B4CCA] transition-all shadow-lg"
+                  className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-3 rounded-xl font-bold hover:from-orange-500 hover:to-orange-700 transition-all shadow-lg kamehameha-glow"
                 >
                   Create Account
                 </a>

@@ -32,13 +32,13 @@ function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
                   to="/products"
-                  className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
+                  className="bg-gradient-to-r from-[#FFD700] to-[#3B4CCA] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
                 >
                   Shop Now
                 </Link>
                 <Link
                   to="/battle-gear"
-                  className="bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all text-center"
+                  className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
                 >
                   View Collection
                 </Link>
@@ -49,13 +49,13 @@ function HeroSection() {
                 <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-4">
                   <Link
                     to="/wishlist"
-                    className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold hover:from-red-600 hover:to-red-700 transition-all"
+                    className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
                   >
                     💖 My Wishlist
                   </Link>
                   <Link
                     to="/order-history"
-                    className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold hover:from-[#2A3B9A] hover:to-blue-700 transition-all"
+                    className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg text-sm font-saiyan font-bold kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
                   >
                     📦 Order History
                   </Link>
@@ -80,8 +80,8 @@ function HeroSection() {
             <div className="relative max-w-md mx-auto lg:max-w-none">
               <img
                 className="w-full h-64 sm:h-80 lg:h-96 rounded-2xl shadow-2xl border-4 border-white/20 object-cover"
-                src="https://storage.googleapis.com/uxpilot-auth.appspot.com/df5468d5f3-d0e515adcc93a2193bb1.png"
-                alt="Goku riding golden nimbus cloud"
+                src="https://res.cloudinary.com/dx8wt3el4/image/upload/v1761211841/Firefly_-photorealistic_shot_of_the_Capsule_Corporation_headquarters_from_Dragon_Ball_Z_a_ma_554083_eoqshv.jpg"
+                alt="Capsule Corp Building"
                 loading="eager"
               />
               
@@ -90,9 +90,6 @@ function HeroSection() {
               <div className="absolute -bottom-4 -left-4 lg:-bottom-6 lg:-left-6 w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full shadow-xl border-4 border-white animate-bounce"></div>
               
               {/* Power level indicator */}
-              <div className="absolute top-4 left-4 bg-black/70 text-green-400 px-3 py-1 rounded-lg text-sm font-mono border border-green-400/50">
-                POWER LEVEL: OVER 9000!
-              </div>
             </div>
           </div>
         </div>
