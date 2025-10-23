@@ -123,4 +123,20 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     // eslint-disable-next-line no-console
     console.warn('[DEV] could not import productKeys for dev refetch', err);
   });
+
+  // Optional cursor debug helper: enable when ?cursorDebug=1 is present or
+  // when window.__CURSOR_DEBUG__ === true. This helper highlights the topmost
+  // element under the cursor and logs the top elements. Disabled by default.
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const enableCursorDebug = params.get('cursorDebug') === '1' || window.__CURSOR_DEBUG__ === true;
+    if (enableCursorDebug) {
+      import('./utils/cursorDebug').then(({ default: enable, enableCursorDebug: namedEnable }) => {
+        const fn = namedEnable || enable;
+        try { fn({ log: true, color: 'magenta' }); } catch (e) { console.warn('cursorDebug failed', e); }
+      }).catch(e => console.warn('Could not load cursorDebug', e));
+    }
+  } catch (e) {
+    // ignore
+  }
 }
