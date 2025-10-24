@@ -46,27 +46,7 @@ function parseProductFields(product) {
   // Remove a product by ID
 }
 
-// Remove a product by ID (uses existing delete method)
-ProductModel.remove = ProductModel.delete;
-
-// Remove an image from a product's gallery
-ProductModel.removeImage = async function(id, imageUrl) {
-  try {
-    const pool = dbConnection.getPool();
-    // Get current gallery
-    const [results] = await pool.execute('SELECT gallery FROM capsule_products WHERE id = ?', [id]);
-    if (!results.length) throw new Error('Product not found');
-    let gallery = results[0].gallery;
-    if (typeof gallery === 'string') gallery = JSON.parse(gallery);
-    if (!Array.isArray(gallery)) gallery = [];
-    gallery = gallery.filter(url => url !== imageUrl);
-    await pool.execute('UPDATE capsule_products SET gallery = ? WHERE id = ?', [JSON.stringify(gallery), id]);
-    return true;
-  } catch (error) {
-    console.error('Error removing image from gallery:', error);
-    throw error;
-  }
-};
+// ...existing code...
 const dbConnection = require('../config/database');
 
 class ProductModel {
@@ -460,6 +440,26 @@ class ProductModel {
 }
 
 module.exports = ProductModel;
+
+// Assign static aliases and methods after class definition and export
+ProductModel.remove = ProductModel.delete;
+ProductModel.removeImage = async function(id, imageUrl) {
+  try {
+    const pool = dbConnection.getPool();
+    // Get current gallery
+    const [results] = await pool.execute('SELECT gallery FROM capsule_products WHERE id = ?', [id]);
+    if (!results.length) throw new Error('Product not found');
+    let gallery = results[0].gallery;
+    if (typeof gallery === 'string') gallery = JSON.parse(gallery);
+    if (!Array.isArray(gallery)) gallery = [];
+    gallery = gallery.filter(url => url !== imageUrl);
+    await pool.execute('UPDATE capsule_products SET gallery = ? WHERE id = ?', [JSON.stringify(gallery), id]);
+    return true;
+  } catch (error) {
+    console.error('Error removing image from gallery:', error);
+    throw error;
+  }
+};
 
 // Assign static aliases and methods after class definition and export
 ProductModel.remove = ProductModel.delete;
