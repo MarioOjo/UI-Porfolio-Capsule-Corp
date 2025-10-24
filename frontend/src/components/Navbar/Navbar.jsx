@@ -243,23 +243,98 @@ function Navbar() {
             <button onClick={toggleDarkMode} className="p-2 rounded-md hover:bg-white/10">
               {isDarkMode ? <FaMoon /> : <FaSun />}
             </button>
+            {/* User controls: Log Out, Wishlist, Cart, Profile, Dark/Light toggle */}
             {user ? (
-              <Link to="/profile" className="hidden lg:flex items-center gap-2">
-                <FaUser />
-                <span className="hidden xl:inline">{user.name || 'Account'}</span>
-              </Link>
+              <>
+                {/* Profile dropdown */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 transition" onClick={() => setActiveMenu(activeMenu === 'profile' ? null : 'profile')}>
+                    <img src={user.photoURL || '/default-avatar.png'} alt="avatar" className="w-8 h-8 rounded-full" />
+                    <span className="font-bold text-sm">Log Out</span>
+                  </button>
+                  {activeMenu === 'profile' && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg z-50 p-4">
+                      <div className="font-bold mb-2">Welcome<br />{user.displayName || user.name || user.email}</div>
+                      <Link to="/profile" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100 font-medium">My Profile</Link>
+                      <Link to="/profile/account" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100">Account Info</Link>
+                      <Link to="/profile/address-book" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100">Address Book</Link>
+                      <Link to="/profile/order-history" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100">Order History</Link>
+                      <Link to="/profile/change-password" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100">Change Password</Link>
+                      <Link to="/profile/returns" className="block mb-2 py-2 px-3 rounded hover:bg-gray-100">Return Requests</Link>
+                      <button onClick={handleLogout} className="w-full mt-2 py-2 px-3 rounded bg-red-500 text-white font-bold hover:bg-red-600">Log Out</button>
+                    </div>
+                  )}
+                </div>
+                {/* Wishlist dropdown */}
+                <div className="relative group">
+                  <button className="px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center" onClick={() => setActiveMenu(activeMenu === 'wishlist' ? null : 'wishlist')}>
+                    <FaHeart className="text-xl" />
+                  </button>
+                  {activeMenu === 'wishlist' && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg z-50 p-4">
+                      <div className="font-bold mb-2 flex justify-between items-center">Wishlist <Link to="/wishlist" className="text-xs px-2 py-1 rounded bg-gray-200">View Full Wishlist</Link></div>
+                      {wishlistItems.length === 0 ? (
+                        <div className="text-gray-500 text-center py-6">No items in wishlist.</div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                          {wishlistItems.map(item => (
+                            <div key={item.id} className="flex items-center gap-3 border-b pb-2">
+                              <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
+                              <div className="flex-1">
+                                <div className="font-semibold text-sm">{item.name}</div>
+                                <div className="text-xs text-gray-600"><Price value={item.price} /></div>
+                              </div>
+                              <button onClick={() => removeFromWishlist(item.id)} className="text-red-500 hover:text-red-700"><FaTimes /></button>
+                              <button onClick={() => navigate(`/product/${item.slug}`)} className="text-blue-500 hover:text-blue-700"><FaShoppingCart /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Cart dropdown */}
+                <div className="relative group">
+                  <button className="px-3 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 transition flex items-center" onClick={() => setActiveMenu(activeMenu === 'cart' ? null : 'cart')}>
+                    <FaShoppingCart className="text-xl" />
+                    {cartCount > 0 && <span className="absolute -top-2 -right-3 bg-[#FF9E00] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
+                  </button>
+                  {activeMenu === 'cart' && (
+                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg z-50 p-4">
+                      <div className="font-bold mb-2 flex justify-between items-center">Cart <Link to="/cart" className="text-xs px-2 py-1 rounded bg-gray-200">View Full Cart</Link></div>
+                      {cartItems.length === 0 ? (
+                        <div className="flex flex-col items-center py-6">
+                          <FaShoppingCart className="text-4xl text-gray-400 mb-2" />
+                          <span className="text-gray-500">Your Cart is Empty.</span>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                          {cartItems.map(item => (
+                            <div key={item.id} className="flex items-center gap-3 border-b pb-2">
+                              <img src={item.image} alt={item.name} className="w-12 h-12 rounded-lg object-cover" />
+                              <div className="flex-1">
+                                <div className="font-semibold text-sm">{item.name}</div>
+                                <div className="text-xs text-gray-600"><Price value={item.price} /></div>
+                              </div>
+                              <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:text-red-700"><FaTimes /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Dark/Light toggle */}
+                <button onClick={toggleDarkMode} className="p-2 rounded-md hover:bg-white/10">
+                  {isDarkMode ? <FaMoon /> : <FaSun />}
+                </button>
+              </>
             ) : (
               <div className="hidden lg:flex items-center gap-4">
                 <Link to="/auth" className="uppercase tracking-wider text-sm">Login</Link>
                 <Link to="/auth?tab=signup" className="uppercase tracking-wider text-sm">Register</Link>
               </div>
             )}
-
-            {/* Removed extra logo/button on right */}
-            <Link to="/cart" className="relative">
-              <FaShoppingCart className="text-xl" />
-              {cartCount > 0 && <span className="absolute -top-2 -right-3 bg-[#FF9E00] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
-            </Link>
           </div>
         </div>
       </header>
