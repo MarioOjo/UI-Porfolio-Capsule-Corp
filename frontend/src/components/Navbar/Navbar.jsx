@@ -407,11 +407,13 @@ function Navbar() {
       </nav>
 
       {/* Mobile header with hamburger */}
-      <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md">
-        <div className="flex items-center">
+      {/* Make the outer header wrapper non-interactive so decorative background/gradient doesn't block clicks
+          Interactive controls inside are explicitly made pointer-events-auto so they still receive input */}
+      <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md pointer-events-none">
+        <div className="flex items-center pointer-events-auto">
           <CapsuleCorpLogo variant="white" size="sm" text={false} />
         </div>
-        <form onSubmit={handleSearchSubmit} className="flex-1 mx-2">
+        <form onSubmit={handleSearchSubmit} className="flex-1 mx-2 pointer-events-auto">
           <div className="relative">
             <input
               type="text"
@@ -428,7 +430,7 @@ function Navbar() {
           </div>
         </form>
         <button
-          className="p-2 rounded-full bg-[#FFD700] text-[#3B4CCA] shadow-lg"
+          className="p-2 rounded-full bg-[#FFD700] text-[#3B4CCA] shadow-lg pointer-events-auto"
           aria-label="Open menu"
           onClick={() => setMobileMenuOpen(true)}
         >

@@ -72,7 +72,7 @@ export default async function enableOverlayDebug({ fix = false, log = true, outl
     }
 
     // return a small API to revert changes
-    return {
+    const handle = {
       reported,
       revert() {
         (reported || []).forEach((r, idx) => {
@@ -85,6 +85,16 @@ export default async function enableOverlayDebug({ fix = false, log = true, outl
         });
       }
     };
+
+    try {
+      // Expose handle for interactive debugging in the console
+      // so you can call `window.__OVERLAY_DEBUG_HANDLE__.revert()` to undo temporary fixes
+      if (typeof window !== 'undefined') window.__OVERLAY_DEBUG_HANDLE__ = handle;
+    } catch (e) {
+      // ignore
+    }
+
+    return handle;
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[overlayDebug] failed to run', err);

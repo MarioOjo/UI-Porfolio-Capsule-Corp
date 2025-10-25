@@ -46,7 +46,10 @@ const PageTransition = ({ children }) => {
       animate="in"
       exit="out"
       variants={pageVariants}
-  className="w-full overflow-x-hidden p-2"
+      /* Make the overall wrapper non-interactive so decorative transforms/stacking
+         contexts don't intercept pointer events. Children need to remain interactive
+         so we re-enable pointer events on the inner content container below. */
+      className="w-full overflow-x-hidden p-2 pointer-events-none"
     >
       {/* Consistent energy aura effect for all pages */}
       <motion.div
@@ -65,7 +68,10 @@ const PageTransition = ({ children }) => {
         }}
       />
       
-      {children}
+      {/* Re-enable pointer events for actual page content so buttons/inputs remain clickable */}
+      <div className="pointer-events-auto">
+        {children}
+      </div>
     </motion.div>
   );
 };

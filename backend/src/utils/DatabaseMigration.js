@@ -76,7 +76,9 @@ class DatabaseMigration {
         '004_create_capsule_products_table.sql',
         '004_add_capsule_products.sql',
         '005_create_contact_messages_table.sql',
-        '006_create_orders_tables.sql'
+        '006_create_orders_tables.sql',
+        // Added: cart_items table migration (idempotent)
+        '007_create_cart_items_table.sql'
       ];
 
       for (const file of migrationFiles) {
