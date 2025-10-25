@@ -1,3 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const UserModel = require('../src/models/UserModel');
+let bcrypt;
+try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
+
+// Utility async wrapper
+const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
 // POST /api/auth/request-password-reset
 router.post('/request-password-reset', asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -31,14 +40,6 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
   await UserModel.updatePassword(user.id, password_hash);
   res.json({ message: 'Password updated successfully' });
 }));
-const express = require('express');
-const router = express.Router();
-const UserModel = require('../src/models/UserModel');
-let bcrypt;
-try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
-
-// Utility async wrapper
-const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // POST /api/auth/signup
 router.post('/signup', asyncHandler(async (req, res) => {
