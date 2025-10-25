@@ -89,7 +89,36 @@ app.get('/db-tcp-check', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api', authRoutes); // For /api/me endpoint
+
+// Expose a single /api/me endpoint (keeps API surface explicit and avoids mounting
+// the entire auth router under both /api and /api/auth which can cause route
+// collisions). This handler mirrors the logic in `routes/auth.js` for the /me
+// route but lives here to keep the top-level `/api` namespace predictable.
+app.get('/api/me', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.json({ user: null });
+  }
+  const token = authHeader.substring(7);
+  try {
+    const authService = require('./src/services/AuthService');
+    const UserModel = require('./src/models/UserModel');
+    const decoded = authService.verifyToken(token);
+    const user = await UserModel.findById(decoded.id);
+    if (!user) return res.json({ user: null });
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      phone: user.phone || null
+    };
+    return res.json({ user: payload });
+  } catch (e) {
+    return res.json({ user: null });
+  }
+});
 app.use('/api/products', productRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/orders', orderRoutes);

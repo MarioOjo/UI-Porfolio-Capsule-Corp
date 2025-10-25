@@ -3,6 +3,7 @@ import { useAuth } from '../../AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import apiFetch from '../../utils/api';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from 'react-icons/fa';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AddressBook = () => {
   // Edit address logic
@@ -82,16 +83,26 @@ const AddressBook = () => {
   };
 
   const handleDeleteAddress = (id) => {
-    if (window.confirm('Are you sure you want to delete this address?')) {
-      (async () => {
-        try {
-          await apiFetch(`/api/addresses/${id}`, { method: 'DELETE' });
-          setAddresses(prev => prev.filter(a => a.id !== id));
-          showSuccess('🗑️ Address deleted');
-        } catch (e) {
-          showError('❌ Could not delete address');
-        }
-      })();
+    // replaced by modal confirmation flow
+    setConfirmTargetId(id);
+    setConfirmOpen(true);
+  };
+
+  // Confirm modal state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTargetId, setConfirmTargetId] = useState(null);
+
+  const confirmDelete = async () => {
+    if (!confirmTargetId) return;
+    try {
+      await apiFetch(`/api/addresses/${confirmTargetId}`, { method: 'DELETE' });
+      setAddresses(prev => prev.filter(a => a.id !== confirmTargetId));
+      showSuccess('🗑️ Address deleted');
+    } catch (e) {
+      showError('❌ Could not delete address');
+    } finally {
+      setConfirmOpen(false);
+      setConfirmTargetId(null);
     }
   };
 
@@ -345,6 +356,13 @@ const AddressBook = () => {
             </div>
           </div>
         )}
+        {/* Confirm delete dialog */}
+        <ConfirmDialog
+          isOpen={confirmOpen}
+          message="Are you sure you want to delete this address?"
+          onConfirm={confirmDelete}
+          onCancel={() => { setConfirmOpen(false); setConfirmTargetId(null); }}
+        />
       </div>
     </div>
   );

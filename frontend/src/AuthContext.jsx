@@ -181,6 +181,10 @@ export function AuthProvider({ children }) {
       updateProfile,
       changePassword,
       setUser // Export setUser for Google auth hook
+    ,
+      // Derived helper for convenience: prefer checking `user.role === 'admin'` in backend
+      // but keep a compatibility check for older installs that used a hard-coded email.
+      isAdmin: Boolean(user && (user.role === 'admin' || (user.email && user.email.toLowerCase().includes('admin') ) || user.email === 'mario@capsulecorp.com'))
     }}>
       {children}
     </AuthContext.Provider>
