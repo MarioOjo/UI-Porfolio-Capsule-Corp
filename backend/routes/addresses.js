@@ -1,3 +1,15 @@
+// PATCH /api/addresses/:id/default - set default address for user
+router.patch('/:id/default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const addressId = req.params.id;
+  // Unset previous default
+  await AddressModel.unsetDefault(userId);
+  // Set new default
+  await AddressModel.setDefault(addressId, userId);
+  const updated = await AddressModel.findById(addressId);
+  res.json({ address: updated });
+}));
 const express = require('express');
 const router = express.Router();
 const AddressModel = require('../src/models/AddressModel');

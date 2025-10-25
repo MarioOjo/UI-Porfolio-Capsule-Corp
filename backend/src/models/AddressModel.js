@@ -1,6 +1,15 @@
 const database = require('../config/database');
 
 class AddressModel {
+  async setDefault(addressId, userId) {
+    // Set is_default = 1 for addressId, unset for others
+    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 0 WHERE user_id = ?`, [userId]);
+    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 1 WHERE id = ? AND user_id = ?`, [addressId, userId]);
+  }
+
+  async unsetDefault(userId) {
+    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 0 WHERE user_id = ?`, [userId]);
+  }
   constructor() {
     this.table = 'user_addresses';
     this.db = database;

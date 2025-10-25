@@ -5,6 +5,40 @@ import apiFetch from '../../utils/api';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from 'react-icons/fa';
 
 const AddressBook = () => {
+  // Edit address logic
+  const handleEditClick = (address) => {
+    setEditingAddress(address);
+    setFormData({
+      type: address.type || 'home',
+      name: address.name || '',
+      fullName: address.fullName || '',
+      street: address.street || '',
+      city: address.city || '',
+      state: address.state || '',
+      zip: address.zip || '',
+      phone: address.phone || ''
+    });
+    setShowAddModal(true);
+  };
+
+  const handleEditAddress = () => {
+    if (!formData.fullName || !formData.street || !formData.city) {
+      showError('❌ Please fill in all required fields');
+      return;
+    }
+    (async () => {
+      try {
+        const res = await apiFetch(`/api/addresses/${editingAddress.id}`, { method: 'PUT', body: JSON.stringify(formData) });
+        setAddresses(prev => prev.map(a => a.id === editingAddress.id ? res.address : a));
+        setShowAddModal(false);
+        setEditingAddress(null);
+        setFormData({ type: 'home', name: '', fullName: '', street: '', city: '', state: '', zip: '', phone: '' });
+        showSuccess('✅ Address updated!');
+      } catch (e) {
+        showError('❌ Could not update address');
+      }
+    })();
+  };
   const { user } = useAuth();
   const { showSuccess, showError } = useNotifications();
   const [addresses, setAddresses] = useState([]);
@@ -150,6 +184,12 @@ const AddressBook = () => {
 
               {/* Actions */}
               <div className="flex space-x-2 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => handleEditClick(address)}
+                  className="bg-yellow-50 text-yellow-700 py-2 px-4 rounded-lg hover:bg-yellow-100 transition-all flex items-center"
+                >
+                  <FaEdit className="mr-1" /> EDIT
+                </button>
                 {!address.isDefault && (
                   <button
                     onClick={() => handleSetDefault(address.id)}
@@ -188,7 +228,9 @@ const AddressBook = () => {
         {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-2">
             <div className="bg-white rounded-2xl p-8 sm:p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="text-2xl sm:text-xl font-bold text-gray-800 font-saiyan mb-6">ADD NEW ADDRESS</h3>
+              <h3 className="text-2xl sm:text-xl font-bold text-gray-800 font-saiyan mb-6">
+                {editingAddress ? 'EDIT ADDRESS' : 'ADD NEW ADDRESS'}
+              </h3>
 
               <div className="space-y-4">
                 {/* Address Type */}
@@ -283,16 +325,20 @@ const AddressBook = () => {
                 {/* Action Buttons */}
                 <div className="flex space-x-3 pt-4 sm:flex-col sm:space-y-2 sm:space-x-0">
                   <button
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingAddress(null);
+                      setFormData({ type: 'home', name: '', fullName: '', street: '', city: '', state: '', zip: '', phone: '' });
+                    }}
                     className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-saiyan font-bold hover:bg-gray-400 transition-colors"
                   >
                     CANCEL
                   </button>
                   <button
-                    onClick={handleAddAddress}
+                    onClick={editingAddress ? handleEditAddress : handleAddAddress}
                     className="flex-1 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-3 px-4 rounded-lg font-saiyan font-bold hover:shadow-lg transition-all"
                   >
-                    ADD ADDRESS
+                    {editingAddress ? 'SAVE CHANGES' : 'ADD ADDRESS'}
                   </button>
                 </div>
               </div>

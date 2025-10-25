@@ -15,56 +15,24 @@ const OrderHistory = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
-    // Mock order data - in real app, fetch from API
-    const mockOrders = [
-      {
-        id: 'ORD-2024-001',
-        date: '2024-03-15',
-        total: 1299.99,
-        status: 'delivered',
-        items: [
-          { id: 1, name: 'Dragon Ball Radar', price: 899.99, quantity: 1, image: '/api/placeholder/100/100' },
-          { id: 2, name: 'Senzu Bean Pack', price: 199.99, quantity: 2, image: '/api/placeholder/100/100' }
-        ],
-        shipping: {
-          address: '123 Capsule St, West City',
-          method: 'Express Delivery',
-          tracking: 'CC123456789'
+    if (!user || !user.id) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/orders/user/${user.id}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+          setFilteredOrders(data.orders);
+        } else {
+          setOrders([]);
+          setFilteredOrders([]);
         }
-      },
-      {
-        id: 'ORD-2024-002',
-        date: '2024-03-10',
-        total: 599.99,
-        status: 'processing',
-        items: [
-          { id: 3, name: 'Gravity Chamber Training Kit', price: 599.99, quantity: 1, image: '/api/placeholder/100/100' }
-        ],
-        shipping: {
-          address: '123 Capsule St, West City',
-          method: 'Standard Delivery',
-          tracking: 'CC987654321'
-        }
-      },
-      {
-        id: 'ORD-2024-003',
-        date: '2024-03-05',
-        total: 299.99,
-        status: 'shipped',
-        items: [
-          { id: 4, name: 'Capsule Corp Battle Suit', price: 299.99, quantity: 1, image: '/api/placeholder/100/100' }
-        ],
-        shipping: {
-          address: '123 Capsule St, West City',
-          method: 'Standard Delivery',
-          tracking: 'CC456789123'
-        }
+      } catch (e) {
+        setOrders([]);
+        setFilteredOrders([]);
       }
-    ];
-    
-    setOrders(mockOrders);
-    setFilteredOrders(mockOrders);
-  }, []);
+    })();
+  }, [user]);
 
   useEffect(() => {
     let filtered = orders;
