@@ -87,6 +87,36 @@ app.get('/db-tcp-check', async (req, res) => {
   }
 });
 
+// Dev-only DB info endpoint (guarded)
+// Enable by setting ENABLE_DB_INFO=true in the environment for a running instance.
+// Returns a masked summary of the resolved DB config to help confirm which DB a
+// deployed instance is talking to (useful for debugging mismatched environments).
+app.get('/_debug/db-info', (req, res) => {
+  const enabled = ['1', 'true', 'TRUE', 'yes', 'on'].includes(String(process.env.ENABLE_DB_INFO || '').trim());
+  if (!enabled) return res.status(404).json({ error: 'Not found' });
+  try {
+    const cfg = database.getResolvedConfig && database.getResolvedConfig();
+    if (!cfg) return res.status(500).json({ error: 'DB config unavailable' });
+
+    // Mask host for safety (show only first and last segments when possible)
+    const maskHost = (h = '') => {
+      try {
+        if (!h) return h;
+        const parts = h.split('.');
+        if (parts.length <= 2) return `${parts[0][0]}***.${parts[parts.length - 1]}`;
+        return `${parts[0][0]}***.${parts.slice(-2).join('.')}`;
+      } catch (e) {
+        return '***';
+      }
+    };
+
+    const masked = Object.assign({}, cfg, { host: maskHost(cfg.host) });
+    return res.json({ ok: true, db: masked });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: e && e.message ? e.message : String(e) });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 
