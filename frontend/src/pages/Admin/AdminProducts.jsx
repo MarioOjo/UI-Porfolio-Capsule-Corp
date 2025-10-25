@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft } from 'react-icons/fa';
 import { apiFetch } from '../../utils/api.js';
 import Price from '../../components/Price';
@@ -14,6 +15,75 @@ function AdminProducts() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { showSuccess, showError } = useNotifications();
+
+  // Create product via API (multipart/form-data when images present)
+  const createProduct = async (productData) => {
+    try {
+      const fd = new FormData();
+      fd.append('name', productData.name);
+      fd.append('description', productData.description);
+      fd.append('price', String(productData.price));
+      fd.append('category', productData.category);
+      fd.append('stock', String(productData.stock));
+      fd.append('power_level', String(productData.powerLevel || 0));
+      fd.append('in_stock', productData.inStock ? '1' : '0');
+
+      // append gallery URLs if any
+      fd.append('gallery', JSON.stringify(productData.imageUrls || []));
+
+      // append files
+      if (productData.imageFiles && productData.imageFiles.length) {
+        for (const file of productData.imageFiles) {
+          fd.append('images', file);
+        }
+      }
+
+      const body = await apiFetch('/api/products', { method: 'POST', body: fd });
+      if (body?.product) {
+        setProducts(prev => [body.product, ...prev]);
+        showSuccess('Product created successfully');
+      } else {
+        showSuccess('Product created');
+      }
+    } catch (err) {
+      showError(err.message || 'Failed to create product');
+      console.error('Create product error', err);
+      throw err;
+    }
+  };
+
+  const updateProduct = async (productData) => {
+    try {
+      const fd = new FormData();
+      fd.append('name', productData.name);
+      fd.append('description', productData.description);
+      fd.append('price', String(productData.price));
+      fd.append('category', productData.category);
+      fd.append('stock', String(productData.stock));
+      fd.append('power_level', String(productData.powerLevel || 0));
+      fd.append('in_stock', productData.inStock ? '1' : '0');
+      fd.append('gallery', JSON.stringify(productData.imageUrls || productData.gallery || []));
+
+      if (productData.imageFiles && productData.imageFiles.length) {
+        for (const file of productData.imageFiles) {
+          fd.append('images', file);
+        }
+      }
+
+      const body = await apiFetch(`/api/products/${productData.id}`, { method: 'PUT', body: fd });
+      if (body?.product) {
+        setProducts(prev => prev.map(p => (p.id === body.product.id ? body.product : p)));
+        showSuccess('Product updated successfully');
+      } else {
+        showSuccess('Product updated');
+      }
+    } catch (err) {
+      showError(err.message || 'Failed to update product');
+      console.error('Update product error', err);
+      throw err;
+    }
+  };
 
   // Add Product Modal Component
   const AddProductModal = ({ onSave, onCancel }) => {
@@ -437,10 +507,13 @@ function AdminProducts() {
         {/* Modals */}
         {showAddModal && (
           <AddProductModal
-            onSave={(productData) => {
-              // Handle save logic
-              console.log('Saving product:', productData);
-              setShowAddModal(false);
+            onSave={async (productData) => {
+              try {
+                await createProduct(productData);
+                setShowAddModal(false);
+              } catch (e) {
+                // error already shown via notifications
+              }
             }}
             onCancel={() => setShowAddModal(false)}
           />
@@ -449,11 +522,14 @@ function AdminProducts() {
         {showEditModal && editingProduct && (
           <EditProductModal
             product={editingProduct}
-            onSave={(productData) => {
-              // Handle update logic
-              console.log('Updating product:', productData);
-              setShowEditModal(false);
-              setEditingProduct(null);
+            onSave={async (productData) => {
+              try {
+                await updateProduct(productData);
+                setShowEditModal(false);
+                setEditingProduct(null);
+              } catch (e) {
+                // error already shown via notifications
+              }
             }}
             onCancel={() => {
               setShowEditModal(false);

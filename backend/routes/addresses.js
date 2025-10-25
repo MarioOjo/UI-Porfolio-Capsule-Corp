@@ -1,15 +1,3 @@
-// PATCH /api/addresses/:id/default - set default address for user
-router.patch('/:id/default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
-  const userId = req.user && req.user.id;
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-  const addressId = req.params.id;
-  // Unset previous default
-  await AddressModel.unsetDefault(userId);
-  // Set new default
-  await AddressModel.setDefault(addressId, userId);
-  const updated = await AddressModel.findById(addressId);
-  res.json({ address: updated });
-}));
 const express = require('express');
 const router = express.Router();
 const AddressModel = require('../src/models/AddressModel');
@@ -40,6 +28,19 @@ router.put('/:id', AuthMiddleware.authenticateToken, asyncHandler(async (req, re
   const existing = await AddressModel.findById(req.params.id);
   if (!existing || Number(existing.user_id) !== Number(userId)) return res.status(404).json({ error: 'Address not found' });
   const updated = await AddressModel.update(req.params.id, req.body);
+  res.json({ address: updated });
+}));
+
+// PATCH /api/addresses/:id/default - set default address for user
+router.patch('/:id/default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const addressId = req.params.id;
+  // Unset previous default
+  await AddressModel.unsetDefault(userId);
+  // Set new default
+  await AddressModel.setDefault(addressId, userId);
+  const updated = await AddressModel.findById(addressId);
   res.json({ address: updated });
 }));
 
