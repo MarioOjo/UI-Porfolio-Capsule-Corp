@@ -139,4 +139,19 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   } catch (e) {
     // ignore
   }
+
+  // Optional overlay debug helper: enable with ?overlayDebug=1 (log-only)
+  // or ?overlayFix=1 (log + temporarily set pointer-events:none on visible fixed backdrops)
+  try {
+    const params2 = new URLSearchParams(window.location.search || '');
+    const enableOverlayDebug = params2.get('overlayDebug') === '1' || window.__OVERLAY_DEBUG__ === true;
+    const enableOverlayFix = params2.get('overlayFix') === '1' || window.__OVERLAY_FIX__ === true;
+    if (enableOverlayDebug || enableOverlayFix) {
+      import('./utils/overlayDebug').then(({ default: enable }) => {
+        try { enable({ log: true, fix: enableOverlayFix, outlineColor: 'magenta' }); } catch (e) { console.warn('overlayDebug failed', e); }
+      }).catch(e => console.warn('Could not load overlayDebug', e));
+    }
+  } catch (e) {
+    // ignore
+  }
 }
