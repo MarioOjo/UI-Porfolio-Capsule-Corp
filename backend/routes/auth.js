@@ -31,7 +31,11 @@ router.post('/signup', asyncHandler(async (req, res) => {
     user: { 
       id: newUser.id, 
       email: newUser.email, 
-      username: newUser.username 
+      username: newUser.username,
+      firstName: newUser.firstName || '',
+      lastName: newUser.lastName || '',
+      displayName: newUser.firstName && newUser.lastName ? `${newUser.firstName} ${newUser.lastName}` : newUser.username,
+      photoURL: newUser.photoURL || '',
     },
     token
   });
@@ -53,7 +57,11 @@ router.post('/login', asyncHandler(async (req, res) => {
     user: { 
       id: user.id, 
       email: user.email, 
-      username: user.username 
+      username: user.username,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      displayName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username,
+      photoURL: user.photoURL || '',
     },
     token
   });
