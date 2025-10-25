@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../src/models/UserModel');
+const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 const OrderModel = require('../src/models/OrderModel');
 const ProductModel = require('../src/models/ProductModel');
 const cloudinary = require('cloudinary').v2;
@@ -8,17 +9,23 @@ const multer = require('multer');
 const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 
-// Simple admin check middleware
+// Admin check middleware
+// Requires a valid authenticated token. Then checks either a role on the token
+// (recommended), or an allowlist of admin emails set in ADMIN_EMAILS env (comma-separated).
 function requireAdmin(req, res, next) {
-  // Accept admin via JWT or hardcoded credentials for demo
-  const user = req.user;
-  if (user && user.email === 'admin@gmail.com' && user.username === 'admin') return next();
-  if (
-    req.body?.username === 'admin' &&
-    req.body?.password === 'AdminAccess123' &&
-    req.body?.email === 'admin@gmail.com'
-  ) return next();
-  return res.status(403).json({ error: 'Admin access required' });
+  // If req.user exists (maybe set by earlier middleware), use it; otherwise
+  // attempt to authenticate the token.
+  const ensureAndCheck = () => {
+    const user = req.user;
+    const allowedEmails = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (user && (user.role === 'admin' || allowedEmails.includes(user.email))) return next();
+    return res.status(403).json({ error: 'Admin access required' });
+  };
+
+  if (req.user) return ensureAndCheck();
+
+  // Try authenticating the token and then check role
+  return AuthMiddleware.authenticateToken(req, res, () => ensureAndCheck());
 }
 
 // --- Product Management ---

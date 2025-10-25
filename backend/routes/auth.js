@@ -17,7 +17,7 @@ router.post('/request-password-reset', asyncHandler(async (req, res) => {
   const authService = require('../src/services/AuthService');
   const token = authService.generateToken({ id: user.id, email: user.email, type: 'password-reset' }, '1h');
   // Send email (use Resend/emailService)
-  const emailService = require('../../src/utils/emailService');
+  const emailService = require('../src/utils/emailService');
   await emailService.sendPasswordResetEmail(user.email, token);
   res.json({ message: 'Password reset email sent' });
 }));
@@ -59,7 +59,7 @@ router.post('/signup', asyncHandler(async (req, res) => {
   });
   // Generate JWT token for new user
   const authService = require('../src/services/AuthService');
-  const token = authService.generateToken(newUser);
+  const token = authService.signUserToken(newUser);
   // Return user and token for frontend compatibility
   res.status(201).json({ 
     user: { 
@@ -85,7 +85,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
   // Generate JWT token for user
   const authService = require('../src/services/AuthService');
-  const token = authService.generateToken(user);
+  const token = authService.signUserToken(user);
   // Return user and token for frontend compatibility
   res.json({ 
     user: { 
@@ -170,7 +170,7 @@ router.post('/firebase-sync', asyncHandler(async (req, res) => {
   }
 
   // Generate our backend JWT so frontend can call protected endpoints
-  const token = authService.generateToken({ id: user.id, email: user.email });
+  const token = authService.signUserToken(user);
   res.json({ user: { id: user.id, email: user.email, username: user.username, firstName: user.firstName, lastName: user.lastName }, token });
 }));
 
