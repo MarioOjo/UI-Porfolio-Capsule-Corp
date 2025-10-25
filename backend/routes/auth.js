@@ -1,3 +1,36 @@
+// POST /api/auth/request-password-reset
+router.post('/request-password-reset', asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  const user = await UserModel.findByEmail(email);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  // Generate reset token (JWT, short expiry)
+  const authService = require('../src/services/AuthService');
+  const token = authService.generateToken({ id: user.id, email: user.email, type: 'password-reset' }, '1h');
+  // Send email (use Resend/emailService)
+  const emailService = require('../../src/utils/emailService');
+  await emailService.sendPasswordResetEmail(user.email, token);
+  res.json({ message: 'Password reset email sent' });
+}));
+
+// POST /api/auth/reset-password
+router.post('/reset-password', asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password required' });
+  const authService = require('../src/services/AuthService');
+  let decoded;
+  try {
+    decoded = authService.verifyToken(token);
+    if (decoded.type !== 'password-reset') throw new Error('Invalid token type');
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid or expired token' });
+  }
+  const user = await UserModel.findById(decoded.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  const password_hash = await authService.hashPassword(newPassword);
+  await UserModel.updatePassword(user.id, password_hash);
+  res.json({ message: 'Password updated successfully' });
+}));
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../src/models/UserModel');

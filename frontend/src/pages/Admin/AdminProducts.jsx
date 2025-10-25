@@ -476,9 +476,30 @@ function AddProductModal({ onSave, onCancel }) {
   const [imageFiles, setImageFiles] = useState([]);
   const [imageUrl, setImageUrl] = useState('');
   const [imageUrls, setImageUrls] = useState([]); // Track multiple URLs
+  const [errors, setErrors] = useState({});
+  // Drag-and-drop support
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length) {
+      setImageFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+    }
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Real-time validation
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = 'Product name is required.';
+    if (!formData.description.trim()) newErrors.description = 'Description is required.';
+    if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0) newErrors.price = 'Valid price required.';
+    if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0) newErrors.stock = 'Valid stock required.';
+    if (!formData.category) newErrors.category = 'Category required.';
+    if (imageFiles.length === 0 && imageUrls.length === 0) newErrors.images = 'At least one image is required.';
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     onSave({
       ...formData,
       price: parseFloat(formData.price),
@@ -511,7 +532,7 @@ function AddProductModal({ onSave, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onDrop={handleDrop} onDragOver={handleDragOver}>
         <h3 className="text-2xl font-bold text-gray-800 font-saiyan mb-6">ADD NEW PRODUCT</h3>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -524,8 +545,8 @@ function AddProductModal({ onSave, onCancel }) {
               onChange={(e) => handleChange('name', e.target.value)}
               placeholder="Enter product name"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
-              required
             />
+            {errors.name && <div className="text-red-600 text-xs mt-1">{errors.name}</div>}
           </div>
 
           {/* Description */}
@@ -536,8 +557,8 @@ function AddProductModal({ onSave, onCancel }) {
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="Enter product description"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
-              required
             />
+            {errors.description && <div className="text-red-600 text-xs mt-1">{errors.description}</div>}
           </div>
 
           {/* Price and Stock Row */}
@@ -551,8 +572,8 @@ function AddProductModal({ onSave, onCancel }) {
                 onChange={(e) => handleChange('price', e.target.value)}
                 placeholder="0.00"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
-                required
               />
+              {errors.price && <div className="text-red-600 text-xs mt-1">{errors.price}</div>}
             </div>
             <div>
               <label className="block text-sm font-saiyan text-gray-700 mb-2">STOCK</label>
@@ -562,8 +583,8 @@ function AddProductModal({ onSave, onCancel }) {
                 onChange={(e) => handleChange('stock', e.target.value)}
                 placeholder="0"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
-                required
               />
+              {errors.stock && <div className="text-red-600 text-xs mt-1">{errors.stock}</div>}
             </div>
           </div>
 
@@ -575,13 +596,13 @@ function AddProductModal({ onSave, onCancel }) {
                 value={formData.category}
                 onChange={(e) => handleChange('category', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
-                required
               >
                 <option value="Battle Gear">Battle Gear</option>
                 <option value="Training">Training</option>
                 <option value="Technology">Technology</option>
                 <option value="Capsules">Capsules</option>
               </select>
+              {errors.category && <div className="text-red-600 text-xs mt-1">{errors.category}</div>}
             </div>
             <div>
               <label className="block text-sm font-saiyan text-gray-700 mb-2">POWER LEVEL</label>
@@ -625,79 +646,80 @@ function AddProductModal({ onSave, onCancel }) {
                 type="text"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={handleAddUrl}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Add to Gallery
-              </button>
-            </div>
+                <div>
+                  <label className="block text-sm font-saiyan text-gray-700 mb-2">IMAGE (file upload or drag-and-drop) — you can select multiple</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => setImageFiles(e.target.files ? Array.from(e.target.files) : [])}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Or paste an image URL below and click "Add to Gallery". You can also drag-and-drop images into this modal.</p>
+                  <div className="flex gap-2 mt-2">
+                    <input
+                      type="text"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddUrl}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Add to Gallery
+                    </button>
+                  </div>
+                  {errors.images && <div className="text-red-600 text-xs mt-1">{errors.images}</div>}
 
-            {/* File previews */}
-            {imageFiles.length > 0 && (
-              <div className="mt-3">
-                <p className="text-sm font-saiyan text-gray-700 mb-2">Files to upload:</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {imageFiles.map((file, index) => (
-                    <div key={index} className="relative border border-gray-300 rounded-lg p-2 bg-gray-50">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
-                      >
-                        ×
-                      </button>
-                      <p className="text-xs text-gray-600 truncate pr-6">{file.name}</p>
+                  {/* File previews */}
+                  {imageFiles.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {imageFiles.map((file, idx) => (
+                        <div key={idx} className="relative">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`preview-${idx}`}
+                            className="w-20 h-20 object-cover rounded-lg border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(idx)}
+                            className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                            title="Remove"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
 
-            {/* URL previews */}
-            {imageUrls.length > 0 && (
-              <div className="mt-3">
-                <p className="text-sm font-saiyan text-gray-700 mb-2">Image URLs:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="relative border border-gray-300 rounded-lg overflow-hidden">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveUrl(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 z-10"
-                      >
-                        ×
-                      </button>
-                      <img src={url} alt={`Preview ${index + 1}`} className="w-full h-24 object-cover" />
+                  {/* Gallery URL previews */}
+                  {imageUrls.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {imageUrls.map((url, idx) => (
+                        <div key={idx} className="relative">
+                          <img
+                            src={url}
+                            alt={`gallery-${idx}`}
+                            className="w-20 h-20 object-cover rounded-lg border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveUrl(idx)}
+                            className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                            title="Remove"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-saiyan font-bold hover:bg-gray-400 transition-colors"
-            >
-              CANCEL
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-orange-400 to-orange-600 text-white py-3 px-4 rounded-lg font-saiyan font-bold hover:scale-105 transition-all"
-            >
-              CREATE PRODUCT
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

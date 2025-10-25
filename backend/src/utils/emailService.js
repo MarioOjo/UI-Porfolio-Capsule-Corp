@@ -1,3 +1,17 @@
+async function sendPasswordResetEmail(to, token) {
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:0 auto;">
+      <h2>🔒 Capsule Corp Password Reset</h2>
+      <p>Click the link below to reset your password. This link will expire in 1 hour.</p>
+      <p><a href="${resetUrl}" style="background:#3B4CCA;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Reset Password</a></p>
+      <hr>
+      <small>If you did not request this, please ignore this email.</small>
+    </div>
+  `;
+  return sendEmail({ to, subject: 'Capsule Corp Password Reset', html });
+}
+
 
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -35,3 +49,4 @@ async function sendContactNotification(contactData) {
 }
 
 module.exports = { sendEmail, sendContactNotification };
+module.exports.sendPasswordResetEmail = sendPasswordResetEmail;
