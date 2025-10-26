@@ -304,6 +304,20 @@ class OrderModel {
     return stats[0];
   }
 
+  // Get statistics for a single user
+  static async getUserStatistics(userId) {
+    if (!userId) return { total_orders: 0, total_spent: 0, average_order_value: 0 };
+    const rows = await db.executeQuery(
+      `SELECT
+        COUNT(*) as total_orders,
+        COALESCE(SUM(total), 0) as total_spent,
+        COALESCE(AVG(total), 0) as average_order_value
+      FROM orders WHERE user_id = ?`,
+      [userId]
+    );
+    return rows[0] || { total_orders: 0, total_spent: 0, average_order_value: 0 };
+  }
+
   // Delete order (admin only)
   static async delete(orderId) {
     const result = await db.executeQuery(

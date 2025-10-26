@@ -9,7 +9,9 @@ module.exports = {
     extend: {
       colors: {
         'capsule-blue': '#3B4CCA',
-        'capsule-orange': '#FF9E00'
+        'capsule-orange': '#FF9E00',
+        // legacy 'gold' token removed; use capsule-accent instead
+        'capsule-accent': '#FF9E00'
       }
     }
   },

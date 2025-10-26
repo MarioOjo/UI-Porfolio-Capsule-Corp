@@ -23,8 +23,9 @@
 .overlayFade{
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
-}
+    /* removed gold token --capsule-gold, use capsule-accent (maps to orange) */
+    --capsule-accent: #FF9E00;
+    --capsule-orange: #FF9E00;
 
 .title{
   font-family: var(--font-saiyan, 'Inter', sans-serif);
@@ -38,10 +39,10 @@
 @media (min-width: 640px){
   .title{font-size: 3rem}
 }
-@media (min-width: 1024px){
-  .title{font-size: 3.75rem}
-}
-
+  .pulseOrb{background: linear-gradient(135deg,var(--capsule-accent), var(--capsule-orange)); animation: pulse 2s infinite}
+  .decorationAccent{
+    position:absolute; top:-1rem; right:-1rem; width:3rem; height:3rem; border-radius:9999px; background:linear-gradient(135deg,var(--capsule-accent), var(--capsule-orange)); box-shadow:0 10px 30px rgba(255,158,0,0.25); border:4px solid rgba(255,255,255,0.85); transform:translate(15%, -15%);
+  }
 .subtitle{
   color: rgba(255,255,255,0.92);
   font-size: 1.0625rem;

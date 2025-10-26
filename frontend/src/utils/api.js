@@ -18,8 +18,11 @@ export async function apiFetch(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
   try {
     const base = getApiBase();
+    // If no explicit API base is configured we assume same-origin and send
+    // cookies by default (helps backends that use cookie sessions).
+    const defaultCredentials = base ? 'omit' : 'include';
     const res = await fetch(base + path, {
-      credentials: options.credentials ?? 'omit',
+      credentials: options.credentials ?? defaultCredentials,
       ...options,
       headers
     });

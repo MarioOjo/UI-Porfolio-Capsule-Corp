@@ -141,7 +141,7 @@ html, body {
 }
 .popover-panel a:hover,
 .popover-panel button:hover {
-  background: linear-gradient(90deg, #FFD70022, #FF9E0022);
+  background: linear-gradient(90deg, #FF9E0022, #FF9E0022);
   color: #FF9E00;
   box-shadow: 0 2px 8px rgba(255,158,0,0.08);
 }

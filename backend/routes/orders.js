@@ -134,6 +134,18 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+// Get user's order statistics (count, total spent, average)
+router.get('/user/:userId/stats', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const stats = await OrderModel.getUserStatistics(userId);
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('Error fetching user order stats:', error);
+    res.status(500).json({ error: 'Failed to fetch user statistics', details: error.message });
+  }
+});
+
 // Update order status (admin only)
 router.patch('/:id/status', requireAdmin, async (req, res) => {
   try {

@@ -371,14 +371,14 @@ function Navbar() {
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white shadow-lg py-2">
         <div className="flex justify-between max-w-md mx-auto px-4">
             <Link to={user ? "/profile" : "/auth"} className="flex flex-col items-center text-center text-xs font-saiyan text-white">
-              <div className="bg-[#FFD700] p-2 rounded-full shadow-lg mb-1">
+              <div className="bg-[#FF9E00] p-2 rounded-full shadow-lg mb-1">
                 <FaUser className="text-[#3B4CCA] text-lg" />
               </div>
               <span>{user ? 'Profile' : 'Login'}</span>
             </Link>
             <Link to="/products" className="flex flex-col items-center text-center text-xs font-saiyan text-white">
               <div className="bg-[#3B4CCA] p-2 rounded-full shadow-lg mb-1">
-                <FaSearch className="text-[#FFD700] text-lg" />
+                <FaSearch className="text-[#FF9E00] text-lg" />
               </div>
               <span>Explore</span>
             </Link>
@@ -390,8 +390,8 @@ function Navbar() {
               {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
             </Link>
             <button onClick={toggleDarkMode} className="flex flex-col items-center text-center text-xs font-saiyan text-white">
-              <div className={`p-2 rounded-full shadow-lg mb-1 ${isDarkMode ? 'bg-[#3B4CCA]' : 'bg-[#FFD700]'}`}> 
-                {isDarkMode ? <FaMoon className="text-[#FFD700] text-lg" /> : <FaSun className="text-[#3B4CCA] text-lg" />}
+              <div className={`p-2 rounded-full shadow-lg mb-1 ${isDarkMode ? 'bg-[#3B4CCA]' : 'bg-[#FF9E00]'}`}> 
+                {isDarkMode ? <FaMoon className="text-[#FF9E00] text-lg" /> : <FaSun className="text-[#3B4CCA] text-lg" />}
               </div>
               <span>{isDarkMode ? 'Dark' : 'Light'}</span>
             </button>
@@ -409,7 +409,7 @@ function Navbar() {
       {/* Mobile header with hamburger */}
       {/* Make the outer header wrapper non-interactive so decorative background/gradient doesn't block clicks
           Interactive controls inside are explicitly made pointer-events-auto so they still receive input */}
-      <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md pointer-events-none">
+  <header className="sm:hidden px-2 py-2 bg-gradient-to-r from-[#3B4CCA] via-[#FF9E00] to-[#3B4CCA] flex items-center justify-between z-50 shadow-md pointer-events-none">
         <div className="flex items-center pointer-events-auto">
           <CapsuleCorpLogo variant="white" size="sm" text={false} />
         </div>
@@ -430,7 +430,7 @@ function Navbar() {
           </div>
         </form>
         <button
-          className="p-2 rounded-full bg-[#FFD700] text-[#3B4CCA] shadow-lg pointer-events-auto"
+          className="p-2 rounded-full bg-[#FF9E00] text-[#3B4CCA] shadow-lg pointer-events-auto"
           aria-label="Open menu"
           onClick={() => setMobileMenuOpen(true)}
         >

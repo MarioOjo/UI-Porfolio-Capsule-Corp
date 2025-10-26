@@ -79,7 +79,7 @@ function HeroSection() {
                 loading="eager"
               />
 
-              <div className="decorationGold"></div>
+              <div className="decorationAccent"></div>
               <div className="decorationRed"></div>
             </div>
           </div>

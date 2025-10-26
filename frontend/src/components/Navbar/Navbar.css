@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #FF9E00 60%, #FFD700 100%);
+  background: linear-gradient(90deg, #FF9E00 60%, #FF9E00 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(255,158,0,0.12);
 }

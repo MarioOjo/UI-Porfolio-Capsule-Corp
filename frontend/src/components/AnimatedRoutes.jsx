@@ -19,9 +19,12 @@ const Checkout = lazy(() => import('../pages/Checkout'));
 const Contact = lazy(() => import('../pages/Contact'));
 const About = lazy(() => import('../pages/About'));
 const Profile = lazy(() => import('../pages/Profile/Profile'));
+const ProfileLayout = lazy(() => import('../pages/Profile/ProfileLayout'));
+const ProfileDashboard = lazy(() => import('../pages/Profile/ProfileDashboard'));
 const OrderHistory = lazy(() => import('../pages/Profile/OrderHistory'));
 const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
 const ChangePassword = lazy(() => import('../pages/Profile/ChangePassword'));
+const Returns = lazy(() => import('../pages/Profile/Returns'));
 const OrderTracking = lazy(() => import('../pages/OrderTracking'));
 const OrderConfirmation = lazy(() => import('../pages/OrderConfirmation'));
 const ShippingInfo = lazy(() => import('../pages/ShippingInfo'));
@@ -63,10 +66,14 @@ const AnimatedRoutes = () => {
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<AuthPage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/order-history" element={<OrderHistory />} />
-              <Route path="/address-book" element={<AddressBook />} />
-              <Route path="/change-password" element={<ChangePassword />} />
+              <Route path="/profile" element={<ProfileLayout />}>
+                <Route index element={<ProfileDashboard />} />
+                <Route path="account" element={<Profile />} />
+                <Route path="order-history" element={<OrderHistory />} />
+                <Route path="address-book" element={<AddressBook />} />
+                <Route path="change-password" element={<ChangePassword />} />
+                <Route path="returns" element={<Returns />} />
+              </Route>
               <Route path="/track-order" element={<OrderTracking />} />
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
               <Route path="/shipping-info" element={<ShippingInfo />} />

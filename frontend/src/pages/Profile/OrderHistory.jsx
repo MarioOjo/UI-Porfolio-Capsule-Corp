@@ -91,7 +91,7 @@ const OrderHistory = () => {
           {/* Header */}
           <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 px-8 py-6">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#FF9E00] to-[#FF9E00] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                 <FaBox className="text-[#3B4CCA] text-2xl" />
               </div>
               <div>

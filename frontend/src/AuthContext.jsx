@@ -126,20 +126,24 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    // Sign out from Firebase if initialized. Keep this isolated so missing
+    // firebase doesn't block backend logout and state clearing.
     try {
-      // Sign out from Firebase
-      if (auth) await signOut(auth);
-      
-      // Also logout from backend if needed
-      try {
-        await apiFetch('/api/auth/logout', { method: 'POST' });
-      } catch (e) {
-        console.error('Backend logout error:', e);
-      }
+      const authInstance = getAuthInstance();
+      if (authInstance) await signOut(authInstance);
     } catch (error) {
       console.error('Firebase logout error:', error);
     }
-    
+
+    // Tell backend to clear any server-side session if present. Don't
+    // fail the entire flow if the backend is unreachable.
+    try {
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Backend logout error:', e);
+    }
+
+    // Clear local client state
     setUser(null);
     localStorage.removeItem('authToken');
   };

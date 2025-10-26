@@ -172,8 +172,8 @@ const AddressBook = () => {
                   ) : (
                     <FaBriefcase className="text-[#3B4CCA]" />
                   )}
-                  <span className="font-saiyan text-[#3B4CCA] font-bold">
-                    {address.name || address.type.toUpperCase()}
+                    <span className="font-saiyan text-[#3B4CCA] font-bold">
+                    {address.name || (address.type || '').toUpperCase()}
                   </span>
                 </div>
                 {address.isDefault && (
