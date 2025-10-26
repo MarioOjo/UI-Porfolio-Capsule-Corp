@@ -4,6 +4,7 @@ import { useAuth } from '../../AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaBox, FaEye, FaTruck, FaCheckCircle, FaClock, FaTimes, FaSearch } from 'react-icons/fa';
 import Price from '../../components/Price';
+import apiFetch from '../../utils/api';
 
 const OrderHistory = () => {
   const { user } = useAuth();
@@ -18,9 +19,8 @@ const OrderHistory = () => {
     if (!user || !user.id) return;
     (async () => {
       try {
-        const res = await fetch(`/api/orders/user/${user.id}`);
-        const data = await res.json();
-        if (data.success && Array.isArray(data.orders)) {
+        const data = await apiFetch(`/api/orders/user/${user.id}`);
+        if (data && data.success && Array.isArray(data.orders)) {
           setOrders(data.orders);
           setFilteredOrders(data.orders);
         } else {
@@ -28,6 +28,7 @@ const OrderHistory = () => {
           setFilteredOrders([]);
         }
       } catch (e) {
+        console.error('Error loading orders', e);
         setOrders([]);
         setFilteredOrders([]);
       }

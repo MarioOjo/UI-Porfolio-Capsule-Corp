@@ -4,8 +4,9 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import { FaLock, FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa';
 
 const ChangePassword = () => {
-  const { user } = useAuth();
+  const { changePassword } = useAuth();
   const { showSuccess, showError } = useNotifications();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -74,9 +75,9 @@ const ChangePassword = () => {
     }
 
     try {
-      // Here you would call your API to change the password
-      // await updatePassword(formData);
-      
+      setIsSubmitting(true);
+      const res = await changePassword(formData.currentPassword, formData.newPassword);
+      // Backend returns message on success; apiFetch will throw on non-2xx
       showSuccess('✅ Password changed successfully! Your power level just increased!');
       setFormData({
         currentPassword: '',
@@ -85,7 +86,11 @@ const ChangePassword = () => {
       });
       setPasswordStrength(0);
     } catch (error) {
-      showError('❌ Failed to change password. Please check your current password.');
+      // apiFetch throws Error with message from backend when available
+      const msg = error?.message || 'Failed to change password. Please check your current password.';
+      showError(`❌ ${msg}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -270,9 +275,10 @@ const ChangePassword = () => {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-4 px-6 rounded-lg font-saiyan font-bold text-lg hover:shadow-xl transition-all hover:scale-105"
+                disabled={isSubmitting}
+                className={`w-full bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-4 px-6 rounded-lg font-saiyan font-bold text-lg hover:shadow-xl transition-all hover:scale-105 ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
-                UPDATE PASSWORD
+                {isSubmitting ? 'UPDATING...' : 'UPDATE PASSWORD'}
               </button>
             </div>
           </form>

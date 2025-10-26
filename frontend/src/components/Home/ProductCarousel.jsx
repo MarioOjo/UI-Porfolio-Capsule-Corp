@@ -7,18 +7,20 @@ import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import { apiFetch } from "../../utils/api";
 import Price from "../../components/Price";
+import "./ProductCarousel.css";
 
 function ProductCarousel() {
   const [products, setProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  const themeClass = isDarkMode ? 'dark' : 'light';
 
   useEffect(() => {
     const fetchCarouselProducts = async () => {
@@ -48,7 +50,7 @@ function ProductCarousel() {
       }, 5000);
       return () => clearInterval(timer);
     }
-  }, [products.length, currentSlide]);
+  }, [products.length]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % products.length);
@@ -73,7 +75,7 @@ function ProductCarousel() {
   const handleWishlistToggle = (e, product) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
     } else {
@@ -83,12 +85,12 @@ function ProductCarousel() {
 
   if (loading) {
     return (
-      <div className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-r from-blue-50 to-orange-50'}`}>
+      <div className={`product-carousel-section ${themeClass}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-96 bg-gray-300 rounded-lg"></div>
+            <div className="carousel-loading-pulse">
+              <div className="carousel-loading-title"></div>
+              <div className="carousel-loading-slide"></div>
             </div>
           </div>
         </div>
@@ -98,13 +100,15 @@ function ProductCarousel() {
 
   if (error || products.length === 0) {
     return (
-      <div className={`py-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-r from-blue-50 to-orange-50'}`}>
+      <div className={`product-carousel-section ${themeClass}`}>
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h3 className={`text-2xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+          <h3 className={`carousel-error-title ${themeClass}`}>
             No legendary gear available right now
           </h3>
-          <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>We're recharging our capsule inventory — check back soon or try refreshing.</p>
-          <div className="flex items-center justify-center space-x-3">
+          <p className={`carousel-error-message ${themeClass}`}>
+            We're recharging our capsule inventory — check back soon or try refreshing.
+          </p>
+          <div className="carousel-error-actions">
             <button
               onClick={() => {
                 setError(null);
@@ -122,12 +126,11 @@ function ProductCarousel() {
                   }
                 })();
               }}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-600 text-white font-bold hover:scale-105 transition-transform"
+              className="carousel-retry-button"
             >
               Try again
             </button>
-
-            <Link to="/capsules" className="px-4 py-2 rounded-lg bg-white/20 text-white font-bold hover:bg-white/30 transition-colors">
+            <Link to="/capsules" className="carousel-browse-link">
               Browse Capsules
             </Link>
           </div>
@@ -139,58 +142,51 @@ function ProductCarousel() {
   const currentProduct = products[currentSlide];
 
   return (
-    <section className={`py-16 relative ${isDarkMode ? 'bg-gray-900' : 'bg-gradient-to-r from-blue-50 to-orange-50'}`}>
+    <section className={`product-carousel-section ${themeClass}`}>
       {/* Background decoration */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400 rounded-full blur-xl"></div>
-        <div className="absolute top-32 right-20 w-16 h-16 bg-orange-400 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-red-400 rounded-full blur-xl"></div>
+      <div className="carousel-background-decoration">
+        <div className="carousel-orb-1"></div>
+        <div className="carousel-orb-2"></div>
+        <div className="carousel-orb-3"></div>
       </div>
       
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className={`text-3xl md:text-4xl font-black font-saiyan mb-4 ${
-            isDarkMode ? 'text-white' : 'text-gray-800'
-          }`}>
+        <div className="carousel-header">
+          <h2 className={`carousel-title ${themeClass}`}>
             🐉 LEGENDARY EQUIPMENT SHOWCASE
           </h2>
-          <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+          <p className={`carousel-subtitle ${themeClass}`}>
             Collect all 7 Dragon Balls and discover our most powerful gear! Experience the might of legendary equipment used by the universe's strongest warriors.
           </p>
         </div>
 
         {/* Carousel Container */}
-        <div 
-          className="relative rounded-2xl shadow-2xl overflow-hidden"
-        >
-          <div className="relative h-96 md:h-[500px]">
+        <div className="carousel-container">
+          <div className="carousel-track">
             {/* Background with Dragon Ball aesthetic */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-red-500 to-purple-600">
-              <div className="absolute inset-0 bg-black/20"></div>
-              <div className="absolute inset-0 bg-gradient-radial from-transparent via-yellow-400/10 to-transparent"></div>
+            <div className="carousel-slide-background">
+              <div className="carousel-slide-overlay"></div>
+              <div className="carousel-radial-gradient"></div>
             </div>
 
-            {/* Slides - Each positioned absolutely with fade transition */}
+            {/* Slides */}
             {products.map((product, index) => (
               <div 
                 key={product.id} 
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                  index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                }`}
+                className={`carousel-slide ${index === currentSlide ? 'active' : ''}`}
               >
-                {/* Product Content */}
-                <div className="relative h-full flex items-center px-6 md:px-12 py-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 w-full max-w-6xl mx-auto">
-                    {/* Product Image - mobile: image is link, no buttons */}
-                    <div className="flex items-center justify-center">
-                      <Link to={`/product/${product.slug}`} className="relative block focus:outline-none">
-                        <div className="w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 p-1 kamehameha-glow">
-                          <div className="w-full h-full rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                <div className="carousel-slide-content">
+                  <div className="carousel-content-grid">
+                    {/* Product Image */}
+                    <div className="carousel-image-container">
+                      <Link to={`/product/${product.slug}`} className="carousel-image-link">
+                        <div className="carousel-image-orb">
+                          <div className="carousel-image-inner">
                             <img
                               src={product.image || `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`}
                               alt={product.name}
-                              className="w-full h-full object-cover rounded-full"
+                              className="carousel-image"
                               onError={(e) => {
                                 e.target.src = `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`;
                               }}
@@ -201,46 +197,44 @@ function ProductCarousel() {
                     </div>
 
                     {/* Product Details */}
-                    <div className="flex flex-col justify-center text-white space-y-3 md:space-y-4">
+                    <div className="carousel-details">
                       <div>
-                        <span className="inline-block bg-yellow-400 text-black px-3 py-1 rounded-full text-xs md:text-sm font-bold mb-2 md:mb-3">
+                        <span className="carousel-category-badge">
                           {product.category}
                         </span>
-                        <h3 className="text-2xl md:text-3xl lg:text-4xl font-black font-saiyan mb-2 md:mb-3 leading-tight">
+                        <h3 className="carousel-product-name">
                           {product.name}
                         </h3>
                       </div>
 
-
                       {/* Price */}
-                      <div className="hidden md:flex items-center space-x-3 md:space-x-4">
-                          {(product.originalPrice || product.original_price) && (
-                            <span className="text-lg md:text-xl text-white/60 line-through">
-                              <Price value={product.originalPrice || product.original_price} />
-                            </span>
-                          )}
-                          <span className="text-2xl md:text-3xl font-bold text-yellow-400 font-saiyan">
-                            <Price value={product.price} />
+                      <div className="carousel-price-section">
+                        {(product.originalPrice || product.original_price) && (
+                          <span className="carousel-original-price">
+                            <Price value={product.originalPrice || product.original_price} />
                           </span>
+                        )}
+                        <span className="carousel-current-price">
+                          <Price value={product.price} />
+                        </span>
                       </div>
-                      {/* Action Buttons - only show on desktop */}
-                      <div className="hidden md:flex flex-wrap gap-2 md:gap-3">
+
+                      {/* Action Buttons */}
+                      <div className="carousel-actions">
                         <button
                           onClick={(e) => handleAddToCart(e, product)}
                           disabled={!(product.inStock || product.in_stock || product.stock > 0)}
-                          className={`flex items-center px-3 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-saiyan font-bold text-xs md:text-sm transition-all ${
-                            (product.inStock || product.in_stock || product.stock > 0)
-                              ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
-                              : "bg-gray-500 text-gray-300 cursor-not-allowed"
+                          className={`carousel-add-to-cart ${
+                            (product.inStock || product.in_stock || product.stock > 0) ? 'enabled' : 'disabled'
                           }`}
                         >
-                          <FaShoppingCart className="mr-1.5 md:mr-2 text-xs md:text-sm" />
+                          <FaShoppingCart className="mr-2" />
                           ADD TO CAPSULE
                         </button>
 
                         <Link
                           to={`/product/${product.slug}`}
-                          className="flex items-center px-3 py-2 md:px-5 md:py-2.5 rounded-lg md:rounded-xl font-saiyan font-bold text-xs md:text-sm bg-gradient-to-r from-[#3B4CCA] to-[#FF9E00] text-white hover:from-[#FF9E00] hover:to-[#3B4CCA] hover:text-black transition-all"
+                          className="carousel-details-link"
                         >
                           VIEW DETAILS
                         </Link>
@@ -248,13 +242,11 @@ function ProductCarousel() {
                         {user && (
                           <button
                             onClick={(e) => handleWishlistToggle(e, product)}
-                            className={`p-2 md:p-3 rounded-full transition-all ${
-                              isInWishlist(product.id)
-                                ? 'bg-red-500 text-white'
-                                : 'bg-white/20 text-white hover:bg-red-500'
+                            className={`carousel-wishlist-button ${
+                              isInWishlist(product.id) ? 'active' : 'inactive'
                             }`}
                           >
-                            <FaHeart className="text-xs md:text-sm" />
+                            <FaHeart />
                           </button>
                         )}
                       </div>
@@ -264,16 +256,14 @@ function ProductCarousel() {
               </div>
             ))}
 
-            {/* Slide Indicators - Pill-shaped like Evetech */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+            {/* Slide Indicators */}
+            <div className="carousel-indicators">
               {products.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    index === currentSlide
-                      ? 'w-8 bg-yellow-400'
-                      : 'w-2 bg-white/50 hover:bg-white/70'
+                  className={`carousel-indicator ${
+                    index === currentSlide ? 'active' : 'inactive'
                   }`}
                 />
               ))}
@@ -281,24 +271,22 @@ function ProductCarousel() {
           </div>
         </div>
 
-        {/* Additional Carousel Items Preview */}
-        <div className="mt-8 hidden md:block">
-          <div className="max-w-max mx-auto">
-            <div className="flex justify-center space-x-4">
+        {/* Thumbnail Preview */}
+        <div className="carousel-thumbnails">
+          <div className="carousel-thumbnails-container">
+            <div className="carousel-thumbnails-grid">
               {products.map((product, index) => (
                 <button
                   key={product.id}
                   onClick={() => goToSlide(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                    index === currentSlide
-                      ? 'border-yellow-400 scale-110'
-                      : 'border-gray-300 hover:border-yellow-400'
+                  className={`carousel-thumbnail ${
+                    index === currentSlide ? 'active' : 'inactive'
                   }`}
                 >
                   <img
                     src={product.image || `https://via.placeholder.com/80x80/FF9E00/FFFFFF?text=${encodeURIComponent(product.name.slice(0, 2))}`}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="carousel-thumbnail-image"
                     onError={(e) => {
                       e.target.src = `https://via.placeholder.com/80x80/FF9E00/FFFFFF?text=${encodeURIComponent(product.name.slice(0, 2))}`;
                     }}

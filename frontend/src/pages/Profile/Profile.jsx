@@ -3,9 +3,11 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 import { useAuth } from '../../AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaUser, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
+  const { showSuccess, showError } = useNotifications();
   const { isDarkMode } = useTheme();
   const { formatPrice } = useCurrency();
   const [isEditing, setIsEditing] = useState(false);
@@ -24,12 +26,18 @@ const Profile = () => {
     });
   };
 
+  const [isSaving, setIsSaving] = useState(false);
   const handleSave = async () => {
     try {
+      setIsSaving(true);
       await updateProfile(formData);
+      showSuccess('✅ Profile updated');
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
+      showError('❌ Failed to update profile');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -205,12 +213,7 @@ const Profile = () => {
                     <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total Spent</div>
                   </div>
                 </div>
-                <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-br from-green-50 to-green-100'}`}>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 font-saiyan">Gold</div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Member Status</div>
-                  </div>
-                </div>
+                {/* Member Status card removed per user request */}
               </div>
             </div>
           </div>

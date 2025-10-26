@@ -3,6 +3,7 @@ const router = express.Router();
 const UserModel = require('../src/models/UserModel');
 let bcrypt;
 try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
+const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 
 // Utility async wrapper
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -39,6 +40,30 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
   const password_hash = await authService.hashPassword(newPassword);
   await UserModel.updatePassword(user.id, password_hash);
   res.json({ message: 'Password updated successfully' });
+}));
+
+// POST /api/auth/change-password - authenticated route
+router.post('/change-password', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Both current and new password are required' });
+
+  const user = await UserModel.findById(userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  // If there is no password hash (e.g., social login), disallow this flow
+  if (!user.password_hash) return res.status(400).json({ error: 'Password change not supported for social login users' });
+
+  const match = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!match) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  const authService = require('../src/services/AuthService');
+  const newHash = await authService.hashPassword(newPassword);
+  await UserModel.updatePassword(userId, newHash);
+
+  res.json({ message: 'Password changed successfully' });
 }));
 
 // POST /api/auth/signup

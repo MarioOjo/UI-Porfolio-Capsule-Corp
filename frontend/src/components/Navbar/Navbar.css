@@ -1,0 +1,24 @@
+/* Navbar.css - for custom styles beyond Tailwind and popover-panel */
+
+/* Example: Custom notification badge for better mobile visibility */
+.badge {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #FF9E00 60%, #FFD700 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255,158,0,0.12);
+}
+
+/* Example: Custom profile avatar border */
+.avatar {
+  border: 2px solid #3B4CCA;
+  box-shadow: 0 0 8px #3B4CCA44;
+}
+
+/* Add more custom styles as needed for Navbar */
