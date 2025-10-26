@@ -1,4 +1,4 @@
-import{a2 as B,K as w,a3 as $,a4 as j,j as t,a as e,a5 as q,r,c as A,o as I,a6 as T,W as R,a7 as L,H as Y}from"./index-5c3016fd.js";function D({variant:d="primary",className:s=""}){const{signInWithGoogle:g,loading:n}=B(),b=w(),c=async()=>{try{await g()&&b("/")}catch(f){console.error("Google sign-in error:",f)}},l=`
+import{a2 as B,K as w,a3 as $,a4 as j,j as t,a as e,a5 as q,r,c as A,o as I,a6 as T,W as R,a7 as L,H as Y}from"./index-94148467.js";function D({variant:d="primary",className:s=""}){const{signInWithGoogle:g,loading:n}=B(),b=w(),c=async()=>{try{await g()&&b("/")}catch(f){console.error("Google sign-in error:",f)}},l=`
     w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl 
     font-saiyan font-bold text-lg transition-all duration-300 
     hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed

@@ -32,15 +32,9 @@ function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
                   to="/products"
-                  className="bg-gradient-to-r from-[#FFD700] to-[#3B4CCA] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
-                >
-                  Shop Now
-                </Link>
-                <Link
-                  to="/battle-gear"
                   className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
                 >
-                  View Collection
+                  Shop Now
                 </Link>
               </div>
 
