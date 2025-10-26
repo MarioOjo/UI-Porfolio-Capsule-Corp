@@ -32,16 +32,6 @@ function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link
                   to="/products"
-                  onClick={(e) => {
-                    // Lightweight, opt-in debug: add ?shopDebug=1 to URL to prevent navigation
-                    // and inspect click behavior without leaving the page. Otherwise log normally.
-                    const debug = new URLSearchParams(window.location.search).get('shopDebug') === '1';
-                    console.log('🛍️ Shop Now clicked', { debug });
-                    if (debug) {
-                      e.preventDefault();
-                      console.log('🛑 shopDebug=1 active — navigation prevented for debugging');
-                    }
-                  }}
                   className="bg-gradient-to-r from-[#FFD700] to-[#3B4CCA] text-white px-8 lg:px-10 py-3 lg:py-4 rounded-xl font-saiyan font-bold text-base lg:text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl text-center"
                 >
                   Shop Now
