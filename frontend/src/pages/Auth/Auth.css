@@ -35,7 +35,7 @@
 .auth-tab.active {
   background: linear-gradient(135deg, #3B4CCA, #667eea);
   color: white;
-  border-bottom: 3px solid #FFD700;
+  border-bottom: 3px solid #FF9E00;
 }
 
 .auth-tab:not(.active):hover {

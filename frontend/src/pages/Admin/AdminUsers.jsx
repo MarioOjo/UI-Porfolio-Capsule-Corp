@@ -162,7 +162,7 @@ function AdminUsers() {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => navigate('/admin')}
-                className="text-white hover:text-[#FFD700] transition-colors"
+                className="text-white hover:text-capsule-accent transition-colors"
               >
                 <FaArrowLeft className="text-xl" />
               </button>

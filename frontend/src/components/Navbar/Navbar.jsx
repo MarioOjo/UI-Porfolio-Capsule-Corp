@@ -51,6 +51,7 @@ import {
   FaCapsules
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
@@ -59,6 +60,7 @@ import Price from "../../components/Price";
 import { useCurrency } from '../../contexts/CurrencyContext';
 import CapsuleCorpLogo from "../../components/CapsuleLogo";
 import CurrencySelector from "../../components/CurrencySelector";
+import './Navbar.css';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -67,14 +69,8 @@ function Navbar() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCartPreview, setShowCartPreview] = useState(false);
   const [showWishlistPreview, setShowWishlistPreview] = useState(false);
-  // Improved dark mode: detect system preference on first load
-  const getInitialTheme = () => {
-    const saved = localStorage.getItem('capsule-theme');
-    if (saved !== null) return JSON.parse(saved);
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
-    return false;
-  };
-  const [isDarkMode, setIsDarkMode] = useState(getInitialTheme);
+  // Use global theme context
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
   const { user, logout } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, getCartCount } = useCart();
@@ -84,6 +80,7 @@ function Navbar() {
   const searchRef = useRef(null);
   const cartRef = useRef(null);
   const wishlistRef = useRef(null);
+  const navRef = useRef(null);
 
   // Product categories/items for mobile menu
   const mobileMenuItems = [
@@ -109,17 +106,7 @@ function Navbar() {
     { label: '🍃 Consumables', to: '/products?category=Consumables' },
   ];
 
-  // Handle dark mode toggle
-  useEffect(() => {
-    localStorage.setItem('capsule-theme', JSON.stringify(isDarkMode));
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-    }
-  }, [isDarkMode]);
+  // Theme toggling handled by ThemeProvider
 
   // Handle search with debounce
   useEffect(() => {
@@ -155,6 +142,10 @@ function Navbar() {
       if (wishlistRef.current && !wishlistRef.current.contains(event.target)) {
         setShowWishlistPreview(false);
       }
+      // Close any active desktop submenu when clicking outside the nav
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setActiveMenu(null);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -183,14 +174,14 @@ function Navbar() {
     }
   };
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  // toggleDarkMode comes from ThemeContext
 
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
   const { formatPrice } = useCurrency();
 
   return (
-    <>
+    <div ref={navRef}>
       {/* Desktop / large screens - Evetech-like layout: left icons/logo, centered search pill, right controls */}
   <header className="hidden sm:block bg-[#0f1724] text-white z-50">{/* darker base to match the Evetech top strip */}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center">
@@ -343,26 +334,13 @@ function Navbar() {
       <nav className="hidden sm:block bg-[#0b1220] border-b z-40">
         <div className="max-w-7xl mx-auto px-4">
           <ul className="flex items-center gap-3 py-3 text-sm text-gray-200 overflow-x-auto justify-center">
-            {mobileMenuItems.map(item => {
-              // Render Products as a simple link, no dropdown
-              if (item.label === 'Products') {
-                return (
-                  <li key={item.label}>
-                    <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              }
-
-              return (
-                <li key={item.label}>
-                  <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
+            {mobileMenuItems.map(item => (
+              <li key={item.label}>
+                <Link to={item.to} className="inline-flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/6 transition-colors font-medium text-sm">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </nav>
@@ -389,12 +367,7 @@ function Navbar() {
               <span>Cart</span>
               {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{cartCount}</span>}
             </Link>
-            <button onClick={toggleDarkMode} className="flex flex-col items-center text-center text-xs font-saiyan text-white">
-              <div className={`p-2 rounded-full shadow-lg mb-1 ${isDarkMode ? 'bg-[#3B4CCA]' : 'bg-[#FF9E00]'}`}> 
-                {isDarkMode ? <FaMoon className="text-[#FF9E00] text-lg" /> : <FaSun className="text-[#3B4CCA] text-lg" />}
-              </div>
-              <span>{isDarkMode ? 'Dark' : 'Light'}</span>
-            </button>
+            {/* mobile bottom toggle removed to avoid duplicate toggles when logged in; use header toggle only */}
             <Link to="/notifications" className="flex flex-col items-center text-center text-xs font-saiyan text-white relative">
               <div className="bg-red-500 p-2 rounded-full shadow-lg mb-1">
                 <FaHeart className="text-white text-lg" />
@@ -456,7 +429,7 @@ function Navbar() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

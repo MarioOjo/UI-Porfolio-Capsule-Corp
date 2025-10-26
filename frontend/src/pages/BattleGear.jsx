@@ -37,7 +37,7 @@ function BattleGear() {
         <div className={`rounded-2xl shadow-2xl overflow-hidden mb-12 ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           <div className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-12">
             <div className="flex items-center justify-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                 <FaShieldAlt className="text-red-600 text-3xl" />
               </div>
             </div>

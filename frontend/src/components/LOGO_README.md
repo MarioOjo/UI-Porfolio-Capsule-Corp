@@ -63,7 +63,7 @@ import './components/CapsuleCorpLogo.css';
 ### Colors
 
 The logo uses these default colors:
-- **Icon gradient**: `#FFD700` (gold) to `#FF9E00` (orange)
+- **Icon gradient**: `#FF9E00` (accent) to `#FF9E00` (orange)
 - **Icon color**: `#3B4CCA` (capsule blue)
 - **Text (white variant)**: `white` with gold hover
 - **Text (blue variant)**: `#3B4CCA` with orange hover
@@ -111,7 +111,7 @@ To replace existing logo code in your components:
 Replace this:
 ```jsx
 <Link to="/" className="flex items-center space-x-3">
-  <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+  <div className="w-12 h-12 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center shadow-lg border-2 border-white">
     <FaCapsules className="text-[#3B4CCA] text-xl" />
   </div>
   <h1 className="text-2xl font-bold text-white font-saiyan">CAPSULE CORP.</h1>
@@ -127,7 +127,7 @@ With this:
 Replace this:
 ```jsx
 <Link to="/" className="flex items-center space-x-3">
-  <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+  <div className="w-12 h-12 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center shadow-lg border-2 border-white">
     <FaCapsules className="text-[#3B4CCA] text-xl" />
   </div>
   <h1 className="text-2xl font-bold text-[#3B4CCA] font-saiyan">CAPSULE CORP.</h1>

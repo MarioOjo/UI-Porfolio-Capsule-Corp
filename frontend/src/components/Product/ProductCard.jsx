@@ -5,7 +5,6 @@ import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import Price from "../../components/Price";
 import ImageCover from "../ImageCover";
-
 import React from "react";
 
 const ProductCard = React.memo(function ProductCard({ product, size = "medium" }) {
@@ -33,94 +32,99 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
     }
   };
 
-  const cardSizes = {
-    small: "h-32",
-    medium: "h-48",
-    large: "h-64"
+  const imageSizes = {
+    small: "product-image-small",
+    medium: "product-image-medium",
+    large: "product-image-large"
   };
 
-  const textSizes = {
-    small: "text-sm",
-    medium: "text-lg",
-    large: "text-xl"
+  const nameSizes = {
+    small: "product-name product-name-small",
+    medium: "product-name product-name-medium",
+    large: "product-name product-name-large"
+  };
+
+  const priceSizes = {
+    small: "current-price current-price-small",
+    medium: "current-price current-price-medium",
+    large: "current-price current-price-large"
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105 border-2 border-transparent hover:border-orange-200 w-full max-w-sm mx-auto sm:max-w-none p-2 sm:p-0">
-      <Link to={`/product/${product.slug}`} className="block">
+    <div className="product-card">
+      <Link to={`/product/${product.slug}`} className="product-card-link">
         <div className="relative">
           {/* Product Image */}
-          <div className={`w-full ${cardSizes[size]} flex items-center justify-center relative overflow-hidden`}>
+          <div className={`product-image-container ${imageSizes[size]}`}>
             <ImageCover
               src={product.image}
               alt={product.name}
-              className={`w-full ${cardSizes[size]}`}
+              className={`w-full ${imageSizes[size]}`}
               overlayText={product.name}
             />
-          </div>
             
-          {/* Status Badges */}
-          {(product.stock <= 0 || (!product.inStock && !product.in_stock)) && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-              OUT OF STOCK
-            </div>
-          )}
-          {(product.featured || product.is_featured) && (
-            <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold kamehameha-glow">
-              LEGENDARY
-            </div>
-          )}
+            {/* Status Badges */}
+            {(product.stock <= 0 || (!product.inStock && !product.in_stock)) && (
+              <div className="status-badge status-badge-out-of-stock">
+                OUT OF STOCK
+              </div>
+            )}
+            {(product.featured || product.is_featured) && (
+              <div className="status-badge status-badge-featured kamehameha-glow">
+                LEGENDARY
+              </div>
+            )}
 
-          {/* Wishlist Button */}
-          <button
-            onClick={handleWishlistToggle}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-              (product.featured || product.is_featured) ? 'top-12' : ''
-            } ${
-              isInWishlist(product.id)
-                ? 'bg-red-500 text-white'
-                : 'bg-white/80 text-gray-600 hover:bg-red-500 hover:text-white'
-            } ${!user ? 'opacity-50' : 'hover:scale-110'}`}
-            aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-          >
-            <FaHeart className="text-sm" />
-          </button>
+            {/* Wishlist Button */}
+            <button
+              onClick={handleWishlistToggle}
+              className={`wishlist-button ${
+                (product.featured || product.is_featured) ? 'wishlist-button-featured' : ''
+              } ${
+                isInWishlist(product.id)
+                  ? 'wishlist-button-active'
+                  : 'wishlist-button-inactive'
+              } ${!user ? 'wishlist-button-disabled' : ''}`}
+              aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+            >
+              <FaHeart className="text-sm" />
+            </button>
 
-          {/* Quick View Button */}
-          <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div className="bg-white/90 text-[#3B4CCA] px-4 py-2 rounded-lg font-saiyan font-bold flex items-center space-x-2">
-              <FaEye />
-              <span>VIEW DETAILS</span>
+            {/* Quick View Button */}
+            <div className="quick-view-overlay">
+              <div className="quick-view-button">
+                <FaEye />
+                <span>VIEW DETAILS</span>
+              </div>
             </div>
-          </div>
           </div>
           
           {/* Product Info */}
-          <div className="p-3 sm:p-4">
+          <div className="product-info">
             <div className="mb-2">
-              <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+              <span className="category-badge">
                 {product.category}
               </span>
             </div>
             
-            <h3 className={`${size === 'small' ? 'text-sm' : 'text-base sm:text-lg'} font-bold text-gray-800 mb-2 font-saiyan line-clamp-2`}>
+            <h3 className={`${nameSizes[size]} line-clamp-2`}>
               {product.name}
             </h3>
             
-            <div className="flex items-center mb-3">
-              <FaStar className="text-yellow-400 mr-1" />
-              <span className="text-xs sm:text-sm text-gray-600">
+            <div className="power-level">
+              <FaStar className="power-level-icon" />
+              <span className="power-level-text">
                 Power Level: {Number(product.powerLevel || product.power_level || 0).toLocaleString()}
               </span>
             </div>
             
             {/* Tags */}
             {product.tags && product.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-3">
+              <div className="product-tags">
                 {product.tags.slice(0, 2).map((tag, index) => (
                   <span
                     key={index}
-                    className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium"
+                    className="product-tag"
                   >
                     {tag}
                   </span>
@@ -129,40 +133,45 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
             )}
             
             {/* Price */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
+            <div className="price-section">
+              <div className="price-container">
                 {(product.originalPrice || product.original_price) && (
-                  <span className="text-xs sm:text-sm text-gray-400 line-through mr-2">
+                  <span className="original-price">
                     <Price value={product.originalPrice || product.original_price} />
                   </span>
                 )}
-                <span className={`${size === 'small' ? 'text-base' : 'text-lg sm:text-xl'} font-bold text-orange-600 font-saiyan`}>
+                <span className={priceSizes[size]}>
                   <Price value={product.price} />
                 </span>
               </div>
               {product.stock <= 5 && (product.inStock || product.in_stock || product.stock > 0) && (
-                <span className="text-xs text-red-500 font-medium hidden sm:inline">
+                <span className="stock-warning">
                   Only {product.stock} left!
                 </span>
               )}
             </div>
           </div>
+        </div>
       </Link>
       
       {/* Action Button - hidden on mobile, visible on desktop */}
-      <div className="hidden sm:block px-3 sm:px-4 pb-3 sm:pb-4">
+      <div className="action-button-container">
         <button
           onClick={handleAddToCart}
           disabled={!(product.inStock || product.in_stock || product.stock > 0)}
-          className={`w-full flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-saiyan font-bold text-xs sm:text-sm transition-all touch-target ${
+          className={`action-button touch-target ${
             (product.inStock || product.in_stock || product.stock > 0)
-              ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "action-button-enabled"
+              : "action-button-disabled"
           }`}
         >
-          <FaShoppingCart className="mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">{(product.inStock || product.in_stock || product.stock > 0) ? "ADD TO CAPSULE" : "OUT OF STOCK"}</span>
-          <span className="sm:hidden">{(product.inStock || product.in_stock || product.stock > 0) ? "ADD" : "OUT"}</span>
+          <FaShoppingCart className="action-button-icon" />
+          <span className="action-button-text-desktop">
+            {(product.inStock || product.in_stock || product.stock > 0) ? "ADD TO CAPSULE" : "OUT OF STOCK"}
+          </span>
+          <span className="action-button-text-mobile">
+            {(product.inStock || product.in_stock || product.stock > 0) ? "ADD" : "OUT"}
+          </span>
         </button>
       </div>
     </div>

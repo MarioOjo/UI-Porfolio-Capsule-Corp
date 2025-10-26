@@ -75,6 +75,7 @@ const AnimatedRoutes = () => {
                 <Route path="returns" element={<Returns />} />
               </Route>
               <Route path="/track-order" element={<OrderTracking />} />
+              <Route path="/order-tracking" element={<OrderTracking />} />
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
               <Route path="/shipping-info" element={<ShippingInfo />} />
               

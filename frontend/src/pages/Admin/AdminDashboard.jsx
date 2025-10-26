@@ -46,7 +46,7 @@ function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#FFD700] to-[#FF9E00] rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center">
                 <FaCog className="text-[#3B4CCA] text-lg" />
               </div>
               <div>
@@ -58,7 +58,7 @@ function AdminDashboard() {
             <div className="flex items-center space-x-4">
               <div className="text-white text-right">
                 <p className="font-saiyan text-sm">Welcome back,</p>
-                <p className="text-[#FFD700] font-bold">{user.displayName || user.email}</p>
+                <p className="text-capsule-accent font-bold">{user.displayName || user.email}</p>
               </div>
               <button
                 onClick={handleLogout}

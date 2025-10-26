@@ -274,7 +274,7 @@ function AdminOrders() {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => navigate('/admin')}
-                className="text-white hover:text-[#FFD700] transition-colors"
+                className="text-white hover:text-capsule-accent transition-colors"
               >
                 <FaArrowLeft className="text-xl" />
               </button>
@@ -527,7 +527,7 @@ function AdminOrders() {
                 <h2 className="text-2xl font-bold text-white font-saiyan">ORDER DETAILS</h2>
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="text-white hover:text-[#FFD700] transition-colors text-2xl"
+                  className="text-white hover:text-capsule-accent transition-colors text-2xl"
                 >
                   ×
                 </button>

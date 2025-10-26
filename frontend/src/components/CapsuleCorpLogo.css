@@ -19,7 +19,7 @@
 .capsule-logo-icon {
   width: 3rem; /* w-12 = 48px */
   height: 3rem; /* h-12 = 48px */
-  background: linear-gradient(to bottom right, #FFD700, #FF9E00);
+  background: linear-gradient(to bottom right, #FF9E00, #FF9E00);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -51,7 +51,7 @@
 }
 
 .capsule-logo-text:hover {
-  color: #FFD700;
+  color: #FF9E00;
 }
 
 /* Alternative: Blue version for non-gradient headers (like Navbar) */
