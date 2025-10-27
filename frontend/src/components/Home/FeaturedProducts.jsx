@@ -8,6 +8,7 @@ import { apiFetch } from "../../utils/api";
 import { FaHeart, FaShoppingCart } from "react-icons/fa";
 import Price from '../Price';
 import './FeaturedProducts.css';
+import ProductCard from "../Product/ProductCard";
 
 function FeaturedProducts() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -92,53 +93,7 @@ function FeaturedProducts() {
         {featuredProducts.length > 0 ? (
           <div className="feature-products-grid">
             {featuredProducts.map(product => (
-              <div key={product.id} className="feature-product-card">
-                <div className="feature-product-image">
-                  <Link to={`/products/${product.slug}`}>
-                    <img src={product.image} alt={product.name} />
-                  </Link>
-
-                  {user && (
-                    <div className={`feature-product-badge badge-legendary`}>
-                      ♥
-                    </div>
-                  )}
-
-                  {parseFloat(product.original_price || 0) > parseFloat(product.price || 0) && (
-                    <div className="feature-product-badge">SALE</div>
-                  )}
-                </div>
-
-                <div className="feature-product-info">
-                  <div className="feature-product-name">{product.name}</div>
-                  <div className="feature-product-power">
-                    <span className="power-icon">★</span>
-                    <span className="power-text">Power:</span>
-                    <span className="power-value">{product.power || '—'}</span>
-                  </div>
-                  <div className="feature-product-tags">
-                    <div className="feature-product-tag">{product.category || 'Gear'}</div>
-                  </div>
-
-                  <div className="feature-product-price">
-                    <div className="price-container">
-                      <div className="current-price"><Price value={parseFloat(product.price || 0)} /></div>
-                      {parseFloat(product.original_price || 0) > parseFloat(product.price || 0) && (
-                        <div className="original-price"><Price value={parseFloat(product.original_price || 0)} /></div>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    disabled={!(product.stock > 0)}
-                    className="feature-product-action"
-                  >
-                    <FaShoppingCart />
-                    {(product.stock > 0) ? 'Add to Capsule' : 'Out of Stock'}
-                  </button>
-                </div>
-              </div>
+              <ProductCard key={product.id} product={product} size="large" />
             ))}
           </div>
         ) : (

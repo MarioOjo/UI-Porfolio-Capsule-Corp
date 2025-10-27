@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import './ProductCard.css';
 import { FaHeart, FaShoppingCart, FaStar, FaEye } from "react-icons/fa";
 import { useAuth } from "../../AuthContext";
 import { useCart } from "../../contexts/CartContext";

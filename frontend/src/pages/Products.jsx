@@ -5,9 +5,9 @@ const ProductCard = lazy(() => import("../components/Product/ProductCard"));
 import { useProducts } from "../hooks/useProducts";
 
 function Products() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || "");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "all");
   const [sortBy, setSortBy] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -15,9 +15,18 @@ function Products() {
   const filters = useMemo(() => {
     const f = {};
     if (search.trim()) f.search = search.trim();
-    if (selectedCategory !== "all") f.category = selectedCategory;
+    if (selectedCategory && selectedCategory !== "all") f.category = selectedCategory;
     return f;
   }, [search, selectedCategory]);
+
+  // Keep search and selectedCategory in sync with URL query params so links like
+  // /products?category=Capsules or /products?search=term work when navigated from Navbar
+  useEffect(() => {
+    const urlCategory = searchParams.get('category') || 'all';
+    const urlSearch = searchParams.get('search') || '';
+    if (urlCategory !== selectedCategory) setSelectedCategory(urlCategory);
+    if (urlSearch !== search) setSearch(urlSearch);
+  }, [searchParams]);
 
   const { data: fetchedProducts = [], isLoading, isError, error } = useProducts(filters);
 

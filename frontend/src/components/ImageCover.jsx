@@ -28,6 +28,7 @@ export default function ImageCover({ src, alt, className = '', overlayText = '' 
           src={src}
           alt={alt}
           className="w-full h-full object-contain"
+          loading="lazy"
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(false)}
           style={{ display: loaded ? 'block' : 'none' }}
