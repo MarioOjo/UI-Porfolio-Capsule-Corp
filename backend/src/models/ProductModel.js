@@ -72,24 +72,12 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+  FROM products 
         ORDER BY created_at DESC
       `;
       const [results] = await pool.execute(query);
       const parsed = results.map(parseProductFields);
 
-      // Fallback: some deployments historically used a `products` table.
-      // If `capsule_products` exists but is empty, attempt to read the
-      // legacy `products` table so hosted instances with older seeds still
-      // surface product data.
-      if ((!parsed || parsed.length === 0)) {
-        try {
-          const [legacy] = await pool.execute(query.replace(/capsule_products/g, 'products'));
-          if (legacy && legacy.length) return legacy.map(parseProductFields);
-        } catch (e) {
-          // ignore legacy fallback errors
-        }
-      }
       return parsed;
     } catch (error) {
       console.error('Error fetching all products:', error);
@@ -119,7 +107,7 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+  FROM products 
         WHERE id = ?
       `;
       const [results] = await pool.execute(query, [id]);
@@ -153,7 +141,7 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+  FROM products 
         WHERE slug = ?
       `;
       const [results] = await pool.execute(query, [slug]);
@@ -187,19 +175,12 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+  FROM products 
         WHERE category = ?
         ORDER BY created_at DESC
       `;
       const [results] = await pool.execute(query, [category]);
       const parsed = results.map(parseProductFields);
-      if ((!parsed || parsed.length === 0)) {
-        try {
-          const legacyQuery = query.replace(/capsule_products/g, 'products');
-          const [legacy] = await pool.execute(legacyQuery, [category]);
-          if (legacy && legacy.length) return legacy.map(parseProductFields);
-        } catch (e) {}
-      }
       return parsed;
     } catch (error) {
       console.error('Error fetching products by category:', error);
@@ -229,7 +210,7 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+  FROM products 
         WHERE 
           name LIKE ? OR 
           description LIKE ? OR 
@@ -249,16 +230,6 @@ class ProductModel {
         searchPattern, searchPattern
       ]);
       const parsed = results.map(parseProductFields);
-      if ((!parsed || parsed.length === 0)) {
-        try {
-          const legacyQuery = query.replace(/capsule_products/g, 'products');
-          const [legacy] = await pool.execute(legacyQuery, [
-            searchPattern, searchPattern, searchPattern, searchPattern,
-            searchPattern, searchPattern
-          ]);
-          if (legacy && legacy.length) return legacy.map(parseProductFields);
-        } catch (e) {}
-      }
       return parsed;
     } catch (error) {
       console.error('Error searching products:', error);
@@ -287,7 +258,7 @@ class ProductModel {
       } = productData;
 
       const query = `
-        INSERT INTO capsule_products (
+        INSERT INTO products (
           name, slug, description, category, price, original_price,
           power_level, image, gallery, in_stock, stock, featured,
           tags, specifications, created_at, updated_at
@@ -340,7 +311,7 @@ class ProductModel {
       } = productData;
 
       const query = `
-        UPDATE capsule_products SET
+        UPDATE products SET
           name = ?,
           slug = ?,
           description = ?,
@@ -388,7 +359,7 @@ class ProductModel {
   static async delete(id) {
     try {
       const pool = dbConnection.getPool();
-      const query = 'DELETE FROM capsule_products WHERE id = ?';
+  const query = 'DELETE FROM products WHERE id = ?';
       const [result] = await pool.execute(query, [id]);
       return result.affectedRows > 0;
     } catch (error) {
@@ -419,7 +390,7 @@ class ProductModel {
           specifications,
           created_at,
           updated_at
-        FROM capsule_products 
+        FROM products 
         WHERE featured = 1
         ORDER BY created_at DESC
       `;
@@ -447,13 +418,13 @@ ProductModel.removeImage = async function(id, imageUrl) {
   try {
     const pool = dbConnection.getPool();
     // Get current gallery
-    const [results] = await pool.execute('SELECT gallery FROM capsule_products WHERE id = ?', [id]);
+  const [results] = await pool.execute('SELECT gallery FROM products WHERE id = ?', [id]);
     if (!results.length) throw new Error('Product not found');
     let gallery = results[0].gallery;
     if (typeof gallery === 'string') gallery = JSON.parse(gallery);
     if (!Array.isArray(gallery)) gallery = [];
     gallery = gallery.filter(url => url !== imageUrl);
-    await pool.execute('UPDATE capsule_products SET gallery = ? WHERE id = ?', [JSON.stringify(gallery), id]);
+  await pool.execute('UPDATE products SET gallery = ? WHERE id = ?', [JSON.stringify(gallery), id]);
     return true;
   } catch (error) {
     console.error('Error removing image from gallery:', error);

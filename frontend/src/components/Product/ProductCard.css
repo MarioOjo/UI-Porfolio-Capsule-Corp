@@ -1,6 +1,4 @@
-/* ProductCard.css */
 
-/* Root Variables */
 :root {
   --product-card-accent: #FF9E00;
   --product-card-blue: #3B4CCA;
@@ -11,7 +9,7 @@
 
 /* Main Product Card */
 .product-card {
-  /* Dark card to match Evetech feel; falls back to white if var not set */
+
   background-color: var(--card-bg, #0f1724);
   color: var(--text-primary, #f8fafc);
   border-radius: 0.75rem;
@@ -267,6 +265,7 @@
   font-family: var(--font-saiyan, 'Inter', sans-serif);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -499,6 +498,7 @@
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
