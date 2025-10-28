@@ -49,17 +49,14 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen flex flex-col bg-white">
-        {/* Debug overlay - remove in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed top-0 left-0 z-50 bg-yellow-500 text-black text-xs px-2 py-1 rounded-br">
-            🚧 Dev Mode
-          </div>
-        )}
+  <div className="app-root flex flex-col bg-white" style={{ height: '100vh', overflow: 'hidden' }}>
         
         <Navbar />
         
-        <main className="flex-1 flex flex-col w-full overflow-x-hidden">
+        <main
+          className="app-main flex-1 flex flex-col w-full overflow-x-hidden"
+          style={{ overflowY: 'auto', height: '100%' }}
+        >
           <AnimatedRoutes />
         </main>
         

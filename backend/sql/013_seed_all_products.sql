@@ -36,3 +36,4 @@ ON DUPLICATE KEY UPDATE
     tags = VALUES(tags),
     specifications = VALUES(specifications),
     updated_at = CURRENT_TIMESTAMP;
+np

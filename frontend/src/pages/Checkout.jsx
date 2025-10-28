@@ -5,6 +5,7 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import Price from "../components/Price";
+import Breadcrumb from "../components/Breadcrumb";
 import { useCurrency } from "../contexts/CurrencyContext";
 
 function Checkout() {
@@ -46,11 +47,6 @@ function Checkout() {
   useEffect(() => {
     if (!user) {
       navigate('/auth');
-      return;
-    }
-    if (cartItems.length === 0) {
-      navigate('/cart');
-      return;
     }
   }, [user, cartItems, navigate]);
 

@@ -3,6 +3,7 @@ import { FaShoppingCart, FaMinus, FaPlus, FaTrash, FaArrowLeft } from "react-ico
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import Price from "../components/Price";
+import Breadcrumb from "../components/Breadcrumb";
 
 function Cart() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
@@ -20,8 +21,9 @@ function Cart() {
   const total = getCartTotal();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
-      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden px-2 py-4 sm:px-4 sm:py-8">
+      <Breadcrumb />
+      <div className="max-w-6xl mx-auto w-full">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>

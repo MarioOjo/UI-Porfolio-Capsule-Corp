@@ -122,7 +122,7 @@ function Products() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
+  <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar / Filters */}
           <aside className="md:col-span-1">

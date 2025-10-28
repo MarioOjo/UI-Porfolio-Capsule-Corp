@@ -36,9 +36,8 @@ function Home() {
   }, [user, showSuccess]);
 
   return (
-  <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} overflow-x-hidden p-4`}>
+    <div className="min-h-screen overflow-x-hidden px-2 py-4 sm:px-4 sm:py-8 flex flex-col gap-6">
       <HeroSection />
-      {/* TimeChamberPass was removed per user request */}
       <ProductCarousel />
       <FeaturedProducts />
       <FeaturesSection />

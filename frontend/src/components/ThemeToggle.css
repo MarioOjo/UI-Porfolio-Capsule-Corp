@@ -1,0 +1,18 @@
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--navbar-icon-color, #333);
+  transition: color 0.2s;
+}
+.theme-toggle-btn:hover {
+  color: var(--navbar-icon-hover, #007bff);
+}
+.theme-toggle-label {
+  font-size: 0.95rem;
+  margin-left: 0.25rem;
+}

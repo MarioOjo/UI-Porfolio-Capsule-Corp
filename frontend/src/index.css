@@ -31,15 +31,25 @@ button, a, [role="button"], .cursor-pointer {
 }
 
 /* ===== LAYOUT & OVERFLOW ===== */
-html, body {
-  overflow-x: hidden;
-  max-width: 100%;
+html, body, #root {
+  height: 100%;
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow: hidden; /* Prevent double scrollbars */
 }
 
-#root {
-  max-width: 100%;
+.app-root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  height: 100%;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -167,6 +177,51 @@ html, body {
   .mobile-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  /* Bottom nav fixed to viewport bottom */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 100;
+    background: var(--bg-primary, #fff);
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-top: 1px solid #eee;
+  }
+
+  /* Hamburger menu slides down from top */
+  .mobile-menu-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 80vw;
+    max-width: 400px;
+    height: 100vh;
+    background: var(--bg-primary, #fff);
+    z-index: 200;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.12);
+    transform: translateY(-100%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  .mobile-menu-overlay.open .mobile-menu-panel {
+    transform: translateY(0);
+  }
+
+  /* Ensure dropdown overlays cover full screen */
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.32);
+    z-index: 199;
   }
 }
 @media (min-width: 641px) {

@@ -8,6 +8,7 @@ import { useWishlist } from "../contexts/WishlistContext";
 import ProductCard from "../components/Product/ProductCard";
 import ImageCover from "../components/ImageCover";
 import Price from "../components/Price";
+import Breadcrumb from "../components/Breadcrumb";
 
 function ProductDetail() {
   const { slug } = useParams();
