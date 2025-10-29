@@ -97,10 +97,11 @@ function ProductDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto px-4 py-16 p-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 font-saiyan">Loading product...</p>
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <Breadcrumb />
+          <div className="text-center mt-12">
+            <div className="animate-spin rounded-full h-24 w-24 border-b-4 border-orange-500 mx-auto mb-6"></div>
+            <p className="text-gray-600 font-saiyan text-xl">Loading product...</p>
           </div>
         </div>
       </div>
@@ -111,7 +112,8 @@ function ProductDetail() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="text-center">
+          <Breadcrumb />
+          <div className="text-center mt-12">
             <h1 className="text-4xl font-bold text-gray-800 mb-4 font-saiyan">
               PRODUCT NOT FOUND
             </h1>
@@ -133,10 +135,12 @@ function ProductDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <Breadcrumb />
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
           className="flex items-center space-x-2 text-blue-600 hover:text-orange-600 transition-colors mb-6 font-saiyan"
+          aria-label="Back to products"
         >
           <FaArrowLeft />
           <span>BACK TO PRODUCTS</span>
@@ -154,7 +158,6 @@ function ProductDetail() {
                   overlayText={product.name}
                 />
               )}
-              
               {/* Status Badge */}
               {!(product.inStock || product.in_stock || product.stock > 0) && (
                 <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold shadow-lg">
@@ -170,7 +173,7 @@ function ProductDetail() {
 
             {/* Thumbnail Gallery */}
             {product.gallery && product.gallery.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto">
+              <div className="flex space-x-2 overflow-x-auto" aria-label="Product gallery thumbnails">
                 {product.gallery.map((image, index) => (
                   <button
                     key={index}
@@ -180,6 +183,7 @@ function ProductDetail() {
                         ? 'border-orange-500 scale-105'
                         : 'border-gray-200 hover:border-blue-400'
                     }`}
+                    aria-label={`View image ${index + 1}`}
                   >
                     <img
                       src={image}
@@ -268,14 +272,16 @@ function ProductDetail() {
                     onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
                     className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Decrease quantity"
                   >
                     <FaMinus />
                   </button>
-                  <span className="px-4 py-2 min-w-[3rem] text-center font-bold">{quantity}</span>
+                  <span className="px-4 py-2 min-w-[3rem] text-center font-bold" aria-live="polite">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     disabled={quantity >= product.stock}
                     className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Increase quantity"
                   >
                     <FaPlus />
                   </button>
@@ -293,11 +299,11 @@ function ProductDetail() {
                     ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
+                aria-label={product.inStock || product.in_stock || product.stock > 0 ? "Add to cart" : "Out of stock"}
               >
                 <FaShoppingCart className="mr-3" />
                 {(product.inStock || product.in_stock || product.stock > 0) ? "ADD TO CAPSULE" : "OUT OF STOCK"}
               </button>
-              
               <button
                 onClick={handleWishlistToggle}
                 className={`px-6 py-4 rounded-xl border-2 transition-all ${
@@ -306,6 +312,7 @@ function ProductDetail() {
                     : 'bg-white text-gray-700 border-gray-300 hover:border-red-500 hover:text-red-500'
                 } ${!user ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={!user}
+                aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
               >
                 <FaHeart className="text-xl" />
               </button>
@@ -328,7 +335,7 @@ function ProductDetail() {
         {/* Product Details Tabs */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-12">
           <div className="border-b">
-            <nav className="flex">
+            <nav className="flex" aria-label="Product details tabs">
               {[
                 { id: 'description', label: 'Description' },
                 { id: 'specifications', label: 'Specifications' },
@@ -342,24 +349,25 @@ function ProductDetail() {
                       ? 'bg-gradient-to-r from-orange-400 to-orange-600 text-white'
                       : 'text-gray-600 hover:text-orange-600'
                   }`}
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`tab-panel-${tab.id}`}
+                  role="tab"
                 >
                   {tab.label}
                 </button>
               ))}
             </nav>
           </div>
-          
           <div className="p-8">
             {activeTab === 'description' && (
-              <div className="prose max-w-none">
+              <div className="prose max-w-none" id="tab-panel-description" role="tabpanel">
                 <p className="text-lg text-gray-700 leading-relaxed">
                   {product.description}
                 </p>
               </div>
             )}
-            
             {activeTab === 'specifications' && product.specifications && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="tab-panel-specifications" role="tabpanel">
                 {Object.entries(product.specifications).map(([key, value]) => (
                   <div key={key} className="flex justify-between items-center py-3 border-b border-gray-200">
                     <span className="font-medium text-gray-700">{key}:</span>
@@ -368,9 +376,8 @@ function ProductDetail() {
                 ))}
               </div>
             )}
-            
             {activeTab === 'reviews' && (
-              <div className="text-center py-12">
+              <div className="text-center py-12" id="tab-panel-reviews" role="tabpanel">
                 <p className="text-gray-600 text-lg">Reviews coming soon! Battle-test this item and share your experience.</p>
               </div>
             )}

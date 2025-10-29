@@ -428,181 +428,134 @@ function Navbar() {
       </nav>
 
       {/* Mobile Navigation */}
-      <header className="mobile-header">
-        <div className="mobile-header-container">
+      {/* MOBILE HEADER & NAVIGATION: Only visible on small screens */}
+      <header className="mobile-header block md:hidden">
+        <div className="mobile-header-container flex flex-col items-center justify-center py-3">
           <button 
-            className="mobile-menu-button"
+            className="mobile-menu-button absolute left-4 top-4 bg-neutral-900 rounded-full p-2 shadow-md"
             onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open menu"
           >
-            <FaBars />
+            <FaBars className="text-white text-xl" />
           </button>
-          <div className="mobile-logo">
-            <CapsuleCorpLogo variant="white" size="sm" />
+          <div className="mobile-logo flex justify-center items-center w-full">
+            {/* Capsule Corp logo icon only, centered */}
+            <span className="flex justify-center items-center w-16 h-16 rounded-full bg-neutral-900 shadow-lg">
+              <CapsuleCorpLogo variant="white" size="sm" />
+            </span>
           </div>
-          <div className="mobile-controls">
-            <ThemeToggle className="mobile-theme-button" />
-            <Link to="/cart" className="mobile-cart-button">
-              <FaShoppingCart />
-              {cartCount > 0 && (
-                <span className="notification-badge">{cartCount}</span>
-              )}
-            </Link>
-          </div>
-        </div>
-        <div className="mobile-search-container">
-          <form onSubmit={handleSearchSubmit} className="mobile-search-form">
+          {/* Centered, compact search bar below logo, no magnifying glass icon */}
+          <form onSubmit={handleSearchSubmit} className="mobile-search-form w-full flex justify-center mt-2">
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search products..."
-              className="mobile-search-input"
+              className="mobile-search-input rounded-full px-4 py-2 w-10/12 bg-neutral-800 text-white placeholder-gray-400 border-none shadow-md focus:outline-none"
+              aria-label="Search products"
             />
-            <button type="submit" className="mobile-search-button">
-              <FaSearch />
-            </button>
           </form>
         </div>
-        <nav className="mobile-category-bar">
-          <ul className="mobile-category-list">
-            <li>
-              <Link to="/products" className="nav-products-link">
-                <span role="img" aria-label="products">🛒</span> Products
-              </Link>
-            </li>
-            <li>
-              <Link to="/products?category=Battle%20Gear" className="nav-battle-gear-link">
-                <span role="img" aria-label="battle gear">⚔️</span> Battle Gear
-              </Link>
-            </li>
-            <li>
-              <Link to="/products?category=Capsules" className="nav-capsules-link">
-                <span role="img" aria-label="capsules">🏠</span> Capsules
-              </Link>
-            </li>
-            <li>
-              <Link to="/products?category=Training" className="nav-training-link">
-                <span role="img" aria-label="training">💪</span> Training
-              </Link>
-            </li>
-            <li>
-              <Link to="/products?category=Vehicles" className="nav-vehicles-link">
-                <span role="img" aria-label="vehicles">🚗</span> Vehicles
-              </Link>
-            </li>
-            <li>
-              <Link to="/order-tracking" className="nav-track-order-link">
-                <span role="img" aria-label="track order">📦</span> Track Order
-              </Link>
-            </li>
-            <li>
-              <Link to="/contact" className="nav-contact-link">
-                <span role="img" aria-label="contact">📞</span> Contact
-              </Link>
-            </li>
-          </ul>
-        </nav>
       </header>
-      <nav className="mobile-bottom-nav">
-        <Link to="/" className="nav-item">
-          <div className="nav-icon">🏠</div>
-          <span className="nav-label">Home</span>
-        </Link>
-        <Link to="/products" className="nav-item">
-          <div className="nav-icon">🛒</div>
-          <span className="nav-label">Products</span>
-        </Link>
-        <Link to="/search" className="nav-item">
-          <div className="nav-icon">🔍</div>
-          <span className="nav-label">Search</span>
-        </Link>
-        <Link to="/cart" className="nav-item">
-          <div className="nav-icon">
-            <FaShoppingCart />
-            {cartCount > 0 && <span className="notification-badge">{cartCount}</span>}
+      {/* Mobile Bottom Navigation - Evetech Style, only on small screens */}
+      <nav className="mobile-bottom-nav-evetech fixed bottom-0 left-0 w-full z-50 flex justify-center items-center bg-neutral-900 rounded-t-2xl shadow-lg py-2 px-2 gap-2 md:hidden" style={{boxShadow:'0 -2px 16px rgba(0,0,0,0.25)'}}>
+        <div className="flex flex-1 justify-evenly items-center gap-1">
+          {/* Currency Selector - ensure visible and functional on mobile */}
+          <div className="nav-btn flex items-center justify-center">
+            <CurrencySelector showLabel={true} size="medium" className="w-full text-xs bg-neutral-800 text-white rounded-lg px-2 py-1" />
           </div>
-          <span className="nav-label">Cart</span>
-        </Link>
-        <Link to={user ? "/profile" : "/auth"} className="nav-item">
-          <div className="nav-icon">
-            <FaUser />
+          {/* Theme Toggle */}
+          <div className="nav-btn">
+            <ThemeToggle className="theme-toggle-mobile" />
           </div>
-          <span className="nav-label">{user ? 'Profile' : 'Login'}</span>
-        </Link>
+          {/* Login/Register */}
+          {!user && (
+            <>
+              <button onClick={() => navigate('/auth')} className="nav-btn text-white text-xs font-bold px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-all">Login</button>
+              <button onClick={() => navigate('/auth?tab=signup')} className="nav-btn text-white text-xs font-bold px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-all">Register</button>
+            </>
+          )}
+          {/* Cart */}
+          <button onClick={() => navigate('/cart')} className="nav-btn relative text-white px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-all flex items-center">
+            <FaShoppingCart className="text-lg" />
+            {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full px-1">{cartCount}</span>}
+          </button>
+        </div>
       </nav>
       {mobileMenuOpen && (
-        <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
-          <div className="mobile-menu-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="mobile-menu-header">
+        <div className="mobile-menu-overlay fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-center items-start md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-menu-panel mt-4 w-[95vw] max-w-sm rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-800 p-0" style={{animation:'slideDown .3s cubic-bezier(.4,2,.6,1)'}} onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-menu-header flex items-center justify-between px-4 py-3 border-b border-neutral-800 rounded-t-2xl bg-neutral-900">
+              <h3 className="text-lg font-bold text-white">Menu</h3>
               <button 
-                className="mobile-menu-close"
+                className="mobile-menu-close text-neutral-400 hover:text-white text-xl p-2 rounded-full bg-neutral-800"
                 onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close menu"
               >
                 <FaTimes />
               </button>
-              <h3>Menu</h3>
             </div>
-            <div className="mobile-menu-content">
+            <div className="mobile-menu-content px-4 py-2">
               {user && (
-                <div className="mobile-user-info">
+                <div className="mobile-user-info flex items-center gap-3 py-2">
                   <img 
                     src={user.photoURL || '/default-avatar.png'} 
                     alt="Profile" 
-                    className="mobile-user-avatar" 
+                    className="mobile-user-avatar w-10 h-10 rounded-full border border-neutral-700" 
                   />
                   <div className="mobile-user-details">
-                    <div className="mobile-user-name">
+                    <div className="mobile-user-name text-sm font-bold text-white">
                       {user.displayName || user.name || user.email}
                     </div>
-                    <div className="mobile-user-email">{user.email}</div>
+                    <div className="mobile-user-email text-xs text-neutral-400">{user.email}</div>
                   </div>
                 </div>
               )}
-              <nav className="mobile-menu-nav">
-                <Link to="/" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-                <Link to="/products" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>All Products</Link>
-                <div className="mobile-menu-section">Categories</div>
+              <nav className="mobile-menu-nav flex flex-col gap-1 mt-2">
+                <Link to="/" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm font-semibold" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                <Link to="/products" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm font-semibold" onClick={() => setMobileMenuOpen(false)}>All Products</Link>
+                <div className="mobile-menu-section text-xs text-neutral-400 mt-2 mb-1">Categories</div>
                 {desktopProductsSubmenu.map(item => (
                   <Link
                     key={item.label}
                     to={item.to}
-                    className="mobile-menu-link category"
+                    className="mobile-menu-link category py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {item.emoji && <span className="mobile-menu-emoji">{item.emoji}</span>}
+                    {item.emoji && <span className="mobile-menu-emoji mr-1">{item.emoji}</span>}
                     {item.label}
                   </Link>
                 ))}
-                <div className="mobile-menu-section">Support</div>
+                <div className="mobile-menu-section text-xs text-neutral-400 mt-2 mb-1">Support</div>
                 {otherLinks.map(link => (
                   <Link
                     key={link.label}
                     to={link.to}
-                    className="mobile-menu-link"
+                    className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {link.emoji && <span className="mobile-menu-emoji">{link.emoji}</span>}
+                    {link.emoji && <span className="mobile-menu-emoji mr-1">{link.emoji}</span>}
                     {link.label}
                   </Link>
                 ))}
-                <div className="mobile-menu-section">Account</div>
+                <div className="mobile-menu-section text-xs text-neutral-400 mt-2 mb-1">Account</div>
                 {user ? (
                   <>
-                    <Link to="/profile" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>My Profile</Link>
-                    <Link to="/profile/order-history" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Order History</Link>
-                    <Link to="/wishlist" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
-                    <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="mobile-menu-link logout">
+                    <Link to="/profile" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm" onClick={() => setMobileMenuOpen(false)}>My Profile</Link>
+                    <Link to="/profile/order-history" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm" onClick={() => setMobileMenuOpen(false)}>Order History</Link>
+                    <Link to="/wishlist" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
+                    <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="mobile-menu-link logout py-2 px-3 rounded-lg text-white bg-red-700 hover:bg-red-600 text-sm font-semibold">
                       Log Out
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/auth" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                    <Link to="/auth?tab=signup" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>Register</Link>
+                    <Link to="/auth" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm font-semibold" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                    <Link to="/auth?tab=signup" className="mobile-menu-link py-2 px-3 rounded-lg text-white bg-neutral-800 hover:bg-neutral-700 text-sm font-semibold" onClick={() => setMobileMenuOpen(false)}>Register</Link>
                   </>
                 )}
               </nav>
-              <div className="mobile-menu-footer">
+              <div className="mobile-menu-footer mt-3 flex justify-center">
                 <ThemeToggle className="theme-toggle-mobile" label={true} />
               </div>
             </div>
