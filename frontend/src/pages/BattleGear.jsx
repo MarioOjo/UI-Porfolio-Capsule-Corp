@@ -7,6 +7,7 @@ import { FaShieldAlt, FaFireAlt, FaFistRaised, FaEye, FaBolt, FaUserShield } fro
 
 function BattleGear() {
   const { isDarkMode } = useTheme();
+  const themeClass = isDarkMode ? 'dark' : 'light';
   const [battleGearProducts, setBattleGearProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,10 +32,10 @@ function BattleGear() {
   }, []);
 
   return (
-    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+    <div className={`min-h-screen py-8 bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
       <div className="max-w-6xl mx-auto px-4">
         {/* Hero Section */}
-        <div className={`rounded-2xl shadow-2xl overflow-hidden mb-12 ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
+        <div className={`rounded-2xl shadow-2xl overflow-hidden mb-12 ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           <div className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-12">
             <div className="flex items-center justify-center mb-6">
               <div className="w-20 h-20 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center border-4 border-white shadow-lg">
@@ -51,36 +52,36 @@ function BattleGear() {
         </div>
 
         {/* Battle Philosophy */}
-        <div className={`rounded-2xl shadow-lg mb-12 ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
+        <div className={`rounded-2xl shadow-lg mb-12 ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           <div className="p-8">
-            <h2 className={`text-3xl font-bold font-saiyan mb-6 text-center ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+            <h2 className={`text-3xl font-bold font-saiyan mb-6 text-center ${themeClass === 'dark' ? 'text-white' : 'text-[#3B4CCA]'}`}>
               THE WARRIOR'S CODE
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <FaFistRaised className="text-5xl text-red-500 mx-auto mb-4" />
-                <h3 className={`text-xl font-bold font-saiyan mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-xl font-bold font-saiyan mb-2 ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   HONOR IN BATTLE
                 </h3>
-                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   A true warrior's strength comes not just from power, but from the nobility of their cause.
                 </p>
               </div>
               <div className="text-center">
                 <FaUserShield className="text-5xl text-blue-500 mx-auto mb-4" />
-                <h3 className={`text-xl font-bold font-saiyan mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-xl font-bold font-saiyan mb-2 ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   PROTECT THE INNOCENT
                 </h3>
-                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   The strongest warriors use their power to defend those who cannot defend themselves.
                 </p>
               </div>
               <div className="text-center">
                 <FaBolt className="text-5xl text-yellow-500 mx-auto mb-4" />
-                <h3 className={`text-xl font-bold font-saiyan mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                <h3 className={`text-xl font-bold font-saiyan mb-2 ${themeClass === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   NEVER GIVE UP
                 </h3>
-                <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                   Even when facing impossible odds, a warrior's spirit burns brightest in the darkest hour.
                 </p>
               </div>
@@ -90,51 +91,51 @@ function BattleGear() {
 
         {/* Gear Categories */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
+          <div className={`p-6 rounded-xl ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
             <div className="flex items-center mb-4">
               <FaShieldAlt className="text-blue-500 text-3xl mr-4" />
-              <h3 className={`text-xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+              <h3 className={`text-xl font-bold font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-[#3B4CCA]'}`}>
                 ARMOR & DEFENSE
               </h3>
             </div>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
+            <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
               Advanced protective gear including battle armor, energy shields, and defensive accessories.
             </p>
-            <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <ul className={`text-sm space-y-1 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               <li>• Saiyan battle armor series</li>
               <li>• Energy barrier generators</li>
               <li>• Combat boots and gloves</li>
             </ul>
           </div>
 
-          <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
+          <div className={`p-6 rounded-xl ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
             <div className="flex items-center mb-4">
               <FaFireAlt className="text-red-500 text-3xl mr-4" />
-              <h3 className={`text-xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+              <h3 className={`text-xl font-bold font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-[#3B4CCA]'}`}>
                 WEAPONS & TOOLS
               </h3>
             </div>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
+            <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
               High-tech weaponry and combat tools designed for elite warriors and defenders.
             </p>
-            <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <ul className={`text-sm space-y-1 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               <li>• Energy blade weapons</li>
               <li>• Power gauntlets</li>
               <li>• Legendary artifacts</li>
             </ul>
           </div>
 
-          <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
+          <div className={`p-6 rounded-xl ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'} shadow-lg hover:shadow-xl transition-all`}>
             <div className="flex items-center mb-4">
               <FaEye className="text-green-500 text-3xl mr-4" />
-              <h3 className={`text-xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+              <h3 className={`text-xl font-bold font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-[#3B4CCA]'}`}>
                 TACTICAL GEAR
               </h3>
             </div>
-            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
+            <p className={`${themeClass === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-4`}>
               Advanced tactical equipment for reconnaissance, analysis, and strategic advantage.
             </p>
-            <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <ul className={`text-sm space-y-1 ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               <li>• Elite Scouter technology</li>
               <li>• Battle analysis systems</li>
               <li>• Communication devices</li>
@@ -145,7 +146,7 @@ function BattleGear() {
         {/* Products Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className={`text-3xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+            <h2 className={`text-3xl font-bold font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-[#3B4CCA]'}`}>
               WARRIOR EQUIPMENT
             </h2>
             <Link
@@ -158,21 +159,21 @@ function BattleGear() {
 
           {loading ? (
             <div className="text-center py-12">
-              <FaShieldAlt className={`text-6xl mx-auto mb-4 animate-spin ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-              <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <FaShieldAlt className={`text-6xl mx-auto mb-4 animate-spin ${themeClass === 'dark' ? 'text-gray-600' : 'text-gray-300'}`} />
+              <h3 className={`text-xl font-bold mb-2 font-saiyan ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 LOADING BATTLE GEAR...
               </h3>
-              <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p className={`${themeClass === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                 Preparing legendary equipment
               </p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <FaShieldAlt className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-red-600' : 'text-red-400'}`} />
-              <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-red-400' : 'text-red-500'}`}>
+              <FaShieldAlt className={`text-6xl mx-auto mb-4 ${themeClass === 'dark' ? 'text-red-600' : 'text-red-400'}`} />
+              <h3 className={`text-xl font-bold mb-2 font-saiyan ${themeClass === 'dark' ? 'text-red-400' : 'text-red-500'}`}>
                 FAILED TO LOAD GEAR
               </h3>
-              <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p className={`${themeClass === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                 {error}
               </p>
             </div>
@@ -184,11 +185,11 @@ function BattleGear() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <FaShieldAlt className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-              <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <FaShieldAlt className={`text-6xl mx-auto mb-4 ${themeClass === 'dark' ? 'text-gray-600' : 'text-gray-300'}`} />
+              <h3 className={`text-xl font-bold mb-2 font-saiyan ${themeClass === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                 NO BATTLE GEAR FOUND
               </h3>
-              <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              <p className={`${themeClass === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
                 No equipment available at this time
               </p>
             </div>
@@ -196,20 +197,20 @@ function BattleGear() {
         </div>
 
         {/* Legend Section */}
-        <div className={`rounded-2xl shadow-2xl overflow-hidden border-2 border-yellow-500 ${isDarkMode ? 'bg-yellow-900/20' : 'bg-yellow-50'}`}>
+        <div className={`rounded-2xl shadow-2xl overflow-hidden border-2 border-yellow-500 ${themeClass === 'dark' ? 'bg-yellow-900/20' : 'bg-yellow-50'}`}>
           <div className="p-8">
             <div className="flex items-center mb-4">
               <FaBolt className="text-yellow-500 text-3xl mr-4" />
-              <h3 className={`text-2xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-yellow-800'}`}>
+              <h3 className={`text-2xl font-bold font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-yellow-800'}`}>
                 LEGENDARY WARRIOR WISDOM
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h4 className={`text-lg font-bold mb-3 font-saiyan ${isDarkMode ? 'text-white' : 'text-yellow-800'}`}>
+                <h4 className={`text-lg font-bold mb-3 font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-yellow-800'}`}>
                   GOKU'S TEACHINGS
                 </h4>
-                <ul className={`space-y-2 ${isDarkMode ? 'text-yellow-200' : 'text-yellow-700'}`}>
+                <ul className={`space-y-2 ${themeClass === 'dark' ? 'text-yellow-200' : 'text-yellow-700'}`}>
                   <li>• "Power comes in response to a need, not a desire"</li>
                   <li>• "I am the hope of the omniverse!"</li>
                   <li>• "The enemy's greatest disadvantage is their arrogance"</li>
@@ -218,10 +219,10 @@ function BattleGear() {
                 </ul>
               </div>
               <div>
-                <h4 className={`text-lg font-bold mb-3 font-saiyan ${isDarkMode ? 'text-white' : 'text-yellow-800'}`}>
+                <h4 className={`text-lg font-bold mb-3 font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-yellow-800'}`}>
                   VEGETA'S PRIDE
                 </h4>
-                <ul className={`space-y-2 ${isDarkMode ? 'text-yellow-200' : 'text-yellow-700'}`}>
+                <ul className={`space-y-2 ${themeClass === 'dark' ? 'text-yellow-200' : 'text-yellow-700'}`}>
                   <li>• "I am the Prince of all Saiyans!"</li>
                   <li>• "Strength is the only thing that matters in this world"</li>
                   <li>• "I will not let you destroy my world!"</li>

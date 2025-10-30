@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { FaSearch, FaFilter } from "react-icons/fa";
 const ProductCard = lazy(() => import("../components/Product/ProductCard"));
 import { useProducts } from "../hooks/useProducts";
+import { useTheme } from "../contexts/ThemeContext";
 
 function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -10,6 +11,8 @@ function Products() {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || "all");
   const [sortBy, setSortBy] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
+  const { isDarkMode } = useTheme();
+  const themeClass = isDarkMode ? 'dark' : 'light';
 
   // Fetch products from backend via React Query
   const filters = useMemo(() => {
@@ -81,14 +84,14 @@ function Products() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className={`min-h-screen bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <div className="text-6xl mb-4 animate-pulse">⚡</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 font-saiyan">
+            <h3 className={`text-2xl font-bold mb-4 font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-gray-800'}`}>
               LOADING CAPSULES...
             </h3>
-            <p className="text-gray-600">Gathering legendary gear from the vault...</p>
+            <p className={themeClass === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Gathering legendary gear from the vault...</p>
           </div>
         </div>
       </div>
@@ -98,14 +101,14 @@ function Products() {
   // Error state
   if (isError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className={`min-h-screen bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 font-saiyan">
+            <h3 className={`text-2xl font-bold mb-4 font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-gray-800'}`}>
               CONNECTION ERROR
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className={themeClass === 'dark' ? 'text-gray-300 mb-6' : 'text-gray-600 mb-6'}>
               {error?.message || "Failed to load products. Please try again."}
             </p>
             <button
@@ -121,17 +124,17 @@ function Products() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-  <div className="max-w-6xl mx-auto w-full">
+    <div className={`min-h-screen bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
+      <div className="max-w-6xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar / Filters */}
           <aside className="md:col-span-1">
             <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 font-saiyan">CAPSULE CORP INVENTORY</h1>
-              <p className="text-gray-600 text-sm">Power up with authentic Z-Fighter equipment and legendary gear</p>
+              <h1 className={`text-2xl sm:text-3xl font-bold mb-2 font-saiyan ${themeClass === 'dark' ? 'text-white' : 'text-gray-800'}`}>CAPSULE CORP INVENTORY</h1>
+              <p className={themeClass === 'dark' ? 'text-gray-300 text-sm' : 'text-gray-600 text-sm'}>Power up with authentic Z-Fighter equipment and legendary gear</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
+            <div className={`rounded-2xl shadow-lg p-4 sm:p-6 ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
               <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-4">
                 <div className="relative w-full">
                   <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

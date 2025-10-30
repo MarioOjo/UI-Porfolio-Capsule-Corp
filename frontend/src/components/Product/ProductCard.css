@@ -10,8 +10,16 @@
 /* Main Product Card */
 .product-card {
 
-  background-color: var(--card-bg, #0f1724);
-  color: var(--text-primary, #f8fafc);
+}
+
+.dark .product-card {
+  background-color: #0f1724;
+  color: #f8fafc;
+}
+
+.light .product-card {
+  background-color: #fff;
+  color: #1f2937;
   border-radius: 0.75rem;
   box-shadow: 0 6px 14px -8px rgba(0,0,0,0.6);
   overflow: hidden;

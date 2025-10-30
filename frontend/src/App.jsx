@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGoogleAuth } from "./hooks/useGoogleAuth";
 import { usePerformanceMonitor } from "./hooks/usePerformance";
+import { useTheme } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import Navbar from "./components/Navbar/Navbar";
@@ -8,8 +9,10 @@ import Footer from "./components/Footer";
 
 function App() {
   const { handleRedirectResult } = useGoogleAuth();
+  const { isDarkMode } = useTheme();
   const [appLoaded, setAppLoaded] = useState(false);
-  
+  const themeClass = isDarkMode ? 'dark' : 'light';
+
   usePerformanceMonitor('App');
 
   useEffect(() => {
@@ -17,23 +20,22 @@ function App() {
     
     // Handle Google OAuth redirect result when app loads
     const handleAuthRedirect = async () => {
-      try {
-        await handleRedirectResult();
-        console.log('✅ Google OAuth redirect handled');
-      } catch (error) {
-        console.error('❌ Google OAuth redirect error:', error);
-      } finally {
-        setAppLoaded(true);
-      }
+      return (
+        <ErrorBoundary>
+          <div className={`app-root flex flex-col ${themeClass}`} style={{ height: '100vh', overflow: 'hidden' }}>
+            <Navbar />
+            <main
+              className="app-main flex-1 flex flex-col w-full overflow-x-hidden"
+              style={{ overflowY: 'auto', height: '100%' }}
+            >
+              <AnimatedRoutes />
+            </main>
+            <Footer className="mt-auto" />
+          </div>
+        </ErrorBoundary>
+      );
     };
-
-    handleAuthRedirect();
-
-    // Cleanup function
-    return () => {
-      console.log('🔄 App component unmounting');
-    };
-  }, [handleRedirectResult]);
+  }, [handleRedirectResult, themeClass]);
 
   // Add loading state if needed
   if (!appLoaded) {
@@ -49,17 +51,14 @@ function App() {
 
   return (
     <ErrorBoundary>
-  <div className="app-root flex flex-col bg-white" style={{ height: '100vh', overflow: 'hidden' }}>
-        
+      <div className={`app-root flex flex-col ${themeClass}`} style={{ height: '100vh', overflow: 'hidden' }}>
         <Navbar />
-        
         <main
           className="app-main flex-1 flex flex-col w-full overflow-x-hidden"
           style={{ overflowY: 'auto', height: '100%' }}
         >
           <AnimatedRoutes />
         </main>
-        
         <Footer className="mt-auto" />
       </div>
     </ErrorBoundary>
