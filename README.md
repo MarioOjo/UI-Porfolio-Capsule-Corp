@@ -1,83 +1,127 @@
-<!-- Profile Header -->
-<h1 align="center">👋 Hey there, I'm <strong>Mario Surprise Ojo</strong></h1>
+# Capsule Corp — UI Portfolio
 
-<p align="center">
-  🎨 <strong>UI/UX Developer & Student</strong><br>
-  📚 Studying at <a href="https://www.openwindow.co.za" target="_blank">Open Window Institution, Centurion</a><br>
-  📍 Based in South Africa
-</p>
+This repository contains a full-stack demo: a Vite + React frontend and a Node.js/Express backend with a MySQL database. It’s configured for easy deployment to Render (frontend + backend) and can use Railway for MySQL hosting.
 
----
+Quick links
 
-### 🧑‍💻 About Me
+Quick start (dev)
+  - cd frontend
+  - npm install
+  - npm run dev
+  - cd backend
+  - npm install
+  - npm start (or `npm run dev` during local development if you use nodemon)
 
-I’m passionate about creating **intuitive, visually appealing, and robust full-stack web experiences**.  
-From designing beautiful interfaces to building performant applications, I bring ideas to life with creativity and precision.
 
-🎮 When I’m not coding, I’m probably exploring the world of **Assassin’s Creed** — from the classics to *Syndicate*.  
+  Backend image uploads
+This repository contains a full-stack demo: a Vite + React frontend and a Node.js/Express backend with a MySQL database.
+  - The backend accepts multipart/form-data for product images (field name `image`).
+  - If `CLOUDINARY_URL` is set (e.g. `cloudinary://API_KEY:API_SECRET@CLOUD_NAME`), uploads are forwarded to Cloudinary and the returned secure URL is stored in the product `image` field.
+  - If `CLOUDINARY_URL` is not set, you can provide an `imageUrl` in the request body and the server will store that URL.
 
-💡 My toolkit blends **React**, **Node.js**, and **Figma**, turning design concepts into meaningful, user-friendly digital experiences.
 
----
+Render quick checklist
+- Create a Web Service in Render → Root Directory `backend` → Start Command `npm start`.
+- Set backend env vars on Render:
+  - `MYSQL_URL` (paste literal Railway connection string if using Railway MySQL)
+  - `FRONTEND_ORIGINS` (comma-separated URLs with scheme)
+  - `NODE_ENV=production`
+  - `CLOUDINARY_URL` (optional)
+- For frontend static site on Render set build envs:
+  - VITE_API_BASE, VITE_FIREBASE_* (these are build-time; redeploy after changing them)
 
-### ⚙️ Tech Stack & Tools
-
-<p align="center">
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-  <img src="https://img.shields.io/badge/React-61DBFB?style=for-the-badge&logo=react&logoColor=black" />
-  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-  <br/>
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" />
-  <img src="https://img.shields.io/badge/MySQL-00758F?style=for-the-badge&logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" />
-  <br/>
-  <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" />
-  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
-  <img src="https://img.shields.io/badge/VS_Code-0078D4?style=for-the-badge&logo=visual-studio-code&logoColor=white" />
-</p>
+If anything important from the previous docs is missing, tell me what to keep and I will re-add it here. This `README.md` is the single source of truth for the repo.
 
 ---
+Generated on 2025-10-16
 
-### 🚀 Featured Projects
+## Runtime env.json (optional)
 
-#### 🧩 [Capsule Corp Portfolio Website](https://ui-porfolio-capsule-corp-production.up.railway.app)
-A sleek, interactive **portfolio site** showcasing my **UI/UX** and **full-stack** development expertise using **React** and **Node.js**.
+This project supports a runtime `env.json` file served from the frontend root (useful for static hosts where build-time VITE_* vars aren't available). Place a file at `frontend/public/env.json` (or generate it during deployment) with the same shape as `frontend/public/env.template.json`.
 
-#### 🍷 Vinoir
-A **luxury e-commerce experience** for premium wines — where elegance meets performance.
+Security note: Do not commit secrets (private keys) to the repository. The template contains only placeholders for public client keys (Firebase client config) and the public `VITE_API_BASE` URL.
 
-#### 🎬 Movie Ocean
-A **movie comparison platform** built for film lovers to discover and compare movies effortlessly.
 
----
+## Bootstrapping dependencies (recommended)
 
-### 📈 GitHub Stats
+This repo keeps frontend and backend projects separate. To make local setup reliable and avoid accidentally committing `node_modules`, follow the steps below.
 
-<p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=YOUR_GITHUB_USERNAME&show_icons=true&theme=tokyonight" alt="GitHub Stats" />
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=YOUR_GITHUB_USERNAME&theme=tokyonight" alt="GitHub Streak" />
-</p>
+- Install dependencies once per machine:
 
----
+  PowerShell (Windows):
 
-### 🌐 Connect with Me
+  ```powershell
+  # from repo root
+  .\scripts\bootstrap.ps1
+  ```
 
-<p align="center">
-  <a href="mailto:241334@virtualwindow.co.za">
-    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
-  </a>
-  <a href="https://www.linkedin.com/in/mario-ojo-a8bb66184/" target="_blank">
-    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
-  </a>
-  <a href="https://ui-porfolio-capsule-corp-production.up.railway.app" target="_blank">
-    <img src="https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel&logoColor=white" />
-  </a>
-</p>
+  POSIX/macOS/Linux:
 
----
+  ```bash
+  # from repo root
+  ./scripts/bootstrap.sh
+  ```
 
-> 🕸️ _“Websites promote you 24/7: No employee will do that.”_ — **Paul Cookson**
+- These scripts will run `npm ci` if a lockfile exists, otherwise `npm install` for each project (`frontend` and `backend`).
+
+- If you prefer to keep `node_modules` versioned (not recommended), see the project lead for instructions — by default `node_modules` is ignored.
+Local testing checklist
+1. Start the backend (from the `backend` folder):
+
+```powershell
+cd backend
+npm install    # if you haven't already
+npm run dev    # or `npm start`
+```
+
+2. Confirm the backend serves runtime values (provided by the server) and the products API:
+
+```powershell
+# check runtime env served by backend
+curl -sS -D - "http://localhost:5000/env.json" -o /dev/stdout
+
+# check products endpoint
+curl -sS -D - "http://localhost:5000/api/products" -o /dev/stdout
+```
+
+3. Start the frontend dev server (from the `frontend` folder):
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+4. Open `http://localhost:5173` in your browser. The app will fetch `/env.json` at startup (no-build required) and use the values for `VITE_API_BASE` and Firebase client config.
+
+If you prefer to provide values at build time, set `VITE_API_BASE` and the `VITE_FIREBASE_*` env vars in your CI/hosting build step and rebuild the frontend.
+
+Fastest fix for deployed site (no rebuild)
+---------------------------------------
+If your deployed frontend is returning index.html for `/api/*` requests, point the frontend to the running backend using a runtime `env.json` file. Create a file named `env.json` at the root of your deployed frontend (same place as `index.html`) with this content:
+
+```json
+{
+  "VITE_API_BASE": "https://invigorating-mercy-production-9989.up.railway.app"
+}
+```
+
+This tells the client to call the backend at the correct Railway hostname. The frontend is already configured to fetch `/env.json` at startup and will use `VITE_API_BASE` from that file.
+
+Quick CI/PowerShell snippet (generate env.json during deploy)
+
+```powershell
+# Example: in your CI or deploy step, write env.json from secure env var FRONTEND_API
+$envJson = @{ VITE_API_BASE = $env:FRONTEND_API } | ConvertTo-Json
+Set-Content -Path "frontend/dist/env.json" -Value $envJson -Encoding utf8
+```
+
+Or in a Unix-like CI shell:
+
+```sh
+echo "{ \"VITE_API_BASE\": \"${FRONTEND_API}\" }" > frontend/dist/env.json
+```
+
+Notes
+- Keep `frontend/public/env.template.json` as the template, but do not commit actual `env.json` to the repo.
+- I added `.gitignore` to ignore `frontend/public/env.json` to prevent accidental commits.
