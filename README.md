@@ -11,7 +11,7 @@ Location: South Africa
 
 ### 🧑‍💻 About Me
 
-I am passionate about creating intuitive and visually appealing web experiences. My focus is on modern UI/UX principles, accessibility, and building robust full-stack applications. I enjoy working with React, Node.js, and design tools like Figma to bring ideas to life.
+I enjoy gaming - Assassins Creed to Assassins Creed Synidcate are my franchise favourite. I'm entraced and sometimes vexed about creating intuitive , visually appealing , robust full-stack applications web experiences applications . I've become profienct in working with React, Node.js, and design tools like Figma to bring ideas to life.
 
 ---
 
