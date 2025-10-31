@@ -17,7 +17,7 @@ function Wishlist() {
   // Show loading while auth is initializing
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
@@ -30,7 +30,7 @@ function Wishlist() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
             <FaHeart className="text-6xl text-gray-300 mx-auto mb-6" />
@@ -55,7 +55,7 @@ function Wishlist() {
   // Show loading while wishlist is being fetched
   if (wishlistLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
@@ -67,7 +67,7 @@ function Wishlist() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
+    <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8 p-4">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl xs:text-base sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 font-saiyan flex items-center">

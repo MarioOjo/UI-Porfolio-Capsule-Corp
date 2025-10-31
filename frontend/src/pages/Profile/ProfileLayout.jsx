@@ -16,7 +16,7 @@ const SidebarLink = ({ to, icon: Icon, children }) => (
 
 const ProfileLayout = () => {
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+  <div className="min-h-0 py-8 bg-gradient-to-br from-blue-50 via-white to-orange-50">
       <div className="max-w-6xl mx-auto px-4">
         <div className="rounded-2xl shadow-2xl overflow-hidden bg-white border border-blue-100 p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

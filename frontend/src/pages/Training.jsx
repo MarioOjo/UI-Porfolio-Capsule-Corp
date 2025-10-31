@@ -32,7 +32,7 @@ function Training() {
   }, []);
 
   return (
-    <div className={`min-h-screen py-8 bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
+    <div className={`min-h-0 py-8 bg-gradient-to-br ${themeClass === 'dark' ? 'from-slate-900 to-slate-800' : 'from-blue-50 to-orange-50'}`}>
       <div className="max-w-6xl mx-auto px-4">
         {/* Hero Section */}
         <div className={`rounded-2xl shadow-2xl overflow-hidden mb-12 ${themeClass === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>

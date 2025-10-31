@@ -36,7 +36,10 @@ function Home() {
   }, [user, showSuccess]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden px-2 py-4 sm:px-4 sm:py-8 flex flex-col gap-6">
+    // Avoid forcing a full viewport height here — the App layout already uses min-h-screen.
+    // Using min-h-0 allows the main flex container to size naturally and prevents an
+    // extra blank area appearing before the footer on shorter pages.
+    <div className="min-h-0 w-full overflow-x-hidden px-2 py-4 sm:px-4 sm:py-8 flex flex-col gap-6">
       <HeroSection />
       <ProductCarousel />
       <FeaturedProducts />

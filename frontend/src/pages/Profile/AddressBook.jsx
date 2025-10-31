@@ -136,7 +136,7 @@ const AddressBook = () => {
   }, []);
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 overflow-x-hidden">
+  <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 overflow-x-hidden">
   <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">

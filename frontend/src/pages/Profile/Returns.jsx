@@ -29,7 +29,7 @@ const Returns = () => {
   }, [user]);
 
   return (
-    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+    <div className={`min-h-0 py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
           <div className="flex items-center space-x-4">
