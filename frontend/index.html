@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Capsule Corp UI Portfolio</title>
   <link rel="icon" type="image/png" href="/capsule-favicon.png" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V22MSGZ4M0"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-V22MSGZ4M0');
+    <!-- Google tag (gtag.js) — loaded only when VITE_GA_ID is set -->
+    <script type="module">
+      // Expose the measurement ID to the runtime so the app can load analytics after consent.
+      const GA_ID = import.meta.env.VITE_GA_ID;
+      if (GA_ID) {
+        // Expose ID only; do NOT auto-load the analytics script. The React consent component
+        // will load and initialize gtag when the user gives consent.
+        window.__GA_MEASUREMENT_ID__ = GA_ID;
+      }
     </script>
   </head>
   <body>

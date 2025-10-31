@@ -6,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import AnimatedRoutes from "./components/AnimatedRoutes";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer";
+import RouteTracker from "./components/RouteTracker";
+import AnalyticsConsent from "./components/AnalyticsConsent/AnalyticsConsent";
 
 function App() {
   const { handleRedirectResult } = useGoogleAuth();
@@ -52,7 +54,9 @@ function App() {
           and sits at the bottom of the page when content is long, while
           still being at the bottom of the viewport when content is short. */}
       <div className={`app-root flex flex-col min-h-screen ${themeClass}`}>
-        <Navbar />
+  <Navbar />
+  <AnalyticsConsent />
+  <RouteTracker />
         <main className="app-main flex-1 flex flex-col w-full overflow-x-hidden">
           <AnimatedRoutes />
         </main>
