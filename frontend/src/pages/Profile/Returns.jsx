@@ -29,7 +29,7 @@ const Returns = () => {
   }, [user]);
 
   return (
-    <div className={`min-h-0 py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+    <div className="min-h-0 py-8 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-6xl mx-auto px-4">
         <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
           <div className="flex items-center space-x-4">
@@ -43,7 +43,7 @@ const Returns = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl shadow-2xl overflow-hidden bg-white border border-blue-100 p-6">
+  <div className="rounded-2xl shadow-2xl overflow-hidden bg-white border border-blue-100 p-6 dark:bg-slate-800 dark:border-slate-700">
           {loading ? (
             <div className="text-center py-12">Loading...</div>
           ) : returns.length === 0 ? (

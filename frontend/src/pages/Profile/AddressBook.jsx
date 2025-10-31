@@ -136,10 +136,10 @@ const AddressBook = () => {
   }, []);
 
   return (
-  <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 overflow-x-hidden">
+  <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 overflow-x-hidden dark:from-slate-900 dark:via-slate-800 dark:to-slate-700">
   <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
+    <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold font-saiyan mb-2">ADDRESS BOOK</h1>
@@ -147,7 +147,7 @@ const AddressBook = () => {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-white text-[#3B4CCA] px-6 py-3 rounded-lg font-saiyan font-bold hover:bg-gray-100 transition-all flex items-center space-x-2"
+              className="bg-white text-[#3B4CCA] px-6 py-3 rounded-lg font-saiyan font-bold hover:bg-gray-100 transition-all flex items-center space-x-2 dark:bg-slate-700 dark:text-white"
             >
               <FaPlus />
               <span>ADD ADDRESS</span>
@@ -160,19 +160,17 @@ const AddressBook = () => {
           {addresses.map((address) => (
             <div
               key={address.id}
-              className={`bg-white rounded-xl shadow-lg p-6 border-2 transition-all hover:shadow-xl ${
-                address.isDefault ? 'border-[#3B4CCA]' : 'border-gray-200'
-              }`}
+              className={`bg-white rounded-xl shadow-lg p-6 border-2 transition-all hover:shadow-xl ${address.isDefault ? 'border-[#3B4CCA]' : 'border-gray-200'} dark:bg-slate-800 dark:border-slate-700`}
             >
               {/* Address Type Badge */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   {address.type === 'home' ? (
-                    <FaHome className="text-[#3B4CCA]" />
+                    <FaHome className="text-[#3B4CCA] dark:text-white" />
                   ) : (
-                    <FaBriefcase className="text-[#3B4CCA]" />
+                    <FaBriefcase className="text-[#3B4CCA] dark:text-white" />
                   )}
-                    <span className="font-saiyan text-[#3B4CCA] font-bold">
+                    <span className="font-saiyan text-[#3B4CCA] dark:text-white font-bold">
                     {address.name || (address.type || '').toUpperCase()}
                   </span>
                 </div>
@@ -185,12 +183,12 @@ const AddressBook = () => {
 
               {/* Address Details */}
               <div className="space-y-2 mb-4">
-                <p className="font-bold text-gray-800">{address.fullName}</p>
-                <p className="text-gray-600">{address.street}</p>
-                <p className="text-gray-600">
+                <p className="font-bold text-gray-800 dark:text-white">{address.fullName}</p>
+                <p className="text-gray-600 dark:text-gray-300">{address.street}</p>
+                <p className="text-gray-600 dark:text-gray-300">
                   {address.city}, {address.state} {address.zip}
                 </p>
-                <p className="text-gray-600">{address.phone}</p>
+                <p className="text-gray-600 dark:text-gray-300">{address.phone}</p>
               </div>
 
               {/* Actions */}
@@ -204,7 +202,7 @@ const AddressBook = () => {
                 {!address.isDefault && (
                   <button
                     onClick={() => handleSetDefault(address.id)}
-                    className="flex-1 bg-blue-50 text-[#3B4CCA] py-2 px-4 rounded-lg hover:bg-blue-100 transition-all font-saiyan text-sm"
+                    className="flex-1 bg-blue-50 text-[#3B4CCA] py-2 px-4 rounded-lg hover:bg-blue-100 transition-all font-saiyan text-sm dark:bg-slate-700 dark:text-white"
                   >
                     SET DEFAULT
                   </button>
@@ -222,10 +220,10 @@ const AddressBook = () => {
 
         {/* Empty State */}
         {addresses.length === 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <FaMapMarkerAlt className="text-6xl text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2 font-saiyan">No Addresses Yet</h3>
-            <p className="text-gray-600 mb-6">Add your first delivery address to get started</p>
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center dark:bg-slate-800">
+            <FaMapMarkerAlt className="text-6xl text-gray-300 mx-auto mb-4 dark:text-gray-600" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2 font-saiyan dark:text-white">No Addresses Yet</h3>
+            <p className="text-gray-600 mb-6 dark:text-gray-300">Add your first delivery address to get started</p>
             <button
               onClick={() => setShowAddModal(true)}
               className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white px-6 py-3 rounded-lg font-saiyan font-bold hover:shadow-lg transition-all"
@@ -238,8 +236,8 @@ const AddressBook = () => {
         {/* Add Address Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 sm:p-2">
-            <div className="bg-white rounded-2xl p-8 sm:p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <h3 className="text-2xl sm:text-xl font-bold text-gray-800 font-saiyan mb-6">
+            <div className="bg-white rounded-2xl p-8 sm:p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+              <h3 className="text-2xl sm:text-xl font-bold text-gray-800 font-saiyan mb-6 dark:text-white">
                 {editingAddress ? 'EDIT ADDRESS' : 'ADD NEW ADDRESS'}
               </h3>
 

@@ -85,14 +85,14 @@ const OrderHistory = () => {
   };
 
   return (
-    <div className={`min-h-0 py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+    <div className="min-h-0 py-8 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-6xl mx-auto px-4">
-        <div className={`rounded-2xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
+        <div className="rounded-2xl shadow-2xl overflow-hidden bg-white border border-blue-100 dark:bg-slate-800 dark:border-slate-700">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 px-8 py-6">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-gradient-to-br from-[#FF9E00] to-[#FF9E00] rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                <FaBox className="text-[#3B4CCA] text-2xl" />
+                <FaBox className="text-[#3B4CCA] dark:text-white text-2xl" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white font-saiyan">ORDER HISTORY</h1>
@@ -111,13 +111,9 @@ const OrderHistory = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search orders or products..."
-                  className={`w-full px-4 py-3 pl-12 rounded-lg border-2 transition-all ${
-                    isDarkMode 
-                      ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500' 
-                      : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                  } focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full px-4 py-3 pl-12 rounded-lg border-2 transition-all ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'} focus:ring-2 focus:ring-blue-500`}
                 />
-                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400" />
               </div>
 
               {/* Status Filter */}
@@ -143,11 +139,11 @@ const OrderHistory = () => {
           <div className="p-6">
             {filteredOrders.length === 0 ? (
               <div className="text-center py-12">
-                <FaBox className={`text-6xl mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-                <h3 className={`text-xl font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <FaBox className="text-6xl mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <h3 className="text-xl font-bold mb-2 font-saiyan text-gray-500 dark:text-gray-400">
                   NO ORDERS FOUND
                 </h3>
-                <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mb-6`}>
+                <p className="mb-6 text-gray-400 dark:text-gray-500">
                   {searchTerm || statusFilter !== 'all' 
                     ? 'Try adjusting your search or filters' 
                     : 'Start shopping to see your orders here'}
@@ -164,20 +160,16 @@ const OrderHistory = () => {
                 {filteredOrders.map((order) => (
                   <div
                     key={order.id}
-                    className={`rounded-xl border-2 transition-all ${
-                      isDarkMode 
-                        ? 'border-slate-600 bg-slate-700 hover:border-slate-500' 
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
+                    className={`rounded-xl border-2 transition-all ${isDarkMode ? 'border-slate-600 bg-slate-700 hover:border-slate-500' : 'border-gray-200 bg-white hover:border-gray-300'}`}
                   >
                     {/* Order Header */}
                     <div className="p-6 border-b border-gray-200 dark:border-slate-600">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                         <div>
-                          <h3 className={`text-lg font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+                          <h3 className="text-lg font-bold font-saiyan text-[#3B4CCA] dark:text-white">
                             {order.id}
                           </h3>
-                          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Ordered on {new Date(order.date).toLocaleDateString('en-US', { 
                               year: 'numeric', 
                               month: 'long', 
@@ -193,8 +185,8 @@ const OrderHistory = () => {
                             </div>
                           </span>
                           <div className="text-right">
-                            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</p>
-                            <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
+                            <p className="text-lg font-bold text-[#3B4CCA] dark:text-white">
                               <Price value={order.total} />
                             </p>
                           </div>

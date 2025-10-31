@@ -36,8 +36,9 @@ html, body, #root {
   margin: 0;
   padding: 0;
   max-width: 100%;
-  /* allow vertical scrolling on body; hide horizontal overflow to avoid stray horizontal scroll */
+  /* Use a single vertical scroll container: prevent body from scrolling and allow the app main to scroll */
   overflow-x: hidden;
+  overflow-y: hidden; /* Body itself will not scroll; .app-main will handle vertical scrolling */
 }
 
 .app-root {
@@ -53,6 +54,23 @@ html, body, #root {
   min-height: 0; /* allow flex children to shrink properly */
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Ensure fixed bottom UI (mobile navs, consent banners) don't permanently
+   cover the footer: reserve space inside the main scroller on small screens.
+   This is a defensive, low-risk change that prevents fixed bottom bars from
+   visually hiding the footer by adding equivalent bottom padding. */
+@media (max-width: 767px) {
+  .app-main {
+    padding-bottom: 5.5rem; /* space for mobile bottom nav / consent UI */
+  }
+}
+
+/* Ensure footer sits above normal content stacking contexts (small positive z-index).
+   This is not intended to override intentional modals/overlays which use higher z-index. */
+footer {
+  position: relative;
+  z-index: 2;
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -319,4 +337,18 @@ img, iframe {
 .absolute[class*="w-80"] {
   right: 0;
   max-width: min(100%, calc(100% - 16px));
+}
+
+/* ===== DEV: overlay-debug helper =====
+   This allows the overlayDebug utility (dev-only) to temporarily
+   make fixed backdrops pointer-events:none and also add the
+   `overlay-debug-uncovered` class to the document root. When that
+   class is present we raise the footer above non-modal fixed overlays
+   so a developer can confirm the footer is present and not removed.
+   This is intentionally dev-only and only toggled when overlayDebug
+   is run with the `fix` option (see src/utils/overlayDebug.js).
+*/
+.overlay-debug-uncovered footer {
+  position: relative;
+  z-index: 99999;
 }

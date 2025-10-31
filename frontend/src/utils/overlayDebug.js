@@ -28,7 +28,8 @@ export default async function enableOverlayDebug({ fix = false, log = true, outl
 
     const nodes = scanFixedInset0();
     const reported = [];
-    nodes.forEach((el, i) => {
+  let _fixedApplied = false;
+  nodes.forEach((el, i) => {
       try {
         const cs = getComputedStyle(el);
         const visible = isVisible(el);
@@ -59,6 +60,7 @@ export default async function enableOverlayDebug({ fix = false, log = true, outl
           el.style.pointerEvents = 'none';
           el.style.outline = `2px dashed ${outlineColor}`;
           el.style.outlineOffset = '2px';
+          _fixedApplied = true;
         }
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -83,10 +85,21 @@ export default async function enableOverlayDebug({ fix = false, log = true, outl
             delete el.__overlayDebug_origPointerEvents;
           }
         });
+        try {
+          if (typeof document !== 'undefined') {
+            document.documentElement.classList.remove('overlay-debug-uncovered');
+          }
+        } catch (e) {
+          /* ignore */
+        }
       }
     };
 
     try {
+      // If we applied fixes, add a helpful class so dev CSS can surface the footer
+      if (_fixedApplied && typeof document !== 'undefined') {
+        document.documentElement.classList.add('overlay-debug-uncovered');
+      }
       // Expose handle for interactive debugging in the console
       // so you can call `window.__OVERLAY_DEBUG_HANDLE__.revert()` to undo temporary fixes
       if (typeof window !== 'undefined') window.__OVERLAY_DEBUG_HANDLE__ = handle;

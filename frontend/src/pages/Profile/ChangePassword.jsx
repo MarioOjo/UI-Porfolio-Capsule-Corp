@@ -104,10 +104,10 @@ const ChangePassword = () => {
   const strengthLabel = getStrengthLabel();
 
   return (
-    <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
+    <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700">
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
+  <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
               <FaLock className="text-3xl" />
@@ -120,7 +120,7 @@ const ChangePassword = () => {
         </div>
 
         {/* Password Change Form */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+  <div className="bg-white rounded-xl shadow-lg p-8 dark:bg-slate-800">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Current Password */}
             <div>
@@ -133,7 +133,7 @@ const ChangePassword = () => {
                   name="currentPassword"
                   value={formData.currentPassword}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   required
                 />
                 <button
@@ -157,7 +157,7 @@ const ChangePassword = () => {
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   required
                 />
                 <button
@@ -243,7 +243,7 @@ const ChangePassword = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#3B4CCA] focus:outline-none dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   required
                 />
                 <button
@@ -284,8 +284,8 @@ const ChangePassword = () => {
           </form>
 
           {/* Security Tips */}
-          <div className="mt-8 p-6 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <h3 className="font-saiyan text-[#3B4CCA] font-bold mb-3">🛡️ SECURITY TIPS</h3>
+          <div className="mt-8 p-6 bg-blue-50 rounded-lg border-2 border-blue-200 dark:bg-slate-700 dark:border-slate-600">
+            <h3 className="font-saiyan text-[#3B4CCA] dark:text-white font-bold mb-3">🛡️ SECURITY TIPS</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li>• Use a unique password you don't use anywhere else</li>
               <li>• Avoid common words or personal information</li>
