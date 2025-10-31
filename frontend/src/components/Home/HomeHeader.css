@@ -73,11 +73,10 @@
 }
 
 .search-result-item:hover {
-  background-color: #f9fafb;
-}
-
-.search-result-item:last-child {
-  border-bottom: none;
+  .currency-selector-small:focus-visible {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
 }
 
 /* Cart Dropdown */
@@ -177,6 +176,10 @@
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
+  .focus-outline:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
 
 /* Smooth transitions for theme switching */
 .theme-transition {
@@ -229,8 +232,7 @@
   cursor: pointer;
 }
 
-.currency-selector-small:focus {
-  outline: none;
+.currency-selector-small:focus-visible {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }

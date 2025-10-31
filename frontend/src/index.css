@@ -36,19 +36,21 @@ html, body, #root {
   margin: 0;
   padding: 0;
   max-width: 100%;
-  overflow: hidden; /* Prevent double scrollbars */
+  /* allow vertical scrolling on body; hide horizontal overflow to avoid stray horizontal scroll */
+  overflow-x: hidden;
 }
 
 .app-root {
-  height: 100vh;
+  /* Use min-height so the app can grow naturally and footer participates in document flow */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .app-main {
   flex: 1 1 auto;
-  height: 100%;
+  /* Let main expand and scroll vertically when needed */
+  min-height: 0; /* allow flex children to shrink properly */
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -138,8 +140,8 @@ html, body, #root {
 
 @media (max-width: 640px) {
   .popover-panel {
-    min-width: 90vw;
-    max-width: 98vw;
+    min-width: 90%;
+    max-width: 98%;
     left: 50% !important;
     transform: translateX(-50%) !important;
     padding: 1rem;
@@ -184,7 +186,7 @@ html, body, #root {
     position: fixed;
     bottom: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     z-index: 100;
     background: var(--bg-primary, #fff);
     box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
@@ -200,14 +202,15 @@ html, body, #root {
     position: fixed;
     top: 0;
     right: 0;
-    width: 80vw;
+    width: 80%;
     max-width: 400px;
-    height: 100vh;
+    height: 100%;
     background: var(--bg-primary, #fff);
     z-index: 200;
     box-shadow: -2px 0 8px rgba(0,0,0,0.12);
     transform: translateY(-100%);
     transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    box-sizing: border-box;
   }
   .mobile-menu-overlay.open .mobile-menu-panel {
     transform: translateY(0);
@@ -218,8 +221,9 @@ html, body, #root {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     background: rgba(0,0,0,0.32);
     z-index: 199;
   }
@@ -314,5 +318,5 @@ img, iframe {
 .absolute[class*="w-72"],
 .absolute[class*="w-80"] {
   right: 0;
-  max-width: min(100%, calc(100vw - 16px));
+  max-width: min(100%, calc(100% - 16px));
 }

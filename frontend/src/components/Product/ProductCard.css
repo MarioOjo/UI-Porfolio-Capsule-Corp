@@ -8,9 +8,6 @@
 }
 
 /* Main Product Card */
-.product-card {
-
-}
 
 .dark .product-card {
   background-color: #0f1724;
@@ -410,8 +407,7 @@
 }
 
 /* Remove default focus outlines from small icon buttons but keep visible focus style */
-.wishlist-button:focus {
-  outline: none;
+.wishlist-button:focus-visible {
   box-shadow: 0 0 0 3px rgba(59,76,202,0.12);
 }
 

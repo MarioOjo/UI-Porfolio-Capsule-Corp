@@ -86,16 +86,7 @@ function HeroSection() {
         </div>
       </div>
 
-      {/* Temporary debug button - remove after testing */}
-      <button
-        onClick={() => {
-          console.log('🎯 DEBUG: Testing if buttons work');
-          navigate('/products');
-        }}
-        className="fixed top-4 left-4 bg-red-500 text-white px-4 py-2 rounded z-50 cursor-pointer"
-      >
-        TEST NAV
-      </button>
+      {/* debug button removed - no dev-only nav button present anymore */}
     </section>
   );
 }

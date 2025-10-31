@@ -18,14 +18,25 @@ export async function apiFetch(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
   try {
     const base = getApiBase();
+    // support a timeout (ms) passed via options.timeout, default 10s
+    const timeoutMs = typeof options.timeout === 'number' ? options.timeout : 10000;
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timeoutId;
+    if (controller) {
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      // ensure options doesn't leak the timeout param to fetch
+      delete options.timeout;
+    }
     // If no explicit API base is configured we assume same-origin and send
     // cookies by default (helps backends that use cookie sessions).
     const defaultCredentials = base ? 'omit' : 'include';
     const res = await fetch(base + path, {
       credentials: options.credentials ?? defaultCredentials,
+      signal: controller ? controller.signal : undefined,
       ...options,
       headers
     });
+    if (timeoutId) clearTimeout(timeoutId);
     const body = await res.json().catch(() => null);
 
     // Defensive: some hosts (static file hosts) will respond to unknown

@@ -190,7 +190,12 @@
 .carousel-image-link {
   position: relative;
   display: block;
-  outline: none;
+}
+
+.carousel-image-link:focus-visible {
+  outline: 2px solid rgba(59,76,202,0.14);
+  outline-offset: 4px;
+  border-radius: 0.5rem;
 }
 
 .carousel-image-orb {

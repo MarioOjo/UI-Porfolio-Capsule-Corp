@@ -20,21 +20,18 @@ function App() {
     
     // Handle Google OAuth redirect result when app loads
     const handleAuthRedirect = async () => {
-      return (
-        <ErrorBoundary>
-          <div className={`app-root flex flex-col ${themeClass}`} style={{ height: '100vh', overflow: 'hidden' }}>
-            <Navbar />
-            <main
-              className="app-main flex-1 flex flex-col w-full overflow-x-hidden"
-              style={{ overflowY: 'auto', height: '100%' }}
-            >
-              <AnimatedRoutes />
-            </main>
-            <Footer className="mt-auto" />
-          </div>
-        </ErrorBoundary>
-      );
+      try {
+        await handleRedirectResult();
+      } catch (err) {
+        console.error('Google redirect handling error:', err);
+      } finally {
+        // mark app as loaded so UI can render regardless of redirect result
+        setAppLoaded(true);
+      }
     };
+
+    // run it
+    handleAuthRedirect();
   }, [handleRedirectResult, themeClass]);
 
   // Add loading state if needed
@@ -51,15 +48,15 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className={`app-root flex flex-col ${themeClass}`} style={{ height: '100vh', overflow: 'hidden' }}>
+      {/* Use min-h-screen so footer participates in normal document flow
+          and sits at the bottom of the page when content is long, while
+          still being at the bottom of the viewport when content is short. */}
+      <div className={`app-root flex flex-col min-h-screen ${themeClass}`}>
         <Navbar />
-        <main
-          className="app-main flex-1 flex flex-col w-full overflow-x-hidden"
-          style={{ overflowY: 'auto', height: '100%' }}
-        >
+        <main className="app-main flex-1 flex flex-col w-full overflow-x-hidden">
           <AnimatedRoutes />
         </main>
-        <Footer className="mt-auto" />
+        <Footer />
       </div>
     </ErrorBoundary>
   );

@@ -484,7 +484,7 @@ function Navbar() {
       </nav>
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay fixed inset-0 z-50 bg-black bg-opacity-40 flex justify-center items-start md:hidden" onClick={() => setMobileMenuOpen(false)}>
-          <div className="mobile-menu-panel mt-4 w-[95vw] max-w-sm rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-800 p-0" style={{animation:'slideDown .3s cubic-bezier(.4,2,.6,1)'}} onClick={(e) => e.stopPropagation()}>
+          <div className="mobile-menu-panel mt-4 w-[95%] max-w-sm rounded-2xl bg-neutral-900 shadow-2xl border border-neutral-800 p-0" style={{animation:'slideDown .3s cubic-bezier(.4,2,.6,1)'}} onClick={(e) => e.stopPropagation()}>
             <div className="mobile-menu-header flex items-center justify-between px-4 py-3 border-b border-neutral-800 rounded-t-2xl bg-neutral-900">
               <h3 className="text-lg font-bold text-white">Menu</h3>
               <button 

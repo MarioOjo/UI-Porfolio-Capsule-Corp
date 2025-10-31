@@ -1,6 +1,11 @@
 /* Auth Page Styles */
 .auth-container {
-  min-height: 100vh;
+  /* Use percentage height so the parent (.app-main) can control overall viewport sizing.
+     This avoids mobile/URL-bar issues caused by 100vh while keeping the auth page full-height
+     when the app root provides the necessary height. */
+  min-height: 100%;
+  /* Fallback for some mobile browsers that support fill-available */
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,8 +72,8 @@
   transition: all 0.3s ease;
 }
 
-.form-input:focus {
-  outline: none;
+.form-input:focus-visible {
+  /* Preserve visible focus for keyboard users while avoiding removing focus styles globally */
   border-color: #3B4CCA;
   box-shadow: 0 0 0 3px rgba(59, 76, 202, 0.1);
 }
