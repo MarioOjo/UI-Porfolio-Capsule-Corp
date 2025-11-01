@@ -213,9 +213,14 @@ html, body, #root {
     transform: translateY(-100%);
     transition: transform 0.3s cubic-bezier(.4,0,.2,1);
     box-sizing: border-box;
+    /* Prevent hidden panels from intercepting pointer events which can
+       cause duplicate-cursor or unexpected cursor states when elements
+       underneath are interactive. Enabling pointer-events only when open. */
+    pointer-events: none;
   }
   .mobile-menu-overlay.open .mobile-menu-panel {
     transform: translateY(0);
+    pointer-events: auto;
   }
 
   /* Ensure dropdown overlays cover full screen */
@@ -228,6 +233,12 @@ html, body, #root {
     box-sizing: border-box;
     background: rgba(0,0,0,0.32);
     z-index: 199;
+    /* When the overlay is not 'open' it should not capture pointer events
+       (prevents invisible overlay from creating cursor artifacts). */
+    pointer-events: none;
+  }
+  .mobile-menu-overlay.open {
+    pointer-events: auto;
   }
 }
 @media (min-width: 641px) {
