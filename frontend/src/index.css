@@ -1,60 +1,58 @@
+/* ===== FONTS ===== */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 @import './assets/fonts/saiyan-font.css';
 
+/* ===== TAILWIND BASE ===== */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ===== CORE FIXES ===== */
-/* Remove pointer-events blocking from interactive elements */
-.kamehameha-glow {
-  box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
-  transition: box-shadow 0.3s ease;
-  position: relative;
-  cursor: pointer;
-}
-
-.kamehameha-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 165, 0, 0.8);
-}
-
-/* Only decorative elements get pointer-events: none */
-.energy-aura::before,
-.energy-aura::after {
-  pointer-events: none;
-}
-
-/* Ensure all interactive elements are clickable */
+/* Interactive elements should always be clickable */
 button, a, [role="button"], .cursor-pointer {
   cursor: pointer;
   pointer-events: auto;
 }
 
-/* ===== LAYOUT & OVERFLOW ===== */
+/* Decorative elements can ignore pointer events */
+.energy-aura::before,
+.energy-aura::after {
+  pointer-events: none;
+}
+
+/* Glow effect example */
+.kamehameha-glow {
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+  transition: box-shadow 0.3s ease;
+  position: relative;
+}
+.kamehameha-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.8);
+}
+
+/* ===== LAYOUT & SCROLL ===== */
 html, body, #root {
-  /* Let the document control height and scrolling so footer participates in flow */
-  height: auto;
+  height: auto; /* Let document handle scrolling */
   margin: 0;
   padding: 0;
   max-width: 100%;
-  /* allow vertical scrolling on body; hide horizontal overflow to avoid stray horizontal scroll */
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: auto;   /* Single vertical scrollbar */
 }
 
 .app-root {
-  /* Use min-height so the app can grow naturally and footer participates in document flow */
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh; /* Ensure footer participates in flow */
 }
 
 .app-main {
   flex: 1 1 auto;
-  /* Let main expand and scroll vertically when needed */
-  min-height: 0; /* allow flex children to shrink properly */
-  /* Use document scrolling model — do not create an inner scroll container */
-  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allows flex children to shrink */
   overflow-x: hidden;
+  overflow-y: visible; /* Document scroll */
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -67,15 +65,12 @@ html, body, #root {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -99,32 +94,85 @@ html, body, #root {
   --input-bg: #334155;
 }
 
-/* ===== DARK MODE COMPONENTS ===== */
-.dark .bg-white {
-  background-color: var(--card-bg) !important;
-}
-
-.dark .text-gray-800 {
-  color: var(--text-primary) !important;
-}
-
-.dark .text-gray-600 {
-  color: var(--text-secondary) !important;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
+/* Dark mode for components */
+.dark .bg-white { background-color: var(--card-bg) !important; }
+.dark .text-gray-800 { color: var(--text-primary) !important; }
+.dark .text-gray-600 { color: var(--text-secondary) !important; }
+.dark input, .dark textarea, .dark select {
   background-color: var(--input-bg) !important;
   color: var(--text-primary) !important;
 }
+
+/* ===== IMAGES & FLEX CLEANUP ===== */
+img, iframe { max-width: 100%; height: auto; }
+.flex, .grid { min-width: 0; }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .mobile-grid { grid-template-columns: 1fr; gap: 1rem; }
+  
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    background: var(--bg-primary);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-top: 1px solid #eee;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  }
+
+  .mobile-menu-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 80%;
+    max-width: 400px;
+    height: 100%;
+    background: var(--bg-primary);
+    z-index: 200;
+    transform: translateY(-100%);
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+    box-sizing: border-box;
+  }
+  .mobile-menu-overlay.open .mobile-menu-panel {
+    transform: translateY(0);
+  }
+
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.32);
+    z-index: 199;
+  }
+}
+
+@media (min-width: 641px) {
+  .mobile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .mobile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
+}
+
+/* ===== UTILITIES ===== */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 
 /* ===== ANIMATIONS ===== */
 @keyframes popover-pop {
   0% { opacity: 0; transform: translateY(6px) scale(0.94); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
-
 .popover-panel {
   animation: popover-pop 160ms cubic-bezier(0.32, 0.72, 0.33, 1.01);
   backdrop-filter: blur(10px);
@@ -139,7 +187,6 @@ html, body, #root {
   background: var(--card-bg, #fff);
   color: var(--text-primary, #1f2937);
 }
-
 @media (max-width: 640px) {
   .popover-panel {
     min-width: 90%;
@@ -150,175 +197,21 @@ html, body, #root {
   }
 }
 
-/* Consistent hover effect for all interactive dropdown items */
-.popover-panel a,
-.popover-panel button {
+/* Hover effect for dropdown items */
+.popover-panel a, .popover-panel button {
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
-.popover-panel a:hover,
-.popover-panel button:hover {
+.popover-panel a:hover, .popover-panel button:hover {
   background: linear-gradient(90deg, #FF9E0022, #FF9E0022);
   color: #FF9E00;
   box-shadow: 0 2px 8px rgba(255,158,0,0.08);
 }
 
-@keyframes slide-in {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
+/* Mobile-friendly slide-in animations */
+@keyframes slide-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.animate-slide-in { animation: slide-in 0.3s ease-out; }
 
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out;
-}
-
-/* ===== MOBILE RESPONSIVE ===== */
-@media (max-width: 640px) {
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .mobile-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  /* Bottom nav fixed to viewport bottom */
-  .mobile-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 100;
-    background: var(--bg-primary, #fff);
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-top: 1px solid #eee;
-  }
-
-  /* Hamburger menu slides down from top */
-  .mobile-menu-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 80%;
-    max-width: 400px;
-    height: 100%;
-    background: var(--bg-primary, #fff);
-    z-index: 200;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.12);
-    transform: translateY(-100%);
-    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-    box-sizing: border-box;
-  }
-  .mobile-menu-overlay.open .mobile-menu-panel {
-    transform: translateY(0);
-  }
-
-  /* Ensure dropdown overlays cover full screen */
-  .mobile-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    background: rgba(0,0,0,0.32);
-    z-index: 199;
-  }
-}
-@media (min-width: 641px) {
-  /* Tablet / small desktop: 2 columns */
-  .mobile-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  /* Large desktop: 3 columns as requested */
-  .mobile-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.75rem;
-  }
-}
-
-/* ===== UTILITIES ===== */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* ===== COMPONENT SPECIFIC ===== */
-/* Hamburger menu animations */
-.hamburger-line {
-  transform-origin: center;
-  transition: transform 240ms cubic-bezier(0.22, 1.2, 0.3, 1), 
-              opacity 160ms ease;
-}
-
-.hamburger-line.top.open {
-  transform: translateY(6px) rotate(45deg);
-}
-
-.hamburger-line.middle.open {
-  opacity: 0;
-}
-
-.hamburger-line.bottom.open {
-  transform: translateY(-6px) rotate(-45deg);
-}
-
-/* Mobile menu animations */
-.mobile-menu-overlay {
-  animation: overlay-in 260ms cubic-bezier(0.22, 1.2, 0.3, 1) both;
-}
-
-@keyframes overlay-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Power bar animation */
-@keyframes power-pulse {
-  from { opacity: 0.8; }
-  to { opacity: 1; transform: scale(1.05); }
-}
-
-.power-bar.active {
-  animation: power-pulse 1s ease-in-out infinite alternate;
-}
-
-/* ===== PERFORMANCE & CLEANUP ===== */
-img, iframe {
-  max-width: 100%;
-  height: auto;
-}
-
-.flex, .grid {
-  min-width: 0;
-}
-
-/* Ensure dropdowns stay within viewport */
-.absolute[class*="w-72"],
-.absolute[class*="w-80"] {
-  right: 0;
-  max-width: min(100%, calc(100% - 16px));
+/* Prevent body scrolling when mobile menus or modal dialogs are open */
+.no-scroll {
+  overflow: hidden !important;
 }
