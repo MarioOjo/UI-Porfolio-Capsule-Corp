@@ -53,14 +53,14 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-0 py-8 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-slate-900 dark:to-slate-800">
+    <div className={`min-h-0 py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
       <div className="max-w-4xl mx-auto px-4">
-  <div className="rounded-2xl shadow-2xl overflow-hidden bg-white border border-blue-100 dark:bg-slate-800 dark:border-slate-700">
+        <div className={`rounded-2xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           {/* Header */}
           <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 px-8 py-6">
             <div className="flex items-center space-x-4">
               <div className="w-16 h-16 bg-gradient-to-br from-capsule-accent to-capsule-orange rounded-full flex items-center justify-center border-4 border-white shadow-lg">
-                <FaUser className="text-[#3B4CCA] dark:text-white text-2xl" />
+                <FaUser className="text-[#3B4CCA] text-2xl" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white font-saiyan">PROFILE SETTINGS</h1>
@@ -72,7 +72,7 @@ const Profile = () => {
           {/* Content */}
           <div className="p-8">
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold font-saiyan text-[#3B4CCA] dark:text-white">
+              <h2 className={`text-2xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
                 PERSONAL INFORMATION
               </h2>
               {!isEditing ? (
@@ -105,7 +105,7 @@ const Profile = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold mb-2 font-saiyan text-gray-700 dark:text-gray-300">
+                <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   FIRST NAME
                 </label>
                 <input
@@ -114,12 +114,16 @@ const Profile = () => {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${isEditing ? 'focus:ring-2 focus:ring-blue-500' : ''} ${isEditing ? (isDarkMode ? 'bg-slate-700 border-blue-500 text-white' : 'bg-white border-blue-500 text-gray-900') : (isDarkMode ? 'bg-slate-700 border-slate-600 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-700')}`}
+                  className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
+                    isEditing 
+                      ? `${isDarkMode ? 'bg-slate-700 border-blue-500 text-white' : 'bg-white border-blue-500 text-gray-900'} focus:ring-2 focus:ring-blue-500` 
+                      : `${isDarkMode ? 'bg-slate-700 border-slate-600 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-700'}`
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2 font-saiyan text-gray-700 dark:text-gray-300">
+                <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   LAST NAME
                 </label>
                 <input
@@ -137,7 +141,7 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2 font-saiyan text-gray-700 dark:text-gray-300">
+                <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   EMAIL ADDRESS
                 </label>
                 <input
@@ -155,7 +159,7 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold mb-2 font-saiyan text-gray-700 dark:text-gray-300">
+                <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   PHONE NUMBER
                 </label>
                 <input
@@ -173,7 +177,7 @@ const Profile = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-bold mb-2 font-saiyan text-gray-700 dark:text-gray-300">
+                <label className={`block text-sm font-bold mb-2 font-saiyan ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   DATE OF BIRTH
                 </label>
                 <input
@@ -193,20 +197,20 @@ const Profile = () => {
 
             {/* Account Stats */}
             <div className="mt-12 pt-8 border-t border-gray-200 dark:border-slate-600">
-              <h3 className="text-xl font-bold mb-6 font-saiyan text-[#3B4CCA] dark:text-white">
+              <h3 className={`text-xl font-bold mb-6 font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
                 ACCOUNT STATISTICS
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-br from-blue-50 to-blue-100'}`}>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-[#3B4CCA] font-saiyan">12</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">Total Orders</div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total Orders</div>
                   </div>
                 </div>
                 <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-br from-orange-50 to-orange-100'}`}>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-[#FF9E00] font-saiyan">{formatPrice(2450)}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">Total Spent</div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total Spent</div>
                   </div>
                 </div>
                 {/* Member Status card removed per user request */}

@@ -93,8 +93,8 @@ function FeaturedProducts() {
         {featuredProducts.length > 0 ? (
           <div className="feature-products-grid" style={{ display: 'flex', gap: '3rem', justifyContent: 'center', alignItems: 'stretch', width: '100%' }}>
             {featuredProducts.map(product => (
-              <div key={product.id} style={{ minWidth: '400px', maxWidth: '520px', flex: '1 1 480px', display: 'flex' }}>
-                <ProductCard product={product} size="large" />
+              <div style={{ minWidth: '400px', maxWidth: '520px', flex: '1 1 480px', display: 'flex' }}>
+                <ProductCard key={product.id} product={product} size="large" />
               </div>
             ))}
           </div>

@@ -36,10 +36,8 @@ html, body, #root {
   margin: 0;
   padding: 0;
   max-width: 100%;
-  /* Use document scroll as the primary vertical scroll container so the browser
-    scrollbar is full-height and the footer participates naturally in the page flow */
+  /* allow vertical scrolling on body; hide horizontal overflow to avoid stray horizontal scroll */
   overflow-x: hidden;
-  overflow-y: auto; /* Allow the page to scroll */
 }
 
 .app-root {
@@ -51,9 +49,9 @@ html, body, #root {
 
 .app-main {
   flex: 1 1 auto;
-  /* Let main expand naturally. Use document scrolling instead of inner scrolling. */
+  /* Let main expand and scroll vertically when needed */
   min-height: 0; /* allow flex children to shrink properly */
-  overflow-y: visible;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -213,14 +211,9 @@ html, body, #root {
     transform: translateY(-100%);
     transition: transform 0.3s cubic-bezier(.4,0,.2,1);
     box-sizing: border-box;
-    /* Prevent hidden panels from intercepting pointer events which can
-       cause duplicate-cursor or unexpected cursor states when elements
-       underneath are interactive. Enabling pointer-events only when open. */
-    pointer-events: none;
   }
   .mobile-menu-overlay.open .mobile-menu-panel {
     transform: translateY(0);
-    pointer-events: auto;
   }
 
   /* Ensure dropdown overlays cover full screen */
@@ -233,12 +226,6 @@ html, body, #root {
     box-sizing: border-box;
     background: rgba(0,0,0,0.32);
     z-index: 199;
-    /* When the overlay is not 'open' it should not capture pointer events
-       (prevents invisible overlay from creating cursor artifacts). */
-    pointer-events: none;
-  }
-  .mobile-menu-overlay.open {
-    pointer-events: auto;
   }
 }
 @media (min-width: 641px) {
@@ -332,18 +319,4 @@ img, iframe {
 .absolute[class*="w-80"] {
   right: 0;
   max-width: min(100%, calc(100% - 16px));
-}
-
-/* ===== DEV: overlay-debug helper =====
-   This allows the overlayDebug utility (dev-only) to temporarily
-   make fixed backdrops pointer-events:none and also add the
-   `overlay-debug-uncovered` class to the document root. When that
-   class is present we raise the footer above non-modal fixed overlays
-   so a developer can confirm the footer is present and not removed.
-   This is intentionally dev-only and only toggled when overlayDebug
-   is run with the `fix` option (see src/utils/overlayDebug.js).
-*/
-.overlay-debug-uncovered footer {
-  position: relative;
-  z-index: 99999;
 }

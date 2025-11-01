@@ -7,7 +7,7 @@ import { useWishlist } from '../../contexts/WishlistContext';
 const StatCard = ({ title, value, dark }) => (
   <div className={`p-8 rounded-2xl shadow-lg flex flex-col items-center justify-center ${dark ? 'bg-slate-700 text-white' : 'bg-white'}`}>
     <div className="text-center">
-      <div className="text-4xl md:text-5xl font-bold text-[#3B4CCA] dark:text-white font-saiyan mb-2">{value}</div>
+      <div className="text-4xl md:text-5xl font-bold text-[#3B4CCA] font-saiyan mb-2">{value}</div>
       <div className={`text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}>{title}</div>
     </div>
   </div>

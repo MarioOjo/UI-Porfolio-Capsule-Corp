@@ -37,21 +37,15 @@ export async function apiFetch(path, options = {}) {
       headers
     });
     if (timeoutId) clearTimeout(timeoutId);
-    // Try to parse JSON but capture a helpful snippet if parsing fails.
-    // Use clone() so we can read text for diagnostics when the body isn't JSON.
-    let body = null;
-    try {
-      body = await res.clone().json();
-    } catch (jsonErr) {
-      // attempt to read raw text to include in the error (trim to avoid huge payloads)
-      let raw = '';
-      try {
-        raw = await res.clone().text();
-      } catch (tErr) {
-        raw = '[unreadable response body]';
-      }
-      const snippet = raw ? (raw.slice(0, 400) + (raw.length > 400 ? '... (truncated)' : '')) : '[empty response]';
-      const e = new Error(`Invalid/non-JSON response from ${base || 'origin'}${path} - check VITE_API_BASE and backend availability. Response preview: ${snippet}`);
+    const body = await res.json().catch(() => null);
+
+    // Defensive: some hosts (static file hosts) will respond to unknown
+    // API routes with an HTML index page (200) which causes res.json()
+    // to fail and return null. Detect that early and throw a clear error
+    // so callers don't attempt to read properties of `null`.
+    if (body === null) {
+      const e = new Error(`Invalid/non-JSON response from ${base || 'origin'}${path} - check VITE_API_BASE and backend availability`);
+      // mark so the catch below can rethrow this message instead of overwriting it
       e.isApiError = true;
       throw e;
     }
