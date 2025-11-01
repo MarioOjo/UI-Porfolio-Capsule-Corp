@@ -36,9 +36,10 @@ html, body, #root {
   margin: 0;
   padding: 0;
   max-width: 100%;
-  /* Use a single vertical scroll container: prevent body from scrolling and allow the app main to scroll */
+  /* Use document scroll as the primary vertical scroll container so the browser
+    scrollbar is full-height and the footer participates naturally in the page flow */
   overflow-x: hidden;
-  overflow-y: hidden; /* Body itself will not scroll; .app-main will handle vertical scrolling */
+  overflow-y: auto; /* Allow the page to scroll */
 }
 
 .app-root {
@@ -50,27 +51,10 @@ html, body, #root {
 
 .app-main {
   flex: 1 1 auto;
-  /* Let main expand and scroll vertically when needed */
+  /* Let main expand naturally. Use document scrolling instead of inner scrolling. */
   min-height: 0; /* allow flex children to shrink properly */
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
-}
-
-/* Ensure fixed bottom UI (mobile navs, consent banners) don't permanently
-   cover the footer: reserve space inside the main scroller on small screens.
-   This is a defensive, low-risk change that prevents fixed bottom bars from
-   visually hiding the footer by adding equivalent bottom padding. */
-@media (max-width: 767px) {
-  .app-main {
-    padding-bottom: 5.5rem; /* space for mobile bottom nav / consent UI */
-  }
-}
-
-/* Ensure footer sits above normal content stacking contexts (small positive z-index).
-   This is not intended to override intentional modals/overlays which use higher z-index. */
-footer {
-  position: relative;
-  z-index: 2;
 }
 
 /* ===== TYPOGRAPHY ===== */

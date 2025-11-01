@@ -49,6 +49,25 @@ async function bootstrap() {
       }
     }
 
+      // Debug helper: expose and optionally log the resolved API base.
+      // This helps confirm whether the app is using a runtime `env.json`, a
+      // build-time `VITE_API_BASE`, or falling back to same-origin.
+      try {
+        const runtime = (typeof window !== 'undefined' && window.__RUNTIME_CONFIG__) || {};
+        const resolvedApiBase = runtime.VITE_API_BASE || import.meta.env.VITE_API_BASE || '';
+        // Expose on window for quick inspection and automated checks
+        if (typeof window !== 'undefined') window.__API_BASE_DEBUG__ = resolvedApiBase;
+        // Only log in development, on localhost, or when explicitly requested
+        const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const shouldLog = (process.env.NODE_ENV === 'development') || (params && params.get('debugApi') === '1') || (typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost');
+        if (shouldLog) {
+          // eslint-disable-next-line no-console
+          console.info('[DEBUG] Resolved API base:', resolvedApiBase || '(empty — using same-origin)');
+        }
+      } catch (e) {
+        // ignore debug helper errors
+      }
+
     createRoot(document.getElementById('root')).render(
       <StrictMode>
         <QueryClientProvider client={queryClient}>
