@@ -32,7 +32,8 @@ button, a, [role="button"], .cursor-pointer {
 
 /* ===== LAYOUT & OVERFLOW ===== */
 html, body, #root {
-  height: 100%;
+  /* Let the document control height and scrolling so footer participates in flow */
+  height: auto;
   margin: 0;
   padding: 0;
   max-width: 100%;
@@ -51,7 +52,8 @@ html, body, #root {
   flex: 1 1 auto;
   /* Let main expand and scroll vertically when needed */
   min-height: 0; /* allow flex children to shrink properly */
-  overflow-y: auto;
+  /* Use document scrolling model — do not create an inner scroll container */
+  overflow-y: visible;
   overflow-x: hidden;
 }
 
