@@ -42,6 +42,40 @@ function ProductCarousel() {
     fetchCarouselProducts();
   }, []);
 
+  // Helper to resolve a usable image src from various shapes the backend may return.
+  // Handles:
+  // - absolute URLs (https://...)
+  // - JSON-array strings like '["https://..."]'
+  // - arrays stored directly on the product (['https://...'])
+  // - short filenames (e.g. 'motorcycle.jpg') -> attempt Cloudinary absolute path
+  // - null/empty -> fall back to local placeholder
+  const resolveImageSrc = (product, size = 300) => {
+    let img = product && (product.image || product.images || null);
+    try {
+      if (!img) return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+      // If stored as JSON array string, parse it
+      if (typeof img === 'string' && img.trim().startsWith('[')) {
+        const parsed = JSON.parse(img);
+        if (Array.isArray(parsed) && parsed.length) img = parsed[0];
+      }
+      // If it's an array, pick first
+      if (Array.isArray(img)) img = img[0];
+      // If not a string after parsing, fallback
+      if (!img || typeof img !== 'string') return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+      img = img.trim();
+      // If already absolute, return as-is
+      if (img.startsWith('http://') || img.startsWith('https://')) return img;
+      // If it's a relative path or just a filename, try Cloudinary absolute path (seeded data uses this)
+      if (/^[\w-]+\.[a-z]{2,4}$/i.test(img) || img.indexOf('/') === -1) {
+        return `https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_${size===80?80:400},h_${size===80?80:400},g_center/${img}`;
+      }
+      // Otherwise, assume it's a relative URL served from the static assets
+      return img.startsWith('/') ? img : `/${img}`;
+    } catch (e) {
+      return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+    }
+  };
+
   // Auto-advance carousel every 5 seconds (continuous autoplay)
   useEffect(() => {
     if (products.length > 0) {
@@ -183,12 +217,18 @@ function ProductCarousel() {
                       <Link to={`/product/${product.slug}`} className="carousel-image-link">
                         <div className="carousel-image-orb">
                           <div className="carousel-image-inner">
+                            {
+                              // Use local fallback assets instead of external placeholder service
+                              // to avoid DNS/CSP/network issues in production.
+                            }
                             <img
-                              src={product.image || `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`}
+                              src={resolveImageSrc(product, 300)}
                               alt={product.name}
                               className="carousel-image"
                               onError={(e) => {
-                                e.target.src = `https://via.placeholder.com/300x300/FF9E00/FFFFFF?text=${encodeURIComponent(product.name)}`;
+                                try { e.target.onerror = null; } catch (err) {}
+                                // If the resolved src failed, try a safe final fallback
+                                e.target.src = '/assets/images/placeholder-300.png';
                               }}
                             />
                           </div>
@@ -284,11 +324,12 @@ function ProductCarousel() {
                   }`}
                 >
                   <img
-                    src={product.image || `https://via.placeholder.com/80x80/FF9E00/FFFFFF?text=${encodeURIComponent(product.name.slice(0, 2))}`}
+                    src={resolveImageSrc(product, 80)}
                     alt={product.name}
                     className="carousel-thumbnail-image"
                     onError={(e) => {
-                      e.target.src = `https://via.placeholder.com/80x80/FF9E00/FFFFFF?text=${encodeURIComponent(product.name.slice(0, 2))}`;
+                      try { e.target.onerror = null; } catch (err) {}
+                      e.target.src = '/assets/images/placeholder-80.png';
                     }}
                   />
                 </button>

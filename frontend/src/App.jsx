@@ -13,30 +13,39 @@ function App() {
   const { handleRedirectResult } = useGoogleAuth();
   const { isDarkMode } = useTheme();
   const [appLoaded, setAppLoaded] = useState(false);
-  const themeClass = isDarkMode ? 'dark' : 'light';
 
-  usePerformanceMonitor('App');
+  usePerformanceMonitor("App");
 
+  // ------------------ Sync theme globally ------------------
   useEffect(() => {
-    console.log('🚀 App component mounted');
-    
-    // Handle Google OAuth redirect result when app loads
+    const root = document.documentElement; // <html> element
+    if (isDarkMode) {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.add("light");
+      root.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
+  // ------------------ Handle Google OAuth Redirect ------------------
+  useEffect(() => {
+    console.log("🚀 App component mounted");
+
     const handleAuthRedirect = async () => {
       try {
         await handleRedirectResult();
       } catch (err) {
-        console.error('Google redirect handling error:', err);
+        console.error("Google redirect handling error:", err);
       } finally {
-        // mark app as loaded so UI can render regardless of redirect result
         setAppLoaded(true);
       }
     };
 
-    // run it
     handleAuthRedirect();
-  }, [handleRedirectResult, themeClass]);
+  }, [handleRedirectResult]);
 
-  // Add loading state if needed
+  // ------------------ Loading State ------------------
   if (!appLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-orange-50">
@@ -48,15 +57,13 @@ function App() {
     );
   }
 
+  // ------------------ App Layout ------------------
   return (
     <ErrorBoundary>
-      {/* Use min-h-screen so footer participates in normal document flow
-          and sits at the bottom of the page when content is long, while
-          still being at the bottom of the viewport when content is short. */}
-      <div className={`app-root flex flex-col min-h-screen ${themeClass}`}>
-  <Navbar />
-  <AnalyticsConsent />
-  <RouteTracker />
+      <div className="app-root flex flex-col min-h-screen">
+        <Navbar />
+        <AnalyticsConsent />
+        <RouteTracker />
         <main className="app-main flex-1 flex flex-col w-full overflow-x-hidden">
           <AnimatedRoutes />
         </main>
