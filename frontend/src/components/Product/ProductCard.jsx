@@ -6,6 +6,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import Price from "../../components/Price";
 import ImageCover from "../ImageCover";
+import { resolveImageSrc } from "../../utils/images";
 import React from "react";
 
 const ProductCard = React.memo(function ProductCard({ product, size = "medium" }) {
@@ -58,7 +59,7 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
           {/* Product Image */}
           <div className={`product-image-container ${imageSizes[size]}`}>
             <ImageCover
-              src={product.image}
+              src={resolveImageSrc(product, size === 'small' ? 80 : 300)}
               alt={product.name}
               className={`w-full ${imageSizes[size]}`}
               overlayText={product.name}
