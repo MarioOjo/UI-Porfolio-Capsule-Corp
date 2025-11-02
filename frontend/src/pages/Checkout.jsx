@@ -5,6 +5,7 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import Price from "../components/Price";
+import { resolveImageSrc } from "../utils/images";
 import Breadcrumb from "../components/Breadcrumb";
 import { useCurrency } from "../contexts/CurrencyContext";
 
@@ -473,9 +474,10 @@ function Checkout() {
                           <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                             <div className="flex items-center space-x-4">
                               <img 
-                                src={item.image || item.imageUrl} 
+                                src={resolveImageSrc(item, 80)} 
                                 alt={item.name}
                                 className="w-16 h-16 object-cover rounded-lg"
+                                onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
                               />
                               <div>
                                 <div className="font-medium">{item.name}</div>
@@ -555,9 +557,10 @@ function Checkout() {
                   <div key={item.id} className="flex justify-between items-start gap-3">
                     <div className="flex items-start gap-3 flex-1">
                       <img 
-                        src={item.image || item.imageUrl} 
+                        src={resolveImageSrc(item, 80)} 
                         alt={item.name}
                         className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                        onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">{item.name}</div>

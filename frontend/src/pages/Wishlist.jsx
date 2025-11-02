@@ -4,6 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
 import Price from "../components/Price";
+import { resolveImageSrc } from "../utils/images";
 
 function Wishlist() {
   const { user, loading: authLoading } = useAuth();
@@ -105,11 +106,12 @@ function Wishlist() {
               >
                 <div className="relative">
                   <img
-                    src={item.image || '/images/placeholder.jpg'}
+                    src={resolveImageSrc(item, 300)}
                     alt={item.name || 'Product'}
                     className="w-full sm:h-48 h-32 object-cover"
                     onError={(e) => {
-                      e.target.src = '/images/placeholder.jpg';
+                      try { e.target.onerror = null; } catch {}
+                      e.target.src = '/assets/images/placeholder-300.png';
                     }}
                   />
                   <button

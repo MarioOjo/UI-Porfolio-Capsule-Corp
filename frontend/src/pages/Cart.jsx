@@ -3,6 +3,7 @@ import { FaShoppingCart, FaMinus, FaPlus, FaTrash, FaArrowLeft } from "react-ico
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import Price from "../components/Price";
+import { resolveImageSrc } from "../utils/images";
 import Breadcrumb from "../components/Breadcrumb";
 
 function Cart() {
@@ -74,10 +75,11 @@ function Cart() {
                       {/* Product Image */}
                       <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl flex-shrink-0 overflow-hidden">
                         <img
-                          src={item.image || item.imageUrl}
+                          src={resolveImageSrc(item, 80)}
                           alt={item.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
+                            try { e.target.onerror = null; } catch {}
                             // Fallback to gradient background with text if image fails
                             e.target.style.display = 'none';
                             const fallback = e.target.parentElement.querySelector('.image-fallback');

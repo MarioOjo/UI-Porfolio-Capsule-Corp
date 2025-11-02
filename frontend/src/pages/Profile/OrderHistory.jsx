@@ -4,6 +4,7 @@ import { useAuth } from '../../AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaBox, FaEye, FaTruck, FaCheckCircle, FaClock, FaTimes, FaSearch } from 'react-icons/fa';
 import Price from '../../components/Price';
+import { resolveImageSrc } from '../../utils/images';
 import apiFetch from '../../utils/api';
 
 const OrderHistory = () => {
@@ -208,7 +209,7 @@ const OrderHistory = () => {
                         {order.items.map((item) => (
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
-                              src={item.image}
+                              src={resolveImageSrc({ image: item.image }, 80)}
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                             />
