@@ -5,7 +5,11 @@ import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
 import Price from "../components/Price";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { resolveImageSrc } from "../utils/images";
+=======
+import { resolveImageSrc } from '../utils/images';
+>>>>>>> Stashed changes
 =======
 import { resolveImageSrc } from '../utils/images';
 >>>>>>> Stashed changes
@@ -120,7 +124,10 @@ function Wishlist() {
                     loading="lazy"
                     onError={(e) => {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                       try { e.target.onerror = null; } catch {}
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
                       e.target.src = '/assets/images/placeholder-300.png';

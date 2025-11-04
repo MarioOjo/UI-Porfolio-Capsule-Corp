@@ -232,7 +232,11 @@ const OrderHistory = () => {
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                               src={resolveImageSrc({ image: item.image }, 80)}
+=======
+                              src={resolveImageSrc(item, 80)}
+>>>>>>> Stashed changes
 =======
                               src={resolveImageSrc(item, 80)}
 >>>>>>> Stashed changes
