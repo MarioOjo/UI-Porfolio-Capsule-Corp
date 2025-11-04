@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 import apiFetch from '../../utils/api';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useWishlist } from '../../contexts/WishlistContext';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 import { useNotifications } from '../../contexts/NotificationContext';
 import { FaLock, FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa';
 

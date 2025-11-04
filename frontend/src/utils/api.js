@@ -1,4 +1,4 @@
-﻿
+
 // Resolve API base at call-time (reads window.__RUNTIME_CONFIG__ if present)
 // This avoids a race where modules are evaluated before /env.json is fetched.
 function getApiBase() {

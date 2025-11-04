@@ -48,6 +48,18 @@ html, body, #root {
   /* No overflow-y - let browser handle scrolling naturally */
 }
 
+/* Apply Orbitron font globally to all text elements */
+body {
+  font-family: 'Orbitron', monospace;
+}
+
+/* Reset font for specific elements that should use system fonts */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]), 
+textarea, 
+select {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
 .app-root {
   display: flex;
   flex-direction: column;

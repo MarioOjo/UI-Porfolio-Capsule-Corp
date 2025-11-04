@@ -1,7 +1,7 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { getAuthInstance, initFirebase } from './config/firebase';
-import apiFetch from './utils/api';
+import { getAuthInstance, initFirebase } from '../config/firebase';
+import apiFetch from '../utils/api';
 
 const AuthContext = createContext(null);
 

@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import useSEO from "../hooks/useSEO";

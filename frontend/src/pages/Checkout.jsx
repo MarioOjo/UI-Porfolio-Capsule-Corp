@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";

@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import Login from './Login';
 import Signup from './Signup';
-import './Auth.css';
+import './AuthPage.css';
 
 function AuthPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'login');
 
   // Redirect if already logged in
@@ -32,48 +34,70 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-t-2xl shadow-lg overflow-hidden">
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => handleTabChange('login')}
-              className={`flex-1 py-4 px-6 font-saiyan text-sm font-bold transition-all duration-300 ${
-                activeTab === 'login'
-                  ? 'bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              LOGIN
-            </button>
-            <button
-              onClick={() => handleTabChange('signup')}
-              className={`flex-1 py-4 px-6 font-saiyan text-sm font-bold transition-all duration-300 ${
-                activeTab === 'signup'
-                  ? 'bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              REGISTER
-            </button>
+    <div className={`auth-page-container ${isDarkMode ? 'dark' : 'light'}`}>
+      {/* Theme-aware background */}
+      <div className="auth-background">
+        <div className="background-pattern"></div>
+        <div className="dbz-bg-element dbz-bg-1"></div>
+        <div className="dbz-bg-element dbz-bg-2"></div>
+        <div className="dbz-bg-element dbz-bg-3"></div>
+      </div>
+      
+      <div className="auth-content-wrapper">
+        <div className="auth-card-container">
+          {/* Header Logo */}
+          <div className="auth-header-logo">
+            <div className="logo-main">
+              <span className="logo-icon">🐉</span>
+              <span className="logo-text">Capsule Corporation</span>
+            </div>
+            <div className="theme-indicator">
+              <span className={`theme-badge ${isDarkMode ? 'frieza' : 'goku'}`}>
+                {isDarkMode ? '🌙 Frieza Mode' : '☀️ Goku Mode'}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="bg-white rounded-b-2xl shadow-lg p-8">
-          {activeTab === 'login' ? (
-            <Login onSwitchTab={() => handleTabChange('signup')} />
-          ) : (
-            <Signup onSwitchTab={() => handleTabChange('login')} />
-          )}
-        </div>
+          {/* Tab Navigation */}
+          <div className="tab-navigation-container">
+            <div className="tab-navigation">
+              <button
+                onClick={() => handleTabChange('login')}
+                className={`tab-button ${activeTab === 'login' ? 'active' : ''}`}
+              >
+                <span className="tab-icon">🔐</span>
+                <span className="tab-text">SCOUTER LOGIN</span>
+              </button>
+              <button
+                onClick={() => handleTabChange('signup')}
+                className={`tab-button ${activeTab === 'signup' ? 'active' : ''}`}
+              >
+                <span className="tab-icon">🐉</span>
+                <span className="tab-text">JOIN Z-FIGHTERS</span>
+              </button>
+            </div>
+          </div>
 
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>
-            © {new Date().getFullYear()} Capsule Corporation. All rights reserved.
-          </p>
+          {/* Tab Content */}
+          <div className="tab-content-container">
+            <div className="tab-content">
+              {activeTab === 'login' ? (
+                <Login onSwitchTab={() => handleTabChange('signup')} />
+              ) : (
+                <Signup onSwitchTab={() => handleTabChange('login')} />
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="auth-footer">
+            <p className="footer-text">
+              © {new Date().getFullYear()} Capsule Corporation. All rights reserved.
+            </p>
+            <p className="footer-subtext">
+              Protecting Earth since Age 737
+            </p>
+          </div>
         </div>
       </div>
     </div>

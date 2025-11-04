@@ -1,0 +1,251 @@
+/* Signup.css - Enhanced DBZ Styling */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+
+@keyframes kamehameha {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes powerUp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes scouterScan {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+@keyframes over9000 {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  }
+  50% { 
+    transform: scale(1.02); 
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes avatarPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Base Styles */
+.font-saiyan {
+  font-family: 'Rajdhani', 'Arial Narrow', sans-serif;
+  letter-spacing: 1px;
+}
+
+/* Kamehameha Button Effect */
+.kamehameha-glow {
+  background: linear-gradient(
+    45deg,
+    #f59e0b,
+    #dc2626,
+    #f59e0b,
+    #ea580c,
+    #f59e0b
+  );
+  background-size: 400% 400%;
+  animation: kamehameha 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.kamehameha-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.kamehameha-glow:hover::before {
+  left: 100%;
+}
+
+/* Power Level Indicators */
+.power-bar {
+  transition: all 0.3s ease;
+}
+
+.power-bar.active {
+  animation: powerUp 0.5s ease;
+}
+
+.power-level-weak {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+}
+
+.power-level-medium {
+  background: linear-gradient(45deg, #f59e0b, #ea580c);
+}
+
+.power-level-strong {
+  background: linear-gradient(45deg, #10b981, #059669);
+}
+
+.power-level-over9000 {
+  background: linear-gradient(45deg, #8b5cf6, #7c3aed, #a855f7);
+  animation: over9000 2s infinite;
+}
+
+/* Scouter Input Effects */
+.scouter-input {
+  transition: all 0.3s ease;
+}
+
+.scouter-input:focus {
+  animation: scouterScan 1.5s ease;
+  border-color: #3b82f6 !important;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.avatar-hover {
+  transition: all 0.3s ease;
+}
+
+.avatar-hover:hover {
+  animation: avatarPulse 0.5s ease;
+}
+
+/* Form States */
+.submitting {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.submitting .kamehameha-glow {
+  animation: kamehameha 1s ease infinite;
+}
+
+/* Avatar Selection Styles */
+.avatar-option {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatar-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.avatar-option.selected {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .avatar-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .name-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #f59e0b, #ea580c);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #dc2626, #ea580c);
+}
+
+/* Selection Styles */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+::-moz-selection {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+/* Loading Animation */
+@keyframes spin-saiyan {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin-saiyan 1s linear infinite;
+}
+
+/* Focus States for Accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .kamehameha-glow,
+  .power-bar,
+  .scouter-input,
+  .avatar-option {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* High Contrast Support */
+@media (prefers-contrast: high) {
+  .scouter-input {
+    border-width: 3px;
+  }
+  
+  .avatar-option {
+    border-width: 2px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .scouter-input {
+    background: #1f2937;
+    color: white;
+    border-color: #374151;
+  }
+  
+  .scouter-input:focus {
+    border-color: #3b82f6;
+    background: #111827;
+  }
+}

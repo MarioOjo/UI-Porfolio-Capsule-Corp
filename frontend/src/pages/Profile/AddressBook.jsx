@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 import { useNotifications } from '../../contexts/NotificationContext';
 import apiFetch from '../../utils/api';
 import { FaMapMarkerAlt, FaPlus, FaEdit, FaTrash, FaHome, FaBriefcase } from 'react-icons/fa';

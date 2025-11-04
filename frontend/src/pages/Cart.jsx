@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaMinus, FaPlus, FaTrash, FaArrowLeft, FaShieldAlt, FaRocket, FaClock, FaExclamationTriangle } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
 import { resolveImageSrc } from "../utils/images";

@@ -1,78 +1,48 @@
-import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+// PageTransition.js
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
+
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    scale: 0.98,
+    y: 20
+  },
+  in: {
+    opacity: 1,
+    scale: 1,
+    y: 0
+  },
+  out: {
+    opacity: 0,
+    scale: 1.02,
+    y: -20
+  }
+};
+
+const pageTransition = {
+  type: "tween",
+  ease: "anticipate",
+  duration: 0.4
+};
 
 const PageTransition = ({ children }) => {
-  const location = useLocation();
-
-  // Consistent "Power Up" animation for all pages - DBZ style
-  const pageVariants = {
-    initial: { 
-      opacity: 0, 
-      scale: 0.9, 
-      rotateY: 15,
-      filter: 'blur(8px)'
-    },
-    in: { 
-      opacity: 1, 
-      scale: 1, 
-      rotateY: 0,
-      filter: 'blur(0px)',
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-        scale: {
-          type: "spring",
-          stiffness: 100,
-          damping: 15
-        }
-      }
-    },
-    out: { 
-      opacity: 0, 
-      scale: 1.05, 
-      rotateY: -15,
-      filter: 'blur(4px)',
-      transition: {
-        duration: 0.3,
-        ease: "easeIn"
-      }
-    }
-  };
+  const { isDarkMode } = useTheme();
 
   return (
-    <motion.div
-      key={location.pathname}
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      /* Make the overall wrapper non-interactive so decorative transforms/stacking
-         contexts don't intercept pointer events. Children need to remain interactive
-         so we re-enable pointer events on the inner content container below. */
-      className="w-full overflow-x-hidden p-2 pointer-events-none"
-    >
-      {/* Consistent energy aura effect for all pages */}
+    <AnimatePresence mode="wait">
       <motion.div
-        className="fixed inset-0 pointer-events-none z-0"
-        initial={{ opacity: 0 }}
-        animate={{ 
-          opacity: [0, 0.2, 0],
-          scale: [0.8, 1.2, 1.5],
-        }}
-        transition={{ 
-          duration: 0.5,
-          ease: "easeOut"
-        }}
-        style={{
-          background: 'radial-gradient(circle, rgba(255,165,0,0.08) 0%, rgba(255,69,0,0.05) 40%, transparent 70%)'
-        }}
-      />
-      
-      {/* Re-enable pointer events for actual page content so buttons/inputs remain clickable */}
-      <div className="pointer-events-auto">
+        key={window.location.pathname}
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+        className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-white'} transition-colors duration-300`}
+      >
         {children}
-      </div>
-    </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

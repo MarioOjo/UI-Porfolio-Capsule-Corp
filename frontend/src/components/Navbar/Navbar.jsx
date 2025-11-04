@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import ThemeToggle from "../../components/ThemeToggle";
-import { useAuth } from "../../AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
 import Price from "../../components/Price";

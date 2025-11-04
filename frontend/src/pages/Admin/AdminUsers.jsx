@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
 import Price from '../../components/Price';
@@ -32,7 +32,7 @@ function AdminUsers() {
         id: 2,
         name: 'Vegeta Prince',
         email: 'vegeta@saiyans.com',
-        role: 'premium',
+        role: 'customer',
         status: 'active',
         joinDate: '2023-08-20',
         lastLogin: '2024-01-14',
@@ -118,7 +118,6 @@ function AdminUsers() {
   const getRoleColor = (role) => {
     const colors = {
       admin: 'bg-red-100 text-red-800',
-      premium: 'bg-purple-100 text-purple-800',
       customer: 'bg-blue-100 text-blue-800'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
@@ -147,7 +146,7 @@ function AdminUsers() {
 
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.status === 'active').length;
-  const premiumUsers = users.filter(u => u.role === 'premium').length;
+  const adminUsers = users.filter(u => u.role === 'admin').length;
   const suspendedUsers = users.filter(u => u.status === 'suspended').length;
 
   if (!user) {
@@ -211,11 +210,11 @@ function AdminUsers() {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Premium Users</p>
-                <p className="text-3xl font-bold text-purple-600 font-saiyan">{premiumUsers}</p>
+                <p className="text-sm font-medium text-gray-600">Admin Users</p>
+                <p className="text-3xl font-bold text-red-600 font-saiyan">{adminUsers}</p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <span className="text-purple-600 text-xl">⭐</span>
+              <div className="bg-red-100 p-3 rounded-full">
+                <span className="text-red-600 text-xl">⭐</span>
               </div>
             </div>
           </div>
@@ -256,7 +255,6 @@ function AdminUsers() {
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
-              <option value="premium">Premium</option>
               <option value="customer">Customer</option>
             </select>
 
@@ -325,7 +323,6 @@ function AdminUsers() {
                         disabled={user.email === 'mario@capsulecorp.com'} // Prevent changing main admin
                       >
                         <option value="customer">Customer</option>
-                        <option value="premium">Premium</option>
                         <option value="admin">Admin</option>
                       </select>
                     </td>

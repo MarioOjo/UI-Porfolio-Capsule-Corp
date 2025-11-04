@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNotifications } from './NotificationContext';
-import { useAuth } from '../AuthContext';
+import { useAuth } from "./AuthContext";
 import apiFetch from '../utils/api';
 
 const CartContext = createContext();
@@ -193,6 +193,12 @@ export function CartProvider({ children }) {
     }, 0);
   };
 
+  const getItemQuantity = (productId) => {
+    if (!Array.isArray(cartItems)) return 0;
+    const item = cartItems.find(item => item?.id === productId);
+    return item ? parseInt(item.quantity) || 0 : 0;
+  };
+
   return (
     <CartContext.Provider value={{
       cartItems,
@@ -202,6 +208,7 @@ export function CartProvider({ children }) {
       clearCart,
       getCartTotal,
       getCartCount,
+      getItemQuantity,
     }}>
       {children}
     </CartContext.Provider>

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaTrash, FaStar } from "react-icons/fa";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
 import Price from "../components/Price";

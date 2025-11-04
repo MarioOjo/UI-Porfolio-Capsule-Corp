@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '../AuthContext';
+import { useAuth } from "./AuthContext";
 import { useNotifications } from './NotificationContext';
 
 const WishlistContext = createContext();
@@ -20,7 +20,7 @@ export function WishlistProvider({ children }) {
       if (savedWishlist) {
         try {
           const parsedWishlist = JSON.parse(savedWishlist);
-          setWishlistItems(parsedWishlist);
+          setWishlistItems(Array.isArray(parsedWishlist) ? parsedWishlist : []);
         } catch (error) {
           console.error('Error loading wishlist from localStorage:', error);
           setWishlistItems([]);
@@ -37,7 +37,7 @@ export function WishlistProvider({ children }) {
 
   // Save wishlist to localStorage whenever it changes
   useEffect(() => {
-    if (user && wishlistItems.length >= 0) {
+    if (user && Array.isArray(wishlistItems)) {
       // Use proper user identifier - try uid first (Firebase), then id (backend)
       const userId = user.uid || user.id;
       localStorage.setItem(`capsule-wishlist-${userId}`, JSON.stringify(wishlistItems));
@@ -46,7 +46,12 @@ export function WishlistProvider({ children }) {
 
   const addToWishlist = (product) => {
     if (!user) {
-  showInfo('🔐 Please login to save items to your wishlist!');
+      showInfo('🔐 Please login to save items to your wishlist!');
+      return false;
+    }
+
+    if (!product || !product.id) {
+      console.error('Invalid product provided to addToWishlist');
       return false;
     }
 
@@ -54,10 +59,10 @@ export function WishlistProvider({ children }) {
       const existingItem = currentItems.find(item => item.id === product.id);
       
       if (existingItem) {
-        showInfo(`💖 ${product.name} is already in your wishlist!`);
+        showInfo(`💖 ${product.name || 'Item'} is already in your wishlist!`);
         return currentItems;
       } else {
-        showSuccess(`💖 ${product.name} added to wishlist!`);
+        showSuccess(`💖 ${product.name || 'Item'} added to wishlist!`);
         return [...currentItems, product];
       }
     });
@@ -68,7 +73,7 @@ export function WishlistProvider({ children }) {
     setWishlistItems(currentItems => {
       const item = currentItems.find(item => item.id === productId);
       if (item) {
-        showInfo(`💔 ${item.name} removed from wishlist`);
+        showInfo(`💔 ${item.name || 'Item'} removed from wishlist`);
       }
       return currentItems.filter(item => item.id !== productId);
     });
@@ -79,7 +84,7 @@ export function WishlistProvider({ children }) {
   };
 
   const getWishlistCount = () => {
-    return wishlistItems.length;
+    return Array.isArray(wishlistItems) ? wishlistItems.length : 0;
   };
 
   const clearWishlist = () => {

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import { useAuth } from '../AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 import { apiFetch } from '../utils/api';
 import { 
   FaMapMarkerAlt, 

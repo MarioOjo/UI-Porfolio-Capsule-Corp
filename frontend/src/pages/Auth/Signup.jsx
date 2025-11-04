@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { FaUser, FaGlasses, FaEye } from "react-icons/fa";
-import { useAuth } from "../../AuthContext";
+import { useState, useRef } from "react";
+import { FaUser, FaGlasses, FaEye, FaEyeSlash, FaDragon, FaCheck } from "react-icons/fa";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../contexts/NotificationContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
+import "./AuthPage.css";
 
 function Signup({ onSwitchTab }) {
   const [firstName, setFirstName] = useState("");
@@ -13,259 +15,364 @@ function Signup({ onSwitchTab }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [promo, setPromo] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState('goku');
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { signup } = useAuth();
   const navigate = useNavigate();
   const { showSuccess, showError } = useNotifications();
+  const { isDarkMode } = useTheme();
+  const formRef = useRef(null);
+
+  // DBZ Avatars Collection
+  const dbzAvatars = [
+    { id: 'goku', name: 'Goku', icon: '🐉', color: 'avatar-goku' },
+    { id: 'vegeta', name: 'Vegeta', icon: '👑', color: 'avatar-vegeta' },
+    { id: 'gohan', name: 'Gohan', icon: '📚', color: 'avatar-gohan' },
+    { id: 'piccolo', name: 'Piccolo', icon: '👽', color: 'avatar-piccolo' },
+    { id: 'bulma', name: 'Bulma', icon: '🔬', color: 'avatar-bulma' },
+    { id: 'krillin', name: 'Krillin', icon: '💪', color: 'avatar-krillin' },
+    { id: 'frieza', name: 'Frieza', icon: '😈', color: 'avatar-frieza' },
+    { id: 'trunks', name: 'Trunks', icon: '⚔️', color: 'avatar-trunks' }
+  ];
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
   }
 
   function passwordStrength(pw) {
-    if (pw.length < 4) return "Weak";
-    if (pw.length < 8) return "Medium";
-    return "Strong";
+    if (pw.length < 4) return { level: "Weak", pl: "PL<2000", color: "weak" };
+    if (pw.length < 8) return { level: "Medium", pl: "PL<5000", color: "medium" };
+    if (pw.length < 12) return { level: "Strong", pl: "PL>9000", color: "strong" };
+    return { level: "OVER 9000!", pl: "PL>9000!!!", color: "over9000" };
   }
+
+  const strengthInfo = passwordStrength(password);
+  const strength = Math.min(Math.floor(password.length / 3), 5);
 
   async function handleSignup(e) {
     e.preventDefault();
     setError("");
+    
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
+      setError("All fields must be filled to join the Z-Fighters!");
       return;
     }
+    
     if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
+      setError("Scouter cannot read this email format!");
       return;
     }
+    
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Battle passwords must match!");
       return;
     }
-    if (passwordStrength(password) === "Weak") {
-      setError("Password is too weak. Use at least 4 characters.");
+    
+    if (strengthInfo.level === "Weak") {
+      setError(`Power level too low! ${strengthInfo.pl} - Train harder!`);
       return;
     }
 
     setLoading(true);
+    
+    if (formRef.current) {
+      formRef.current.classList.add('submitting');
+    }
+
     try {
-      await signup(email, password, firstName, lastName);
-      showSuccess("🎉 Scouter activated! Your Capsule Corp. account is ready!", {
-        title: "ACCOUNT CREATED",
-        duration: 4000
+      const userData = {
+        email,
+        password,
+        firstName,
+        lastName,
+        avatar: selectedAvatar,
+        promoEmails: promo
+      };
+
+      await signup(userData);
+      
+      showSuccess("🎉 Welcome to Capsule Corp, Warrior!", {
+        title: "SCOUTER ACTIVATED",
+        duration: 4000,
+        action: {
+          label: "Start Shopping",
+          onClick: () => navigate("/products")
+        }
       });
-      navigate("/");
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+      
     } catch (err) {
-      const errorMessage = err?.message || "Signup failed";
+      const errorMessage = err?.message || "Failed to activate Scouter";
       setError(errorMessage);
       showError(`⚡ ${errorMessage}`, {
-        title: "SIGNUP FAILED",
+        title: "SCOUTER ERROR",
         duration: 5000
       });
     } finally {
       setLoading(false);
+      if (formRef.current) {
+        formRef.current.classList.remove('submitting');
+      }
     }
   }
 
-  const strength = Math.min(Math.floor(password.length / 2), 5);
+  const selectedAvatarData = dbzAvatars.find(avatar => avatar.id === selectedAvatar);
 
   return (
-    <div className="space-y-7">
-      {/* Google Sign-In Button */}
-      <GoogleSignInButton variant="secondary" />
-      
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-blue-300"></div>
+    <div className={`auth-page ${isDarkMode ? 'dark' : 'light'}`} ref={formRef}>
+      <div className="auth-container">
+        {/* Header */}
+        <div className="auth-header">
+          <div className="auth-logo">
+            <span className="logo-icon">🐉</span>
+            <span className="logo-text">Capsule Corp</span>
+          </div>
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-blue-500 font-saiyan tracking-wide">
-            OR CREATE NEW ACCOUNT
-          </span>
+
+        {/* Main Content */}
+        <div className="auth-content">
+          <div className="auth-card">
+            <div className="auth-title-section">
+              <h1 className="auth-title">JOIN THE Z-FIGHTERS</h1>
+              <p className="auth-subtitle">Create your Capsule Corp account and start your training journey!</p>
+            </div>
+
+            <GoogleSignInButton variant="secondary" />
+            
+            {/* Divider */}
+            <div className="auth-divider">
+              <span>OR POWER UP MANUALLY</span>
+            </div>
+
+            {/* Signup Form */}
+            <form className="auth-form" onSubmit={handleSignup}>
+              {/* Avatar Selection */}
+              <div className="form-group">
+                <label className="form-label">
+                  🎭 SELECT YOUR WARRIOR AVATAR
+                </label>
+                <div className="avatar-grid">
+                  {dbzAvatars.map(avatar => (
+                    <button
+                      key={avatar.id}
+                      type="button"
+                      onClick={() => setSelectedAvatar(avatar.id)}
+                      className={`avatar-option ${avatar.color} ${
+                        selectedAvatar === avatar.id ? 'selected' : ''
+                      }`}
+                    >
+                      {selectedAvatar === avatar.id && (
+                        <div className="avatar-check">
+                          <FaCheck className="check-icon" />
+                        </div>
+                      )}
+                      <div className="avatar-icon">{avatar.icon}</div>
+                      <div className="avatar-name">{avatar.name}</div>
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Selected Avatar Display */}
+                {selectedAvatarData && (
+                  <div className="selected-avatar">
+                    <div className="selected-avatar-content">
+                      <div className={`selected-avatar-icon ${selectedAvatarData.color}`}>
+                        {selectedAvatarData.icon}
+                      </div>
+                      <div className="selected-avatar-info">
+                        <div className="selected-avatar-name">{selectedAvatarData.name}</div>
+                        <div className="selected-avatar-desc">Ready for battle!</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Name Fields */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">
+                    🌍 EARTHLING NAME
+                  </label>
+                  <div className="input-container">
+                    <FaUser className="input-icon" />
+                    <input
+                      type="text"
+                      placeholder="Goku"
+                      className="auth-input"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">
+                    👥 CLAN NAME
+                  </label>
+                  <div className="input-container">
+                    <FaUser className="input-icon" />
+                    <input
+                      type="text"
+                      placeholder="Son"
+                      className="auth-input"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="form-group">
+                <label className="form-label">
+                  📡 SCOUTER FREQUENCY
+                </label>
+                <div className="input-container">
+                  <FaGlasses className="input-icon" />
+                  <input
+                    type="email"
+                    placeholder="goku@capsulecorp.com"
+                    className="auth-input"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="form-group">
+                <label className="form-label">
+                  💪 BATTLE PASSWORD
+                </label>
+                <div className="input-container">
+                  <input
+                    type={showPass ? "text" : "password"}
+                    placeholder="Channel your ki energy..."
+                    className="auth-input"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    minLength={4}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPass(s => !s)}
+                    tabIndex={-1}
+                  >
+                    {showPass ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                
+                {/* Power Level Indicator */}
+                <div className="power-level-indicator">
+                  <div className="power-level-header">
+                    <span>POWER LEVEL: <strong className={strengthInfo.color}>{strengthInfo.pl}</strong></span>
+                    <span className={`power-level-text ${strengthInfo.color}`}>
+                      {strengthInfo.level}
+                    </span>
+                  </div>
+                  <div className="power-bars">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`power-bar ${i < strength ? strengthInfo.color : ''}`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="form-group">
+                <label className="form-label">
+                  🔄 CONFIRM KI CHANNEL
+                </label>
+                <div className="input-container">
+                  <input
+                    type="password"
+                    placeholder="Re-channel your ki energy"
+                    className="auth-input"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <span className="password-mismatch">
+                    ⚡ Ki energy mismatch! Passwords don't match.
+                  </span>
+                )}
+              </div>
+
+              {/* Promo Checkbox */}
+              <div className="promo-section">
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  checked={promo}
+                  onChange={e => setPromo(e.target.checked)}
+                  id="promo"
+                />
+                <label htmlFor="promo" className="checkbox-label promo-label">
+                  <span className="promo-highlight">🍃 Senzu Bean Delivery:</span>{" "}
+                  Send me exclusive deals, training tips, and Capsule Corp updates!
+                </label>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="error-message">
+                  <span className="error-icon">⚡</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className={`submit-btn ${loading ? 'loading' : ''} ${strengthInfo.color}`}
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="btn-loading">
+                    <FaDragon className="loading-icon" />
+                    <span>ACTIVATING SCOUTER...</span>
+                  </span>
+                ) : (
+                  <span className="btn-content">
+                    <span className="btn-avatar">{selectedAvatarData?.icon}</span>
+                    <span>POWER UP! {strengthInfo.level === "OVER 9000!" ? "🚀" : "💥"}</span>
+                  </span>
+                )}
+              </button>
+
+              {/* Footer */}
+              <div className="auth-footer">
+                <div className="footer-divider">
+                  <span>Already trained with us?</span>
+                </div>
+                <button
+                  type="button"
+                  className="footer-link login-link"
+                  onClick={onSwitchTab}
+                >
+                  LOGIN TO YOUR SCOUTER
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-
-      {/* Regular Signup Form */}
-      <form className="space-y-7" onSubmit={handleSignup}>
-        {/* First Name */}
-        <div>
-          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-            EARTHLING NAME (FIRST NAME)
-          </label>
-          <div className="relative">
-            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
-            <input
-              type="text"
-              placeholder="Your First Name"
-              className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-              value={firstName}
-              onChange={e => setFirstName(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        {/* Last Name */}
-        <div>
-          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-            EARTHLING NAME (LAST NAME)
-          </label>
-          <div className="relative">
-            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
-            <input
-              type="text"
-              placeholder="Your Last Name"
-              className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-              value={lastName}
-              onChange={e => setLastName(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-            SCOUTER ID (EMAIL)
-          </label>
-          <div className="relative">
-            <FaGlasses className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
-            <input
-              type="email"
-              placeholder="user@capsulecorp.com"
-              className="w-full pl-12 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-            BATTLE PASSWORD
-          </label>
-          <div className="relative">
-            <input
-              type={showPass ? "text" : "password"}
-              placeholder="Create your battle password"
-              className="w-full pl-4 pr-14 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={4}
-            />
-            <button
-              type="button"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-500 hover:text-orange-500 transition-colors"
-              onClick={() => setShowPass(s => !s)}
-              tabIndex={-1}
-            >
-              <FaEye />
-            </button>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <span className="text-xs font-saiyan text-gray-600 tracking-wide">
-              POWER LEVEL:
-            </span>
-            <div className="flex space-x-1">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-6 h-3 rounded-full transition-all ${
-                    i < strength
-                      ? strength <= 2
-                        ? "bg-red-500 power-bar active"
-                        : strength <= 4
-                        ? "bg-orange-500 power-bar active"
-                        : "bg-green-500 power-bar active"
-                      : "bg-gray-300"
-                  }`}
-                ></div>
-              ))}
-            </div>
-          </div>
-          <span className="text-xs text-red-500 font-medium mt-1 block">
-            {strength < 2
-              ? "Weak (PL<2000)"
-              : strength < 4
-              ? "Medium (PL<5000)"
-              : "Strong (PL>9000)"}
-          </span>
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label className="block text-sm font-saiyan text-blue-700 mb-3 tracking-wide">
-            CONFIRM BATTLE PASSWORD
-          </label>
-          <div className="relative">
-            <input
-              type="password"
-              placeholder="Confirm your battle password"
-              className="w-full pl-4 pr-4 py-4 border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-saiyan"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
-          {confirmPassword && password !== confirmPassword && (
-            <span className="text-xs text-red-500 font-medium mt-1 block">
-              Passwords do not match
-            </span>
-          )}
-        </div>
-
-        {/* Promo Checkbox */}
-        <div className="flex items-start space-x-3">
-          <input
-            type="checkbox"
-            className="mt-1.5 w-4 h-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-600 focus:ring-2"
-            checked={promo}
-            onChange={e => setPromo(e.target.checked)}
-            id="promo"
-          />
-          <label htmlFor="promo" className="text-sm text-gray-600 font-sans leading-tight">
-            <span className="text-blue-600 font-semibold">Capsule Delivery:</span>{" "}
-            Send me Senzu Bean deals!
-          </label>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="text-red-600 text-sm font-medium shake p-3 bg-red-50 border border-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className={`w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:shadow-xl ${
-            loading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'
-          }`}
-          disabled={loading}
-        >
-          {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
-        </button>
-
-        {/* Switch to Login */}
-        <div className="text-center">
-          <span className="text-gray-600">Already have a Scouter? </span>
-          <button
-            type="button"
-            className="text-blue-600 hover:text-orange-400 cursor-pointer font-semibold transition-colors font-saiyan"
-            onClick={onSwitchTab}
-          >
-            LOGIN
-          </button>
-        </div>
-      </form>
     </div>
   );
 }

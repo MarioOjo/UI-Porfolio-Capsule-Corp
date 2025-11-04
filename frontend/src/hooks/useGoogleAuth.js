@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { getAuthInstance, getGoogleProvider, initFirebase } from '../config/firebase';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 
 export const useGoogleAuth = () => {

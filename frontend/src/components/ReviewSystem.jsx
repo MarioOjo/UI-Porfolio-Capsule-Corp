@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useReviews } from '../contexts/ReviewContext';
-import { useAuth } from '../AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from '../contexts/NotificationContext';
 
 const ReviewForm = ({ productId, onClose }) => {

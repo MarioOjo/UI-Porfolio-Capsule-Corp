@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { useAuth } from '../../AuthContext';
+import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaUser, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { useNotifications } from '../../contexts/NotificationContext';
