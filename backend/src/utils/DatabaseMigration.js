@@ -78,7 +78,9 @@ class DatabaseMigration {
         '005_create_contact_messages_table.sql',
         '006_create_orders_tables.sql',
         // Added: cart_items table migration (idempotent)
-        '007_create_cart_items_table.sql'
+        '007_create_cart_items_table.sql',
+        // Added: reviews and review_helpful_votes tables migration (idempotent)
+        '014_create_reviews_table.sql'
       ];
 
       for (const file of migrationFiles) {

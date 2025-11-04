@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck } from "react-icons/fa";
+import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
+import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
+<<<<<<< Updated upstream
 import { resolveImageSrc } from "../utils/images";
 import Breadcrumb from "../components/Breadcrumb";
+=======
+import { resolveImageSrc } from '../utils/images';
+>>>>>>> Stashed changes
 import { useCurrency } from "../contexts/CurrencyContext";
 
 function Checkout() {
   const { cartItems, getCartTotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, authInitialized } = useAuth();
   const { showSuccess, showError } = useNotifications();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -21,7 +27,7 @@ function Checkout() {
     // Shipping Information
     firstName: '',
     lastName: '',
-    email: user?.email || '',
+    email: '',
     phone: '',
     address: '',
     city: '',
@@ -41,23 +47,68 @@ function Checkout() {
     paymentMethod: 'credit-card',
     promoCode: '',
     subscribeNewsletter: false,
+    agreeToTerms: false,
   });
 
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
+  // Theme classes for consistent theming
+  const themeClasses = {
+    background: isDarkMode 
+      ? 'bg-gradient-to-br from-slate-900 to-slate-800' 
+      : 'bg-gradient-to-br from-blue-50 to-orange-50',
+    card: isDarkMode 
+      ? 'bg-slate-800 border border-slate-700' 
+      : 'bg-white border border-blue-100',
+    text: {
+      primary: isDarkMode ? 'text-white' : 'text-gray-800',
+      secondary: isDarkMode ? 'text-gray-300' : 'text-gray-600',
+      muted: isDarkMode ? 'text-gray-400' : 'text-gray-500'
+    },
+    input: isDarkMode 
+      ? 'bg-slate-700 border-slate-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/20' 
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/20'
+  };
+
+  // Pre-fill user data when authenticated
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
+    if (user && authInitialized) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: user.displayName?.split(' ')[0] || prev.firstName,
+        lastName: user.displayName?.split(' ')[1] || prev.lastName,
+        email: user.email || prev.email
+      }));
     }
-  }, [user, cartItems, navigate]);
+  }, [user, authInitialized]);
+
+  // Redirect if not authenticated or cart is empty
+  useEffect(() => {
+    if (authInitialized && (!user || cartItems.length === 0)) {
+      if (!user) {
+        navigate('/auth');
+      } else if (cartItems.length === 0) {
+        navigate('/cart');
+      }
+    }
+  }, [user, cartItems, authInitialized, navigate]);
 
   const { formatPrice } = useCurrency();
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 500 ? 0 : 25.99; // Free shipping over $500
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax;
+  
+  // Calculate order totals with useMemo for performance
+  const orderTotals = useMemo(() => {
+    const subtotal = getCartTotal();
+    const shipping = subtotal > 500 ? 0 : 25.99; // Free shipping over $500
+    const tax = subtotal * 0.08; // 8% tax
+    const total = subtotal + shipping + tax;
+    
+    return { subtotal, shipping, tax, total };
+  }, [getCartTotal]);
 
-  const handleInputChange = (e) => {
+  const { subtotal, shipping, tax, total } = orderTotals;
+
+  const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -68,9 +119,32 @@ function Checkout() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-  };
+  }, [errors]);
 
-  const validateStep = (step) => {
+  const handleBlur = useCallback((e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+  }, []);
+
+  // Format card number as user types
+  const handleCardNumberChange = useCallback((e) => {
+    let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+    if (value.length > 16) value = value.slice(0, 16);
+    
+    // Add spaces every 4 digits
+    value = value.replace(/(.{4})/g, '$1 ').trim();
+    
+    setFormData(prev => ({
+      ...prev,
+      cardNumber: value
+    }));
+    
+    if (errors.cardNumber) {
+      setErrors(prev => ({ ...prev, cardNumber: '' }));
+    }
+  }, [errors]);
+
+  const validateStep = useCallback((step) => {
     const newErrors = {};
 
     if (step === 1) {
@@ -78,55 +152,103 @@ function Checkout() {
       if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
       if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
       if (!formData.email.trim()) newErrors.email = 'Email is required';
+      else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
       if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
       if (!formData.address.trim()) newErrors.address = 'Address is required';
       if (!formData.city.trim()) newErrors.city = 'City is required';
       if (!formData.state.trim()) newErrors.state = 'State is required';
       if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+      else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) newErrors.zipCode = 'ZIP code is invalid';
     }
 
     if (step === 2) {
       // Validate payment information
-      if (!formData.cardNumber.replace(/\s/g, '')) newErrors.cardNumber = 'Card number is required';
+      const cleanCardNumber = formData.cardNumber.replace(/\s/g, '');
+      if (!cleanCardNumber) newErrors.cardNumber = 'Card number is required';
+      else if (cleanCardNumber.length !== 16) newErrors.cardNumber = 'Card number must be 16 digits';
+      else if (!/^\d+$/.test(cleanCardNumber)) newErrors.cardNumber = 'Card number must contain only digits';
+      
       if (!formData.expiryMonth) newErrors.expiryMonth = 'Expiry month is required';
       if (!formData.expiryYear) newErrors.expiryYear = 'Expiry year is required';
+      
       if (!formData.cvv) newErrors.cvv = 'CVV is required';
+      else if (!/^\d{3,4}$/.test(formData.cvv)) newErrors.cvv = 'CVV must be 3 or 4 digits';
+      
       if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required';
+    }
+
+    if (step === 3) {
+      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => prev + 1);
+      // Scroll to top on step change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+  }, [currentStep, validateStep]);
 
-  const handlePreviousStep = () => {
+  const handlePreviousStep = useCallback(() => {
     setCurrentStep(prev => prev - 1);
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleSubmitOrder = async () => {
-    if (!validateStep(2)) return;
+    if (!validateStep(3)) return;
 
     setLoading(true);
     try {
-      // Simulate API call
+      // Simulate API call with actual order data
+      const orderData = {
+        items: cartItems,
+        shipping: formData,
+        payment: {
+          method: formData.paymentMethod,
+          cardLastFour: formData.cardNumber.slice(-4)
+        },
+        totals: orderTotals,
+        user_id: user?.id
+      };
+
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Clear cart and show success
       clearCart();
       showSuccess('🎉 Order placed successfully! Your capsules are being prepared for battle!', {
         title: 'ORDER CONFIRMED',
-        duration: 5000
+        duration: 5000,
+        position: 'top-center'
       });
       
-      navigate('/');
+      // Track conversion
+      if (window.gtag) {
+        window.gtag('event', 'purchase', {
+          transaction_id: `ORD-${Date.now()}`,
+          value: total,
+          currency: 'USD',
+          items: cartItems.map(item => ({
+            item_id: item.id,
+            item_name: item.name,
+            price: item.price,
+            quantity: item.quantity
+          }))
+        });
+      }
+      
+      navigate('/order-confirmation', { 
+        state: { orderData },
+        replace: true 
+      });
     } catch (error) {
+      console.error('Order submission error:', error);
       showError('Failed to place order. Please try again.', {
-        title: 'ORDER FAILED'
+        title: 'ORDER FAILED',
+        duration: 4000
       });
     } finally {
       setLoading(false);
@@ -134,24 +256,45 @@ function Checkout() {
   };
 
   const steps = [
-    { number: 1, title: 'Shipping', description: 'Delivery information' },
-    { number: 2, title: 'Payment', description: 'Payment details' },
-    { number: 3, title: 'Review', description: 'Confirm order' }
+    { number: 1, title: 'Shipping', description: 'Delivery information', icon: FaTruck },
+    { number: 2, title: 'Payment', description: 'Payment details', icon: FaCreditCard },
+    { number: 3, title: 'Review', description: 'Confirm order', icon: FaCheck }
   ];
 
-  if (!user || cartItems.length === 0) {
-    return null; // Will redirect via useEffect
+  const shippingOptions = [
+    {
+      value: 'standard',
+      label: 'Standard Shipping',
+      description: '5-7 business days',
+      price: subtotal > 500 ? 0 : 25.99,
+      free: subtotal > 500
+    },
+    {
+      value: 'express',
+      label: 'Instant Transmission',
+      description: '1-2 business days',
+      price: 49.99,
+      free: false
+    }
+  ];
+
+  if (!authInitialized || !user || cartItems.length === 0) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${themeClasses.background}`}>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 p-4">
+    <div className={`min-h-0 ${themeClasses.background} overflow-x-hidden`}>
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 font-saiyan mb-2">
+          <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-bold font-saiyan mb-2 ${themeClasses.text.primary}`}>
             SECURE CHECKOUT
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">Complete your legendary purchase</p>
+          <p className={`text-sm sm:text-base ${themeClasses.text.secondary}`}>Complete your legendary purchase</p>
         </div>
 
         {/* Progress Indicator */}
@@ -163,18 +306,26 @@ function Checkout() {
                   <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold transition-all text-sm sm:text-base ${
                     currentStep >= step.number
                       ? 'bg-gradient-to-r from-orange-400 to-orange-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
+                      : `${
+                          isDarkMode ? 'bg-slate-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+                        }`
                   }`}>
-                    {currentStep > step.number ? <FaCheck /> : step.number}
+                    {currentStep > step.number ? <FaCheck /> : <step.icon />}
                   </div>
                   <div className="mt-2 text-center">
-                    <div className="font-medium text-gray-800 text-xs sm:text-sm whitespace-nowrap">{step.title}</div>
-                    <div className="text-xs text-gray-600 hidden sm:block">{step.description}</div>
+                    <div className={`font-medium text-xs sm:text-sm whitespace-nowrap ${themeClasses.text.primary}`}>
+                      {step.title}
+                    </div>
+                    <div className={`text-xs ${themeClasses.text.muted} hidden sm:block`}>
+                      {step.description}
+                    </div>
                   </div>
                 </div>
                 {index < steps.length - 1 && (
                   <div className={`w-12 sm:w-16 h-1 mx-2 sm:mx-4 ${
-                    currentStep > step.number ? 'bg-orange-400' : 'bg-gray-200'
+                    currentStep > step.number 
+                      ? 'bg-orange-400' 
+                      : isDarkMode ? 'bg-slate-600' : 'bg-gray-200'
                   }`} />
                 )}
               </div>
@@ -185,173 +336,87 @@ function Checkout() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+            <div className={`rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 ${themeClasses.card}`}>
               {/* Step 1: Shipping Information */}
               {currentStep === 1 && (
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 font-saiyan flex items-center">
+                  <h2 className={`text-xl sm:text-2xl font-bold font-saiyan mb-4 sm:mb-6 flex items-center ${themeClasses.text.primary}`}>
                     <FaTruck className="mr-3 text-orange-500" />
                     SHIPPING INFORMATION
                   </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.firstName ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="Enter your first name"
-                      />
-                      {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.lastName ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="Enter your last name"
-                      />
-                      {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="your@email.com"
-                      />
-                      {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.phone ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="(555) 123-4567"
-                      />
-                      {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.address ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="123 Main Street"
-                      />
-                      {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.city ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="West City"
-                      />
-                      {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State *</label>
-                      <input
-                        type="text"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.state ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="CA"
-                      />
-                      {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code *</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.zipCode ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="12345"
-                      />
-                      {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    {[
+                      { name: 'firstName', label: 'First Name *', type: 'text', placeholder: 'Enter your first name' },
+                      { name: 'lastName', label: 'Last Name *', type: 'text', placeholder: 'Enter your last name' },
+                      { name: 'email', label: 'Email *', type: 'email', placeholder: 'your@email.com' },
+                      { name: 'phone', label: 'Phone *', type: 'tel', placeholder: '(555) 123-4567' },
+                      { name: 'address', label: 'Address *', type: 'text', placeholder: '123 Main Street', fullWidth: true },
+                      { name: 'city', label: 'City *', type: 'text', placeholder: 'West City' },
+                      { name: 'state', label: 'State *', type: 'text', placeholder: 'CA' },
+                      { name: 'zipCode', label: 'ZIP Code *', type: 'text', placeholder: '12345' },
+                    ].map((field) => (
+                      <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
+                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                          {field.label}
+                        </label>
+                        <input
+                          type={field.type}
+                          name={field.name}
+                          value={formData[field.name]}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                            themeClasses.input
+                          } ${errors[field.name] ? 'border-red-500 focus:ring-red-200' : ''}`}
+                          placeholder={field.placeholder}
+                        />
+                        {errors[field.name] && (
+                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors[field.name]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
 
                   {/* Shipping Options */}
-                  <div className="mt-8">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">Shipping Method</h3>
+                  <div className="mt-6 sm:mt-8">
+                    <h3 className={`text-lg font-bold mb-4 ${themeClasses.text.primary}`}>Shipping Method</h3>
                     <div className="space-y-3">
-                      <label className="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          name="shippingMethod"
-                          value="standard"
-                          checked={formData.shippingMethod === 'standard'}
-                          onChange={handleInputChange}
-                          className="mr-4"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium">Standard Shipping</div>
-                          <div className="text-sm text-gray-600">5-7 business days</div>
-                        </div>
-                        <div className="font-bold text-orange-600">
-                          {subtotal > 500 ? 'FREE' : <Price value={25.99} />}
-                        </div>
-                      </label>
-                      <label className="flex items-center p-4 border rounded-xl cursor-pointer hover:bg-gray-50">
-                        <input
-                          type="radio"
-                          name="shippingMethod"
-                          value="express"
-                          checked={formData.shippingMethod === 'express'}
-                          onChange={handleInputChange}
-                          className="mr-4"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium">Instant Transmission</div>
-                          <div className="text-sm text-gray-600">1-2 business days</div>
-                        </div>
-                        <div className="font-bold text-orange-600"><Price value={49.99} /></div>
-                      </label>
+                      {shippingOptions.map((option) => (
+                        <label 
+                          key={option.value}
+                          className={`flex items-center p-3 sm:p-4 border rounded-xl cursor-pointer transition-all ${
+                            formData.shippingMethod === option.value
+                              ? isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-blue-200'
+                              : isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="shippingMethod"
+                            value={option.value}
+                            checked={formData.shippingMethod === option.value}
+                            onChange={handleInputChange}
+                            className="mr-3 sm:mr-4"
+                          />
+                          <div className="flex-1">
+                            <div className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>
+                              {option.label}
+                            </div>
+                            <div className={`text-xs sm:text-sm ${themeClasses.text.muted}`}>
+                              {option.description}
+                            </div>
+                          </div>
+                          <div className={`font-bold text-sm sm:text-base ${
+                            option.free ? 'text-green-500' : 'text-orange-500'
+                          }`}>
+                            {option.free ? 'FREE' : <Price value={option.price} />}
+                          </div>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -360,37 +425,64 @@ function Checkout() {
               {/* Step 2: Payment Information */}
               {currentStep === 2 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 font-saiyan flex items-center">
+                  <h2 className={`text-xl sm:text-2xl font-bold font-saiyan mb-4 sm:mb-6 flex items-center ${themeClasses.text.primary}`}>
                     <FaCreditCard className="mr-3 text-orange-500" />
                     PAYMENT INFORMATION
                   </h2>
 
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Card Number *</label>
-                      <input
-                        type="text"
-                        name="cardNumber"
-                        value={formData.cardNumber}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.cardNumber ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="1234 5678 9012 3456"
-                      />
-                      {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>}
-                    </div>
+                  <div className="space-y-4 sm:space-y-6">
+                    {[
+                      { 
+                        name: 'cardNumber', 
+                        label: 'Card Number *', 
+                        type: 'text', 
+                        placeholder: '1234 5678 9012 3456',
+                        onChange: handleCardNumberChange
+                      },
+                      { 
+                        name: 'nameOnCard', 
+                        label: 'Name on Card *', 
+                        type: 'text', 
+                        placeholder: 'John Doe' 
+                      },
+                    ].map((field) => (
+                      <div key={field.name}>
+                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                          {field.label}
+                        </label>
+                        <input
+                          type={field.type}
+                          name={field.name}
+                          value={formData[field.name]}
+                          onChange={field.onChange || handleInputChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                            themeClasses.input
+                          } ${errors[field.name] ? 'border-red-500 focus:ring-red-200' : ''}`}
+                          placeholder={field.placeholder}
+                        />
+                        {errors[field.name] && (
+                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors[field.name]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Month *</label>
+                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                          Month *
+                        </label>
                         <select
                           name="expiryMonth"
                           value={formData.expiryMonth}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                            errors.expiryMonth ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                          }`}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                            themeClasses.input
+                          } ${errors.expiryMonth ? 'border-red-500 focus:ring-red-200' : ''}`}
                         >
                           <option value="">MM</option>
                           {Array.from({ length: 12 }, (_, i) => (
@@ -399,18 +491,26 @@ function Checkout() {
                             </option>
                           ))}
                         </select>
-                        {errors.expiryMonth && <p className="text-red-500 text-sm mt-1">{errors.expiryMonth}</p>}
+                        {errors.expiryMonth && (
+                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors.expiryMonth}
+                          </p>
+                        )}
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Year *</label>
+                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                          Year *
+                        </label>
                         <select
                           name="expiryYear"
                           value={formData.expiryYear}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                            errors.expiryYear ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                          }`}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                            themeClasses.input
+                          } ${errors.expiryYear ? 'border-red-500 focus:ring-red-200' : ''}`}
                         >
                           <option value="">YYYY</option>
                           {Array.from({ length: 10 }, (_, i) => (
@@ -419,39 +519,37 @@ function Checkout() {
                             </option>
                           ))}
                         </select>
-                        {errors.expiryYear && <p className="text-red-500 text-sm mt-1">{errors.expiryYear}</p>}
+                        {errors.expiryYear && (
+                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors.expiryYear}
+                          </p>
+                        )}
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">CVV *</label>
+                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                          CVV *
+                        </label>
                         <input
                           type="text"
                           name="cvv"
                           value={formData.cvv}
                           onChange={handleInputChange}
-                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                            errors.cvv ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                          }`}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                            themeClasses.input
+                          } ${errors.cvv ? 'border-red-500 focus:ring-red-200' : ''}`}
                           placeholder="123"
                           maxLength="4"
                         />
-                        {errors.cvv && <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>}
+                        {errors.cvv && (
+                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors.cvv}
+                          </p>
+                        )}
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Name on Card *</label>
-                      <input
-                        type="text"
-                        name="nameOnCard"
-                        value={formData.nameOnCard}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-all ${
-                          errors.nameOnCard ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'
-                        }`}
-                        placeholder="John Doe"
-                      />
-                      {errors.nameOnCard && <p className="text-red-500 text-sm mt-1">{errors.nameOnCard}</p>}
                     </div>
                   </div>
                 </div>
@@ -460,31 +558,44 @@ function Checkout() {
               {/* Step 3: Review Order */}
               {currentStep === 3 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 font-saiyan flex items-center">
+                  <h2 className={`text-xl sm:text-2xl font-bold font-saiyan mb-4 sm:mb-6 flex items-center ${themeClasses.text.primary}`}>
                     <FaCheck className="mr-3 text-orange-500" />
                     REVIEW ORDER
                   </h2>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Order Items */}
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Order Items</h3>
-                      <div className="space-y-3">
+                      <h3 className={`text-lg font-bold mb-3 sm:mb-4 ${themeClasses.text.primary}`}>Order Items</h3>
+                      <div className="space-y-2 sm:space-y-3">
                         {cartItems.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <div className="flex items-center space-x-4">
+                          <div key={item.id} className={`flex items-center justify-between p-3 sm:p-4 rounded-xl ${
+                            isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
+                          }`}>
+                            <div className="flex items-center space-x-3 sm:space-x-4">
                               <img 
+<<<<<<< Updated upstream
                                 src={resolveImageSrc(item, 80)} 
                                 alt={item.name}
                                 className="w-16 h-16 object-cover rounded-lg"
                                 onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
+=======
+                                src={resolveImageSrc(item, 300)}
+                                alt={item.name}
+                                className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg"
+                                loading="lazy"
+>>>>>>> Stashed changes
                               />
                               <div>
-                                <div className="font-medium">{item.name}</div>
-                                <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
+                                <div className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>
+                                  {item.name}
+                                </div>
+                                <div className={`text-xs sm:text-sm ${themeClasses.text.muted}`}>
+                                  Qty: {item.quantity}
+                                </div>
                               </div>
                             </div>
-                            <div className="font-bold text-orange-600">
+                            <div className={`font-bold text-sm sm:text-base text-orange-500`}>
                               <Price value={parseFloat(item.price) * item.quantity} />
                             </div>
                           </div>
@@ -494,33 +605,70 @@ function Checkout() {
 
                     {/* Shipping Address */}
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Shipping Address</h3>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <div>{formData.firstName} {formData.lastName}</div>
-                        <div>{formData.address}</div>
-                        <div>{formData.city}, {formData.state} {formData.zipCode}</div>
-                        <div>{formData.phone}</div>
+                      <h3 className={`text-lg font-bold mb-3 sm:mb-4 ${themeClasses.text.primary}`}>Shipping Address</h3>
+                      <div className={`p-3 sm:p-4 rounded-xl ${
+                        isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
+                      }`}>
+                        <div className={themeClasses.text.primary}>{formData.firstName} {formData.lastName}</div>
+                        <div className={themeClasses.text.secondary}>{formData.address}</div>
+                        <div className={themeClasses.text.secondary}>{formData.city}, {formData.state} {formData.zipCode}</div>
+                        <div className={themeClasses.text.secondary}>{formData.phone}</div>
                       </div>
                     </div>
 
                     {/* Payment Method */}
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Payment Method</h3>
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <div>**** **** **** {formData.cardNumber.slice(-4)}</div>
-                        <div>{formData.nameOnCard}</div>
+                      <h3 className={`text-lg font-bold mb-3 sm:mb-4 ${themeClasses.text.primary}`}>Payment Method</h3>
+                      <div className={`p-3 sm:p-4 rounded-xl ${
+                        isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
+                      }`}>
+                        <div className={themeClasses.text.primary}>**** **** **** {formData.cardNumber.slice(-4)}</div>
+                        <div className={themeClasses.text.secondary}>{formData.nameOnCard}</div>
                       </div>
+                    </div>
+
+                    {/* Terms Agreement */}
+                    <div>
+                      <label className={`flex items-start space-x-3 p-3 sm:p-4 rounded-xl ${
+                        isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
+                      } ${errors.agreeToTerms ? 'border border-red-500' : ''}`}>
+                        <input
+                          type="checkbox"
+                          name="agreeToTerms"
+                          checked={formData.agreeToTerms}
+                          onChange={handleInputChange}
+                          className="mt-1"
+                        />
+                        <div>
+                          <div className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>
+                            I agree to the Terms of Service and Privacy Policy
+                          </div>
+                          <div className={`text-xs sm:text-sm ${themeClasses.text.muted} mt-1`}>
+                            By placing this order, you agree to our terms and conditions
+                          </div>
+                          {errors.agreeToTerms && (
+                            <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                              <FaExclamationTriangle className="mr-1" />
+                              {errors.agreeToTerms}
+                            </p>
+                          )}
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+              <div className="flex justify-between mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-slate-600">
                 {currentStep > 1 && (
                   <button
                     onClick={handlePreviousStep}
-                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                    className={`px-4 sm:px-6 py-2 sm:py-3 border-2 rounded-xl font-medium text-sm sm:text-base transition-colors ${
+                      isDarkMode 
+                        ? 'border-slate-600 text-gray-300 hover:bg-slate-700' 
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
                   >
                     Previous
                   </button>
@@ -528,7 +676,7 @@ function Checkout() {
                 {currentStep < 3 ? (
                   <button
                     onClick={handleNextStep}
-                    className={`px-8 py-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-xl font-bold transition-all hover:scale-105 kamehameha-glow ${
+                    className={`px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-orange-400 to-orange-600 text-white rounded-xl font-bold transition-all hover:scale-105 kamehameha-glow text-sm sm:text-base ${
                       currentStep === 1 ? 'ml-auto' : ''
                     }`}
                   >
@@ -538,9 +686,16 @@ function Checkout() {
                   <button
                     onClick={handleSubmitOrder}
                     disabled={loading}
-                    className="ml-auto px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="ml-auto px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 kamehameha-glow text-sm sm:text-base"
                   >
-                    {loading ? 'Placing Order...' : 'Place Order'}
+                    {loading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Placing Order...</span>
+                      </div>
+                    ) : (
+                      'Place Order'
+                    )}
                   </button>
                 )}
               </div>
@@ -549,65 +704,78 @@ function Checkout() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 font-saiyan">ORDER SUMMARY</h3>
+            <div className={`rounded-2xl shadow-lg p-4 sm:p-6 sticky top-4 ${themeClasses.card}`}>
+              <h3 className={`text-lg sm:text-xl font-bold font-saiyan mb-4 sm:mb-6 ${themeClasses.text.primary}`}>
+                ORDER SUMMARY
+              </h3>
               
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start gap-3">
-                    <div className="flex items-start gap-3 flex-1">
+                  <div key={item.id} className="flex justify-between items-start gap-2 sm:gap-3">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1">
                       <img 
+<<<<<<< Updated upstream
                         src={resolveImageSrc(item, 80)} 
                         alt={item.name}
                         className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
                         onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
+=======
+                        src={resolveImageSrc(item, 80)}
+                        alt={item.name}
+                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
+                        loading="lazy"
+>>>>>>> Stashed changes
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{item.name}</div>
-                        <div className="text-xs text-gray-600">Qty: {item.quantity}</div>
+                        <div className={`font-medium text-xs sm:text-sm truncate ${themeClasses.text.primary}`}>
+                          {item.name}
+                        </div>
+                        <div className={`text-xs ${themeClasses.text.muted}`}>Qty: {item.quantity}</div>
                       </div>
                     </div>
-                    <div className="font-bold text-sm whitespace-nowrap"><Price value={(parseFloat(item.price) * item.quantity)} /></div>
+                    <div className={`font-bold text-xs sm:text-sm whitespace-nowrap text-orange-500`}>
+                      <Price value={(parseFloat(item.price) * item.quantity)} />
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <hr className="border-gray-200 mb-4" />
+              <hr className={`border-gray-200 dark:border-slate-600 mb-3 sm:mb-4`} />
               
-              <div className="space-y-2 mb-6">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span><Price value={subtotal} /></span>
+              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className={themeClasses.text.secondary}>Subtotal:</span>
+                  <span className={themeClasses.text.primary}><Price value={subtotal} /></span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Shipping:</span>
-                  <span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className={themeClasses.text.secondary}>Shipping:</span>
+                  <span className={shipping === 0 ? 'text-green-500 font-medium' : themeClasses.text.primary}>
                     {shipping === 0 ? 'FREE' : <Price value={shipping} />}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Tax:</span>
-                  <span><Price value={tax} /></span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className={themeClasses.text.secondary}>Tax:</span>
+                  <span className={themeClasses.text.primary}><Price value={tax} /></span>
                 </div>
-                <hr className="border-gray-200" />
-                <div className="flex justify-between text-xl font-bold">
-                  <span>Total:</span>
-                  <span className="text-orange-600 font-saiyan"><Price value={total} /></span>
+                <hr className={`border-gray-200 dark:border-slate-600`} />
+                <div className="flex justify-between text-lg sm:text-xl font-bold">
+                  <span className={themeClasses.text.primary}>Total:</span>
+                  <span className="text-orange-500 font-saiyan"><Price value={total} /></span>
                 </div>
               </div>
 
               {/* Security Features */}
-              <div className="space-y-3 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <FaLock className="mr-2 text-green-500" />
+              <div className="space-y-2 text-xs sm:text-sm">
+                <div className={`flex items-center ${themeClasses.text.muted}`}>
+                  <FaLock className="mr-2 text-green-500 flex-shrink-0" />
                   <span>SSL Secured Checkout</span>
                 </div>
-                <div className="flex items-center">
-                  <FaShieldAlt className="mr-2 text-blue-500" />
+                <div className={`flex items-center ${themeClasses.text.muted}`}>
+                  <FaShieldAlt className="mr-2 text-blue-500 flex-shrink-0" />
                   <span>Capsule Corp Protection</span>
                 </div>
-                <div className="flex items-center">
-                  <FaUser className="mr-2 text-orange-500" />
+                <div className={`flex items-center ${themeClasses.text.muted}`}>
+                  <FaUser className="mr-2 text-orange-500 flex-shrink-0" />
                   <span>30-Day Money Back</span>
                 </div>
               </div>
@@ -618,5 +786,8 @@ function Checkout() {
     </div>
   );
 }
+
+// Add display name for better debugging
+Checkout.displayName = 'CheckoutPage';
 
 export default Checkout;

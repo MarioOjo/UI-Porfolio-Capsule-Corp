@@ -28,7 +28,6 @@ function HomeHeader() {
           <Link 
             to="/" 
             className="flex items-center gap-3 cursor-pointer focus-outline"
-            onClick={() => console.log('Logo clicked')}
           >
             <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp" className="w-12 h-12 object-contain" />
           </Link>
@@ -52,7 +51,6 @@ function HomeHeader() {
               <Link 
                 to="/profile" 
                 className="p-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded transition-colors focus-outline theme-transition"
-                onClick={() => console.log('Profile clicked')}
               >
                 <FaUser /> <span className="hidden sm:inline">Profile</span>
               </Link>
@@ -60,7 +58,6 @@ function HomeHeader() {
               <Link 
                 to="/auth" 
                 className="p-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded transition-colors focus-outline theme-transition"
-                onClick={() => console.log('Login clicked')}
               >
                 <FaUser /> <span className="hidden sm:inline">Login</span>
               </Link>
@@ -69,7 +66,6 @@ function HomeHeader() {
             <Link 
               to="/wishlist" 
               className="relative p-2 cursor-pointer hover:bg-gray-100 rounded transition-colors focus-outline theme-transition"
-              onClick={() => console.log('Wishlist clicked')}
             >
               <FaHeart />
               {wishlistCount > 0 && (
@@ -80,7 +76,6 @@ function HomeHeader() {
             <Link 
               to="/cart" 
               className="relative p-2 cursor-pointer hover:bg-gray-100 rounded transition-colors focus-outline theme-transition"
-              onClick={() => console.log('Cart clicked')}
             >
               <FaShoppingCart />
               {cartCount > 0 && (
@@ -98,7 +93,6 @@ function HomeHeader() {
           <Link 
             to="/" 
             className="flex items-center cursor-pointer focus-outline"
-            onClick={() => console.log('Mobile logo clicked')}
           >
             <img src="/images/CAPSULE CORP IMG.svg" alt="Capsule Corp" className="w-10 h-10 object-contain" />
           </Link>
@@ -148,7 +142,6 @@ function HomeHeader() {
                 <Link 
                   to="/" 
                   onClick={() => {
-                    console.log('Mobile menu logo clicked');
                     setMobileMenuOpen(false);
                   }}
                   className="cursor-pointer focus-outline"
@@ -157,7 +150,6 @@ function HomeHeader() {
                 </Link>
                 <button 
                   onClick={() => {
-                    console.log('Close mobile menu clicked');
                     setMobileMenuOpen(false);
                   }} 
                   className="p-2 cursor-pointer hover:bg-gray-100 rounded transition-colors focus-outline theme-transition" 
@@ -178,7 +170,6 @@ function HomeHeader() {
                         <Link
                           to={link.to}
                           onClick={() => {
-                            console.log('Mobile menu link clicked:', link.name);
                             setMobileMenuOpen(false);
                           }}
                           className="block px-4 py-5 text-lg text-[#111827] font-semibold bg-gradient-to-r from-white to-gray-50 rounded-lg shadow-sm border-l-4 border-transparent hover:border-l-4 hover:border-[#3B4CCA] transition-all cursor-pointer focus-outline theme-transition"
@@ -203,7 +194,6 @@ function HomeHeader() {
                     to="/profile" 
                     className="flex items-center gap-2 text-sm cursor-pointer hover:text-blue-600 transition-colors focus-outline theme-transition"
                     onClick={() => {
-                      console.log('Mobile bottom profile clicked');
                       setMobileMenuOpen(false);
                     }}
                   >
@@ -215,7 +205,6 @@ function HomeHeader() {
                         to="/auth" 
                         className="text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors focus-outline theme-transition"
                         onClick={() => {
-                          console.log('Mobile bottom login clicked');
                           setMobileMenuOpen(false);
                         }}
                       >
@@ -225,7 +214,6 @@ function HomeHeader() {
                         to="/register" 
                         className="text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors focus-outline theme-transition"
                         onClick={() => {
-                          console.log('Mobile bottom register clicked');
                           setMobileMenuOpen(false);
                         }}
                       >
@@ -255,7 +243,6 @@ function HomeHeader() {
                     to="/cart" 
                     className="relative p-1 cursor-pointer hover:text-blue-600 transition-colors focus-outline theme-transition"
                     onClick={() => {
-                      console.log('Mobile bottom cart clicked');
                       setMobileMenuOpen(false);
                     }}
                   >
@@ -268,7 +255,6 @@ function HomeHeader() {
                     to="/wishlist" 
                     className="p-1 cursor-pointer hover:text-blue-600 transition-colors focus-outline theme-transition"
                     onClick={() => {
-                      console.log('Mobile bottom wishlist clicked');
                       setMobileMenuOpen(false);
                     }}
                   >

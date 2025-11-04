@@ -62,7 +62,11 @@ function AuthPage() {
 
         {/* Tab Content */}
         <div className="bg-white rounded-b-2xl shadow-lg p-8">
-          {activeTab === 'login' ? <Login /> : <Signup />}
+          {activeTab === 'login' ? (
+            <Login onSwitchTab={() => handleTabChange('signup')} />
+          ) : (
+            <Signup onSwitchTab={() => handleTabChange('login')} />
+          )}
         </div>
 
         {/* Footer */}

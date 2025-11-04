@@ -146,11 +146,6 @@ const ProductCard = React.memo(function ProductCard({ product, size = "medium" }
                   <Price value={product.price} />
                 </span>
               </div>
-              {product.stock <= 5 && (product.inStock || product.in_stock || product.stock > 0) && (
-                <span className="stock-warning">
-                  Only {product.stock} left!
-                </span>
-              )}
             </div>
           </div>
         </div>

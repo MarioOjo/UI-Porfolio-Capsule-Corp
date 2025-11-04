@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useGoogleAuth } from "./hooks/useGoogleAuth";
-import { usePerformanceMonitor } from "./hooks/usePerformance";
 import { useTheme } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AnimatedRoutes from "./components/AnimatedRoutes";
@@ -12,59 +11,50 @@ import AnalyticsConsent from "./components/AnalyticsConsent/AnalyticsConsent";
 function App() {
   const { handleRedirectResult } = useGoogleAuth();
   const { isDarkMode } = useTheme();
-  const [appLoaded, setAppLoaded] = useState(false);
-
-  usePerformanceMonitor("App");
 
   // ------------------ Sync theme globally ------------------
   useEffect(() => {
-    const root = document.documentElement; // <html> element
+    const root = document.documentElement;
+    const body = document.body;
+    
     if (isDarkMode) {
       root.classList.add("dark");
       root.classList.remove("light");
+      body.style.backgroundColor = "#0f172a"; // Match dark theme
     } else {
       root.classList.add("light");
       root.classList.remove("dark");
+      body.style.backgroundColor = "#ffffff"; // Match light theme
     }
   }, [isDarkMode]);
 
-  // ------------------ Handle Google OAuth Redirect ------------------
+  // ------------------ Handle Google OAuth Redirect (once on mount) ------------------
   useEffect(() => {
-    console.log("🚀 App component mounted");
-
-    const handleAuthRedirect = async () => {
-      try {
-        await handleRedirectResult();
-      } catch (err) {
-        console.error("Google redirect handling error:", err);
-      } finally {
-        setAppLoaded(true);
-      }
-    };
-
-    handleAuthRedirect();
+    handleRedirectResult().catch(err => {
+      // Silent fail - error already handled in useGoogleAuth
+    });
   }, [handleRedirectResult]);
 
-  // ------------------ Loading State ------------------
-  if (!appLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#3B4CCA] mx-auto mb-4"></div>
-          <p className="text-gray-600 font-saiyan">Loading Capsule Corp...</p>
-        </div>
-      </div>
-    );
-  }
+  // ------------------ Prevent horizontal scroll ------------------
+  useEffect(() => {
+    // Ensure no initial scroll issues
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'hidden';
+    
+    return () => {
+      document.documentElement.style.overflowX = '';
+      document.body.style.overflowX = '';
+    };
+  }, []);
 
   // ------------------ App Layout ------------------
   return (
     <ErrorBoundary>
-      <div className="app-root flex flex-col min-h-screen">
+      <div className="app-root">
         <Navbar />
         <AnalyticsConsent />
         <RouteTracker />
-        <main className="app-main flex-1 flex flex-col w-full overflow-x-hidden">
+        <main className="app-main">
           <AnimatedRoutes />
         </main>
         <Footer />

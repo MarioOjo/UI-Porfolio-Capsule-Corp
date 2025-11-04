@@ -1,4 +1,6 @@
 // Product data for Capsule Corp store
+import { CLOUDINARY_BASE } from '../utils/images';
+
 export const featuredProducts = [
   {
     id: 1,
@@ -220,8 +222,8 @@ export const allProducts = [
     category: "Capsules",
     price: 5999.00,
     powerLevel: 2500,
-  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg",
-  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg"],
+  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1761681794/cap_sert_slcyw4.png",
+  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1761681794/cap_sert_slcyw4.png"],
     inStock: true,
     stock: 12,
     featured: false,
@@ -242,8 +244,8 @@ export const allProducts = [
     category: "Capsules",
     price: 12999.00,
     powerLevel: 1500,
-  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg",
-  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg"],
+  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759697463/the_one_cap4_gwlqiz.jpg",
+  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759697463/the_one_cap4_gwlqiz.jpg"],
     inStock: true,
     stock: 5,
     featured: true,
@@ -264,8 +266,8 @@ export const allProducts = [
     category: "Capsules",
     price: 2999.00,
     powerLevel: 3000,
-  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg",
-  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1759096629/d3_xdolmn.jpg"],
+  image: "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759697461/the_one_cap_msdrji.jpg",
+  gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/v1761684146/superojo420_CAPSULE_CORP_Motorcycle_from_dragon_ball_z_with_High-TECH_enginee_67c32a5c-f67d-4b10-ab49-e243258b9003_vsw6qy.png"],
     inStock: true,
     stock: 20,
     featured: false,
@@ -286,8 +288,11 @@ export const allProducts = [
     category: "Capsules",
     price: 899.00,
     powerLevel: 500,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096755/camping_capsule.jpg",
+    gallery: [
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096755/camping_capsule.jpg",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759697461/the_one_cap2_dbpkb5.jpg"
+    ],
     inStock: true,
     stock: 35,
     featured: false,
@@ -308,8 +313,11 @@ export const allProducts = [
     category: "Capsules",
     price: 8999.00,
     powerLevel: 4000,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096745/vehicle_capsule.jpg",
+    gallery: [
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096745/vehicle_capsule.jpg",
+      "https://res.cloudinary.com/dx8wt3el4/image/upload/v1759697460/the_one_cap3_qjt0dq.jpg"
+    ],
     inStock: true,
     stock: 8,
     featured: false,
@@ -330,8 +338,8 @@ export const allProducts = [
     category: "Capsules",
     price: 15999.00,
     powerLevel: 2000,
-    image: "/api/placeholder/400/400",
-    gallery: ["/api/placeholder/400/400"],
+    image: "https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096765/workshop_capsule.jpg",
+    gallery: ["https://res.cloudinary.com/dx8wt3el4/image/upload/c_fill,w_400,h_400,g_center/v1759096765/workshop_capsule.jpg"],
     inStock: true,
     stock: 3,
     featured: false,
@@ -730,6 +738,13 @@ export const allProducts = [
   }
   
 ];
+
+// Replace any in-file placeholder URIs with a centralized Cloudinary default image.
+const DEFAULT_IMAGE = `${CLOUDINARY_BASE}/c_fill,w_400,h_400,g_center/v1759096629/d3_xdolmn.jpg`;
+allProducts.forEach(p => {
+  if (p.image === '/api/placeholder/400/400') p.image = DEFAULT_IMAGE;
+  if (Array.isArray(p.gallery) && p.gallery.length && p.gallery[0] === '/api/placeholder/400/400') p.gallery = [DEFAULT_IMAGE];
+});
 
 export const getProductById = (id) => {
   return allProducts.find(product => product.id === parseInt(id));

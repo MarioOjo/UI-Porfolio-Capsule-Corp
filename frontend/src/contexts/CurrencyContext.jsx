@@ -140,7 +140,7 @@ export const CurrencyProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.log('Location detection failed, using default USD');
+        // Silent fail - default USD is already set
       }
     };
 
@@ -190,10 +190,6 @@ export const CurrencyProvider = ({ children }) => {
   const changeCurrency = (newCurrency) => {
     if (CURRENCIES[newCurrency]) {
       setCurrency(newCurrency);
-      // Dev logging to help trace why UI might not update during testing
-      if (typeof window !== 'undefined') {
-        try { console.info('[Currency] changeCurrency called ->', newCurrency); } catch(e){}
-      }
       
       // Update location info
       const currencyInfo = CURRENCIES[newCurrency];

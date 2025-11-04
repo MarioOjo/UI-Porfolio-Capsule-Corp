@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useReviews } from '../contexts/ReviewContext';
 import { useAuth } from '../AuthContext';
-import { useNotification } from '../contexts/NotificationContext';
+import { useNotifications } from '../contexts/NotificationContext';
 
 const ReviewForm = ({ productId, onClose }) => {
   const { addReview } = useReviews();
   const { user } = useAuth();
-  const { showNotification } = useNotification();
+  const { showSuccess, showError } = useNotifications();
   
   const [formData, setFormData] = useState({
     rating: 5,
@@ -27,10 +27,10 @@ const ReviewForm = ({ productId, onClose }) => {
         userName: user.username || user.displayName
       });
 
-      showNotification('Review submitted successfully!', 'success');
+      showSuccess('✅ Review submitted successfully!');
       onClose();
     } catch (error) {
-      showNotification('Failed to submit review', 'error');
+      showError('❌ Failed to submit review');
     } finally {
       setLoading(false);
     }
@@ -44,10 +44,10 @@ const ReviewForm = ({ productId, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="write-review-title">
       <div className="bg-white rounded-xl max-w-md w-full p-6 overflow-x-hidden">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold font-saiyan">WRITE A REVIEW</h3>
+          <h3 id="write-review-title" className="text-xl font-bold font-saiyan">WRITE A REVIEW</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"

@@ -323,6 +323,8 @@
 .dropdown-items {
   max-height: 400px;
   overflow-y: auto;
+  /* Enable native momentum scrolling on iOS devices */
+  -webkit-overflow-scrolling: touch;
 }
 
 .dropdown-item {
@@ -885,6 +887,8 @@
 .mobile-menu-content {
   overflow-y: auto;
   max-height: calc(90vh - 4rem);
+  /* Improve touch scrolling experience on mobile browsers */
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-user-info {

@@ -76,8 +76,7 @@ const ChangePassword = () => {
 
     try {
       setIsSubmitting(true);
-      const res = await changePassword(formData.currentPassword, formData.newPassword);
-      // Backend returns message on success; apiFetch will throw on non-2xx
+      await changePassword(formData.currentPassword, formData.newPassword);
       showSuccess('✅ Password changed successfully! Your power level just increased!');
       setFormData({
         currentPassword: '',
@@ -104,7 +103,7 @@ const ChangePassword = () => {
   const strengthLabel = getStrengthLabel();
 
   return (
-    <div className="min-h-0 bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 rounded-2xl p-8 mb-6 text-white">
@@ -276,7 +275,9 @@ const ChangePassword = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-4 px-6 rounded-lg font-saiyan font-bold text-lg hover:shadow-xl transition-all hover:scale-105 ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className={`w-full bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white py-4 px-6 rounded-lg font-saiyan font-bold text-lg hover:shadow-xl transition-all hover:scale-105 ${
+                  isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
               >
                 {isSubmitting ? 'UPDATING...' : 'UPDATE PASSWORD'}
               </button>

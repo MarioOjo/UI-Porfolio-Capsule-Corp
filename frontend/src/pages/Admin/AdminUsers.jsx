@@ -3,6 +3,7 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
 import Price from '../../components/Price';
+import { CLOUDINARY_BASE } from '../../utils/images';
 
 function AdminUsers() {
   const { user } = useAuth();
@@ -170,7 +171,7 @@ function AdminUsers() {
             </div>
             
             <button
-              onClick={() => console.log('Export users')}
+              onClick={() => {/* TODO: Implement export users */}}
               className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-saiyan font-bold hover:scale-105 transition-all flex items-center space-x-2"
             >
               <FaUserShield />
@@ -302,7 +303,7 @@ function AdminUsers() {
                             src={user.avatar} 
                             alt={user.name}
                             onError={(e) => {
-                              e.target.src = '/api/placeholder/48/48';
+                              e.target.src = `${CLOUDINARY_BASE}/c_fill,w_48,h_48,g_center/v1759096291/c1_a9za6g.jpg`;
                             }}
                           />
                         </div>
@@ -352,14 +353,14 @@ function AdminUsers() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button 
-                          onClick={() => console.log('View user profile:', user.id)}
+                          onClick={() => {/* TODO: Implement view profile */}}
                           className="text-blue-600 hover:text-blue-900"
                           title="View Profile"
                         >
                           <FaEye />
                         </button>
                         <button 
-                          onClick={() => console.log('Edit user:', user.id)}
+                          onClick={() => {/* TODO: Implement edit user */}}
                           className="text-orange-600 hover:text-orange-900"
                           title="Edit User"
                         >

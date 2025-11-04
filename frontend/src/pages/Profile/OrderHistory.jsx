@@ -6,6 +6,7 @@ import { FaBox, FaEye, FaTruck, FaCheckCircle, FaClock, FaTimes, FaSearch } from
 import Price from '../../components/Price';
 import { resolveImageSrc } from '../../utils/images';
 import apiFetch from '../../utils/api';
+import { resolveImageSrc } from '../../utils/images';
 
 const OrderHistory = () => {
   const { user } = useAuth();
@@ -15,9 +16,14 @@ const OrderHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !user.id) return;
+    if (!user || !user.id) {
+      setLoading(false);
+      return;
+    }
+    
     (async () => {
       try {
         const data = await apiFetch(`/api/orders/user/${user.id}`);
@@ -32,6 +38,8 @@ const OrderHistory = () => {
         console.error('Error loading orders', e);
         setOrders([]);
         setFilteredOrders([]);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [user]);
@@ -43,7 +51,9 @@ const OrderHistory = () => {
     if (searchTerm) {
       filtered = filtered.filter(order => 
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        (order.items && order.items.some(item => 
+          item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        ))
       );
     }
 
@@ -85,8 +95,20 @@ const OrderHistory = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className={`rounded-2xl shadow-2xl p-8 text-center ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
+            <div className="animate-pulse">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`min-h-0 py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
+    <div className={`min-h-screen py-8 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 to-slate-800' : 'bg-gradient-to-br from-blue-50 to-orange-50'}`}>
       <div className="max-w-6xl mx-auto px-4">
         <div className={`rounded-2xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
           {/* Header */}
@@ -116,7 +138,7 @@ const OrderHistory = () => {
                     isDarkMode 
                       ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500' 
                       : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                  } focus:ring-2 focus:ring-blue-500`}
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
@@ -129,7 +151,7 @@ const OrderHistory = () => {
                   isDarkMode 
                     ? 'bg-slate-700 border-slate-600 text-white focus:border-blue-500' 
                     : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                } focus:ring-2 focus:ring-blue-500`}
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 <option value="all">All Orders</option>
                 <option value="processing">Processing</option>
@@ -155,7 +177,7 @@ const OrderHistory = () => {
                 </p>
                 <Link
                   to="/products"
-                  className="px-6 py-3 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white rounded-lg hover:from-[#2A3B9A] hover:to-blue-700 transition-all font-saiyan font-bold"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-[#3B4CCA] to-blue-600 text-white rounded-lg hover:from-[#2A3B9A] hover:to-blue-700 transition-all font-saiyan font-bold"
                 >
                   START SHOPPING
                 </Link>
@@ -206,12 +228,19 @@ const OrderHistory = () => {
                     {/* Order Items */}
                     <div className="p-6">
                       <div className="space-y-4">
-                        {order.items.map((item) => (
+                        {order.items && order.items.map((item) => (
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
+<<<<<<< Updated upstream
                               src={resolveImageSrc({ image: item.image }, 80)}
+=======
+                              src={resolveImageSrc(item, 80)}
+>>>>>>> Stashed changes
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                              onError={(e) => {
+                                e.target.src = '/placeholder-image.jpg';
+                              }}
                             />
                             <div className="flex-1">
                               <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -231,9 +260,9 @@ const OrderHistory = () => {
                       {/* Order Actions */}
                       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                         <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <p><strong>Shipping:</strong> {order.shipping.address}</p>
-                          <p><strong>Method:</strong> {order.shipping.method}</p>
-                          {order.shipping.tracking && (
+                          <p><strong>Shipping:</strong> {order.shipping?.address || 'N/A'}</p>
+                          <p><strong>Method:</strong> {order.shipping?.method || 'Standard'}</p>
+                          {order.shipping?.tracking && (
                             <p><strong>Tracking:</strong> {order.shipping.tracking}</p>
                           )}
                         </div>
@@ -264,18 +293,27 @@ const OrderHistory = () => {
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`max-w-2xl w-full rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${
-            isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'
-          }`}>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+          role="dialog" 
+          aria-modal="true" 
+          aria-labelledby="order-history-details-title"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div 
+            className={`max-w-2xl w-full rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto ${
+              isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-gray-200 dark:border-slate-600">
               <div className="flex justify-between items-center">
-                <h2 className={`text-2xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
+                <h2 id="order-history-details-title" className={`text-2xl font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
                   ORDER DETAILS
                 </h2>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className={`text-2xl ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   <FaTimes />
                 </button>
@@ -300,12 +338,15 @@ const OrderHistory = () => {
                     ITEMS ORDERED
                   </h3>
                   <div className="space-y-3">
-                    {selectedOrder.items.map((item) => (
+                    {selectedOrder.items && selectedOrder.items.map((item) => (
                       <div key={item.id} className="flex items-center space-x-3">
                         <img
-                          src={item.image}
+                          src={resolveImageSrc(item, 80)}
                           alt={item.name}
                           className="w-12 h-12 object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.src = '/placeholder-image.jpg';
+                          }}
                         />
                         <div className="flex-1">
                           <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -328,9 +369,9 @@ const OrderHistory = () => {
                     SHIPPING INFORMATION
                   </h3>
                   <div className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <p><strong>Address:</strong> {selectedOrder.shipping.address}</p>
-                    <p><strong>Method:</strong> {selectedOrder.shipping.method}</p>
-                    {selectedOrder.shipping.tracking && (
+                    <p><strong>Address:</strong> {selectedOrder.shipping?.address || 'N/A'}</p>
+                    <p><strong>Method:</strong> {selectedOrder.shipping?.method || 'Standard'}</p>
+                    {selectedOrder.shipping?.tracking && (
                       <p><strong>Tracking Number:</strong> {selectedOrder.shipping.tracking}</p>
                     )}
                   </div>

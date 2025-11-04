@@ -72,7 +72,12 @@ function About() {
         {/* Stats Section */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((stat, index) => (
-            <div key={index} className={`rounded-xl shadow-lg p-6 text-center ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'}`}>
+            <div 
+              key={index} 
+              className={`rounded-xl shadow-lg p-6 text-center transition-transform duration-300 hover:scale-105 ${
+                isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-blue-100'
+              }`}
+            >
               <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-gradient-to-r ${
                 stat.color === 'blue' ? 'from-blue-500 to-blue-600' :
                 stat.color === 'orange' ? 'from-orange-500 to-red-500' :
@@ -179,7 +184,9 @@ function About() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'}`}>
+            <div className={`p-6 rounded-xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-50 hover:bg-gray-100'
+            }`}>
               <h3 className={`text-xl font-bold font-saiyan mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 DR. BRIEF
               </h3>
@@ -191,7 +198,9 @@ function About() {
               </p>
             </div>
             
-            <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-gray-50'}`}>
+            <div className={`p-6 rounded-xl transition-colors duration-300 ${
+              isDarkMode ? 'bg-slate-700 hover:bg-slate-600' : 'bg-gray-50 hover:bg-gray-100'
+            }`}>
               <h3 className={`text-xl font-bold font-saiyan mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 BULMA BRIEF
               </h3>

@@ -95,6 +95,10 @@
   position: relative;
 }
 
+/* Prevent long titles/contents from forcing horizontal scroll when cards are
+   inside flex/grid containers. This keeps layout stable on small screens. */
+.feature-card { min-width: 0; }
+
 .feature-card:hover {
   transform: translateY(-8px);
 }

@@ -1,8 +1,7 @@
-// ...existing code...
 import { useState } from "react";
 import { FaGlasses, FaEye } from "react-icons/fa";
-import { useAuth } from "../../AuthContext"; // add
-import { useNavigate } from "react-router-dom"; // add
+import { useAuth } from "../../AuthContext";
+import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../contexts/NotificationContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
 
@@ -11,16 +10,17 @@ function Login({ onSwitchTab }) {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // add
-  const { login } = useAuth(); // add
-  const navigate = useNavigate(); // add
+  const [loading, setLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const { showSuccess, showError } = useNotifications();
 
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
   }
 
-  async function handleLogin(e) { // make async
+  async function handleLogin(e) {
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -34,7 +34,7 @@ function Login({ onSwitchTab }) {
 
     setLoading(true);
     try {
-      await login(email, password); // call backend via AuthContext
+      await login(email, password);
       showSuccess("🔥 Power level rising! Welcome back, Saiyan!", {
         title: "LOGIN SUCCESSFUL",
         duration: 4000
@@ -71,71 +71,88 @@ function Login({ onSwitchTab }) {
 
       {/* Regular Login Form */}
       <form className="space-y-7" onSubmit={handleLogin}>
+        {/* Email Field */}
         <div>
-        <label className="block text-sm font-saiyan text-gray-600 mb-3 tracking-wide">
-          SCOUTER ID
-        </label>
-        <div className="relative">
-          <FaGlasses className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 text-lg" />
-          <input
-            type="email"
-            placeholder="Enter your Capsule Corp. ID"
-            className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
+          <label className="block text-sm font-saiyan text-gray-600 mb-3 tracking-wide">
+            SCOUTER ID
+          </label>
+          <div className="relative">
+            <FaGlasses className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-600 text-lg" />
+            <input
+              type="email"
+              placeholder="Enter your Capsule Corp. ID"
+              className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </div>
         </div>
-      </div>
-      <div>
-        <label className="block text-sm font-saiyan text-gray-600 mb-3 tracking-wide">
-          BATTLE PASSWORD
-        </label>
-        <div className="relative">
-          <input
-            type={showPass ? "text" : "password"}
-            placeholder="Your battle password"
-            className="w-full pl-4 pr-14 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <button
-            type="button"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600"
-            onClick={() => setShowPass(s => !s)}
-            tabIndex={-1}
-          >
-            <FaEye />
-          </button>
-        </div>
-      </div>
-      {error && (
-        <div className="text-red-600 text-sm font-medium shake">{error}</div>
-      )}
-      <button
-        type="submit"
-        className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:scale-105 hover:shadow-xl"
-        disabled={loading}
-      >
-        {loading ? "Signing in..." : "POWER UP"}
-      </button>
-      <div className="text-center space-y-3">
+
+        {/* Password Field */}
         <div>
-          <span className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm font-medium transition-colors">
-            Use the Dragon Balls! (Forgot Password?)
-          </span>
+          <label className="block text-sm font-saiyan text-gray-600 mb-3 tracking-wide">
+            BATTLE PASSWORD
+          </label>
+          <div className="relative">
+            <input
+              type={showPass ? "text" : "password"}
+              placeholder="Your battle password"
+              className="w-full pl-4 pr-14 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-all font-saiyan"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+              onClick={() => setShowPass(s => !s)}
+              tabIndex={-1}
+            >
+              <FaEye />
+            </button>
+          </div>
         </div>
-        <div>
-          <span className="text-gray-600">No Scouter? </span>
-          <span
-            className="text-blue-600 hover:text-orange-400 cursor-pointer font-semibold transition-colors"
-            onClick={onSwitchTab}
-          >
-            SIGN UP
-          </span>
+
+        {/* Error Message */}
+        {error && (
+          <div className="text-red-600 text-sm font-medium shake p-3 bg-red-50 border border-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className={`w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white py-4 rounded-xl font-saiyan font-bold text-lg kamehameha-glow transition-all hover:shadow-xl ${
+            loading ? 'opacity-60 cursor-not-allowed' : 'hover:scale-105'
+          }`}
+          disabled={loading}
+        >
+          {loading ? "POWERING UP..." : "POWER UP"}
+        </button>
+
+        {/* Footer Links */}
+        <div className="text-center space-y-3">
+          <div>
+            <button
+              type="button"
+              className="text-gray-600 hover:text-blue-600 cursor-pointer text-sm font-medium transition-colors font-saiyan"
+            >
+              Use the Dragon Balls! (Forgot Password?)
+            </button>
+          </div>
+          <div>
+            <span className="text-gray-600">No Scouter? </span>
+            <button
+              type="button"
+              className="text-blue-600 hover:text-orange-400 cursor-pointer font-semibold transition-colors font-saiyan"
+              onClick={onSwitchTab}
+            >
+              SIGN UP
+            </button>
+          </div>
         </div>
-      </div>
       </form>
     </div>
   );

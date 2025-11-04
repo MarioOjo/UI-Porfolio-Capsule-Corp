@@ -35,6 +35,8 @@
   left: 0;
   right: 0;
   z-index: 50;
+  /* Allow smooth momentum scrolling on touch devices when the menu is tall */
+  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes slideDown {

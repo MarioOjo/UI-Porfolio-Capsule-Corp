@@ -116,9 +116,12 @@
 }
 
 .product-image {
+  /* Ensure images fill their card image area and remain visually consistent
+     with the ProductCard behavior. Using cover avoids layout shifts in grids. */
   width: 100%;
-  height: 150px;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   transition: transform 0.3s ease;
 }
 
@@ -166,6 +169,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  /* Prevent flex children from causing horizontal overflow in strict layouts */
+  min-width: 0;
 }
 
 .product-category {

@@ -16,17 +16,22 @@ export function CartProvider({ children }) {
       if (user && user.id) {
         try {
           const res = await apiFetch('/api/cart');
-          setCartItems(res.cart || []);
+          setCartItems(Array.isArray(res.cart) ? res.cart : []);
         } catch (e) {
           console.error('Error loading cart from backend:', e);
+          // Fallback to empty cart on error
+          setCartItems([]);
         }
       } else {
         const savedCart = localStorage.getItem('capsule-cart');
         if (savedCart) {
           try {
-            setCartItems(JSON.parse(savedCart));
+            const parsed = JSON.parse(savedCart);
+            setCartItems(Array.isArray(parsed) ? parsed : []);
           } catch (error) {
-            console.error('Error loading cart from localStorage:', error);
+            console.error('Error parsing cart from localStorage:', error);
+            setCartItems([]);
+            localStorage.removeItem('capsule-cart'); // Clear corrupted data
           }
         } else {
           setCartItems([]);
@@ -39,23 +44,38 @@ export function CartProvider({ children }) {
   // Save cart to localStorage whenever it changes (guests only)
   useEffect(() => {
     if (!user || !user.id) {
-      localStorage.setItem('capsule-cart', JSON.stringify(cartItems));
+      try {
+        localStorage.setItem('capsule-cart', JSON.stringify(Array.isArray(cartItems) ? cartItems : []));
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error);
+        // Silently fail - localStorage might be full or disabled
+      }
     }
   }, [cartItems, user]);
 
   const addToCart = async (product, quantity = 1) => {
+    // Defensive: ensure product exists and has required fields
+    if (!product || !product.id || !product.name) {
+      console.error('Invalid product passed to addToCart:', product);
+      return;
+    }
+
+    // Defensive: ensure quantity is positive
+    const safeQuantity = Math.max(1, parseInt(quantity) || 1);
+
     if (user && user.id) {
       try {
         await apiFetch('/api/cart', {
           method: 'POST',
-          body: JSON.stringify({ productId: product.id, quantity })
+          body: JSON.stringify({ productId: product.id, quantity: safeQuantity })
         });
         showSuccess(`💫 ${product.name} added to cart!`);
         // Refresh cart from backend
         const res = await apiFetch('/api/cart');
-        setCartItems(res.cart || []);
+        setCartItems(Array.isArray(res.cart) ? res.cart : []);
       } catch (e) {
         console.error('Error adding to cart:', e);
+        showInfo('⚠️ Could not add to cart. Please try again.');
       }
     } else {
       setCartItems(currentItems => {
@@ -64,58 +84,75 @@ export function CartProvider({ children }) {
           showInfo(`🔄 Updated ${product.name} quantity in cart!`);
           return currentItems.map(item =>
             item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: item.quantity + safeQuantity }
               : item
           );
         } else {
           showSuccess(`💫 ${product.name} added to cart!`);
-          return [...currentItems, { ...product, quantity }];
+          return [...currentItems, { ...product, quantity: safeQuantity }];
         }
       });
     }
   };
 
   const removeFromCart = async (productId) => {
+    // Defensive: validate productId
+    if (!productId) {
+      console.error('Invalid productId in removeFromCart');
+      return;
+    }
+
     if (user && user.id) {
       try {
         await apiFetch(`/api/cart/${productId}`, { method: 'DELETE' });
         showInfo('🗑️ Item removed from cart');
         const res = await apiFetch('/api/cart');
-        setCartItems(res.cart || []);
+        setCartItems(Array.isArray(res.cart) ? res.cart : []);
       } catch (e) {
         console.error('Error removing from cart:', e);
+        showInfo('⚠️ Could not remove item. Please try again.');
       }
     } else {
       setCartItems(currentItems => {
-        const item = currentItems.find(item => item.id === productId);
-        if (item) {
+        const item = currentItems.find(item => item?.id === productId);
+        if (item && item.name) {
           showInfo(`🗑️ ${item.name} removed from cart`);
         }
-        return currentItems.filter(item => item.id !== productId);
+        return currentItems.filter(item => item?.id !== productId);
       });
     }
   };
 
   const updateQuantity = async (productId, quantity) => {
-    if (quantity <= 0) {
+    // Defensive: validate inputs
+    if (!productId) {
+      console.error('Invalid productId in updateQuantity');
+      return;
+    }
+
+    const safeQuantity = parseInt(quantity) || 0;
+    
+    if (safeQuantity <= 0) {
       await removeFromCart(productId);
       return;
     }
+
     if (user && user.id) {
       try {
         await apiFetch(`/api/cart/${productId}`, {
           method: 'PUT',
-          body: JSON.stringify({ quantity })
+          body: JSON.stringify({ quantity: safeQuantity })
         });
         const res = await apiFetch('/api/cart');
-        setCartItems(res.cart || []);
+        setCartItems(Array.isArray(res.cart) ? res.cart : []);
       } catch (e) {
         console.error('Error updating cart quantity:', e);
+        showInfo('⚠️ Could not update quantity. Please try again.');
       }
     } else {
       setCartItems(currentItems =>
         currentItems.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          item.id === productId ? { ...item, quantity: safeQuantity } : item
         )
       );
     }
@@ -140,11 +177,20 @@ export function CartProvider({ children }) {
   };
 
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0);
+    if (!Array.isArray(cartItems)) return 0;
+    return cartItems.reduce((total, item) => {
+      const price = parseFloat(item?.price) || 0;
+      const qty = parseInt(item?.quantity) || 0;
+      return total + (price * qty);
+    }, 0);
   };
 
   const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    if (!Array.isArray(cartItems)) return 0;
+    return cartItems.reduce((total, item) => {
+      const qty = parseInt(item?.quantity) || 0;
+      return total + qty;
+    }, 0);
   };
 
   return (

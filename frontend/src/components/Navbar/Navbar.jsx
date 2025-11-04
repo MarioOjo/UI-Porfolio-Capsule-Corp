@@ -17,6 +17,7 @@ import Price from "../../components/Price";
 import CapsuleCorpLogo from "../../components/CapsuleLogo";
 import CurrencySelector from "../../components/CurrencySelector";
 import './Navbar.css';
+import { resolveImageSrc } from '../../utils/images';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -126,7 +127,7 @@ function Navbar() {
                 <div className="search-results-panel absolute w-full bg-white text-black rounded-lg shadow-lg mt-1 z-50">
                   {searchResults.map(p => (
                     <Link key={p.id} to={`/product/${p.slug}`} className="search-result-item flex items-center p-2" onClick={() => { setShowSearchResults(false); setSearch(""); }}>
-                      <img src={p.image} alt={p.name} className="w-12 h-12 object-cover mr-2 rounded"/>
+                      <img src={resolveImageSrc(p, 80)} alt={p.name} className="w-12 h-12 object-cover mr-2 rounded"/>
                       <div>
                         <div className="font-semibold">{p.name}</div>
                         <div><Price value={p.price} /></div>
@@ -163,7 +164,7 @@ function Navbar() {
                       {wishlistItems.length === 0 ? <div className="p-2">No items in wishlist</div> :
                         wishlistItems.slice(0,5).map(item => (
                           <div key={item.id} className="dropdown-item flex items-center p-2 border-b border-neutral-200">
-                            <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded mr-2"/>
+                            <img src={resolveImageSrc(item, 80)} alt={item.name} className="w-10 h-10 object-cover rounded mr-2"/>
                             <div className="flex-1">
                               <div>{item.name}</div>
                               <div><Price value={item.price} /></div>
@@ -197,7 +198,7 @@ function Navbar() {
                         <>
                           {cartItems.slice(0,5).map(item => (
                             <div key={item.id} className="dropdown-item flex items-center p-2 border-b border-neutral-200">
-                              <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded mr-2"/>
+                              <img src={resolveImageSrc(item, 80)} alt={item.name} className="w-12 h-12 object-cover rounded mr-2"/>
                               <div className="flex-1">
                                 <div>{item.name}</div>
                                 <div><Price value={item.price} /></div>
@@ -220,7 +221,7 @@ function Navbar() {
                 {/* Profile */}
                 <div className="relative" ref={profileRef}>
                   <button className="flex items-center gap-2" onClick={()=>toggleDropdown('profile')} aria-haspopup="true" aria-expanded={activeDropdown==='profile'}>
-                    <img src={user.photoURL||'/default-avatar.png'} alt="Profile" className="w-8 h-8 rounded-full"/>
+                      <img src={user.photoURL||'/default-avatar.png'} alt="Profile" className="w-8 h-8 rounded-full"/>
                     <span>{user.displayName || user.name || 'Profile'}</span>
                     <FaCaretDown/>
                   </button>

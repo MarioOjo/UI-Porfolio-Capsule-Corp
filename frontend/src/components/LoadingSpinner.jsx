@@ -33,7 +33,7 @@ const LoadingSpinner = ({
     : "flex items-center justify-center py-8";
 
   return (
-    <div className={container}>
+    <div className={container} role={fullScreen ? 'dialog' : undefined} aria-modal={fullScreen ? 'true' : undefined} tabIndex={fullScreen ? -1 : undefined}>
       <div className="flex flex-col items-center gap-4">
         <div className={spinnerClass}></div>
         {text && (

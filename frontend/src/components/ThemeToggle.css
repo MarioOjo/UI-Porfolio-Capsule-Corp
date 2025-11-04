@@ -11,6 +11,9 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
+.theme-toggle-btn { /* ensure it doesn't force overflow in tight header rows */
+  min-width: 0;
+}
 
 .theme-toggle-btn:hover {
   transform: scale(1.05);

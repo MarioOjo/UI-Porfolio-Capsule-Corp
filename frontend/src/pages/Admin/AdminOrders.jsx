@@ -305,7 +305,7 @@ function AdminOrders() {
               </button>
               
               <button
-                onClick={() => console.log('Export orders')}
+                onClick={() => {/* TODO: Implement export */}}
                 className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-saiyan font-bold hover:scale-105 transition-all flex items-center space-x-2"
               >
                 <FaDownload />
@@ -494,7 +494,7 @@ function AdminOrders() {
                           <FaTruck />
                         </button>
                         <button 
-                          onClick={() => console.log('Download invoice:', order.order_number)}
+                          onClick={() => {/* TODO: Implement invoice download */}}
                           className="text-green-600 hover:text-green-900"
                           title="Download Invoice"
                         >
@@ -520,11 +520,11 @@ function AdminOrders() {
 
       {/* Order Details Modal */}
       {showDetailsModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="order-details-title">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-[#3B4CCA] to-blue-600 p-6 rounded-t-2xl">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white font-saiyan">ORDER DETAILS</h2>
+                <h2 id="order-details-title" className="text-2xl font-bold text-white font-saiyan">ORDER DETAILS</h2>
                 <button
                   onClick={() => setShowDetailsModal(false)}
                   className="text-white hover:text-capsule-accent transition-colors text-2xl"

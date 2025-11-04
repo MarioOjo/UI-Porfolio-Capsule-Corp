@@ -9,17 +9,14 @@ function HeroSection() {
   const navigate = useNavigate(); // Add this hook
 
   const handleShopNow = () => {
-    console.log('🛍️ Shop Now clicked - navigating to /products');
     navigate('/products');
   };
 
   const handleWishlist = () => {
-    console.log('💖 Wishlist clicked');
     navigate('/wishlist');
   };
 
   const handleOrderHistory = () => {
-    console.log('📦 Order History clicked');
     navigate('/order-history');
   };
 

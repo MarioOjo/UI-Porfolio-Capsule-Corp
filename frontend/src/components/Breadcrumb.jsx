@@ -12,18 +12,20 @@ function Breadcrumb({ separator = <FaChevronRight />, rootLabel = "Home" }) {
     <nav className="breadcrumb-nav" aria-label="Breadcrumb">
       <ol className="breadcrumb-list">
         <li className="breadcrumb-item">
-          <Link to="/">{rootLabel}</Link>
+          <Link to="/" className="breadcrumb-link">{rootLabel}</Link>
         </li>
         {pathnames.map((name, idx) => {
           const routeTo = `/${pathnames.slice(0, idx + 1).join("/")}`;
           const isLast = idx === pathnames.length - 1;
+          const displayName = decodeURIComponent(name.replace(/-/g, ' '));
+
           return (
             <li key={routeTo} className={`breadcrumb-item${isLast ? " active" : ""}`}>
-              {separator}
+              <span className="breadcrumb-separator">{separator}</span>
               {isLast ? (
-                <span>{decodeURIComponent(name.replace(/-/g, ' '))}</span>
+                <span className="breadcrumb-current">{displayName}</span>
               ) : (
-                <Link to={routeTo}>{decodeURIComponent(name.replace(/-/g, ' '))}</Link>
+                <Link to={routeTo} className="breadcrumb-link">{displayName}</Link>
               )}
             </li>
           );

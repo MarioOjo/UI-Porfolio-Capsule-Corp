@@ -12,6 +12,9 @@
   margin: 0;
   padding: 0;
 }
+.breadcrumb-list { /* prevent flex children from forcing horizontal scroll */
+  min-width: 0;
+}
 .breadcrumb-item {
   display: flex;
   align-items: center;
@@ -34,3 +37,4 @@
   margin: 0 0.5em;
   font-size: 0.85em;
 }
+.breadcrumb-item svg { display: block; }

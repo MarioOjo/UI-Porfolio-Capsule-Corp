@@ -33,14 +33,41 @@ function Products() {
 
   const { data: fetchedProducts = [], isLoading, isError, error } = useProducts(filters);
 
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "Battle Gear", label: "⚔️ Battle Gear" },
-    { value: "Training", label: "💪 Training" },
-    { value: "Tech", label: "📡 Tech" },
-    { value: "Capsules", label: "🏠 Capsules" },
-    { value: "Consumables", label: "🍃 Consumables" }
-  ];
+  const categories = useMemo(() => {
+    // Base / preferred ordering for categories with friendly labels
+    const base = [
+      { value: "all", label: "All Categories" },
+      { value: "Battle Gear", label: "⚔️ Battle Gear" },
+      { value: "Training", label: "💪 Training" },
+      { value: "Tech", label: "📡 Tech" },
+      { value: "Capsules", label: "🏠 Capsules" },
+      { value: "Consumables", label: "🍃 Consumables" }
+    ];
+
+    // Map of simple emoji hints for some known dynamic categories
+    const emojiMap = {
+      Vehicles: "🚗",
+      Accessories: "🧰",
+      Apparel: "👕",
+      Food: "🍱"
+    };
+
+    // Collect unique categories from fetched products and append any that are
+    // not already covered by the base list so the filter reflects actual data.
+    try {
+      const productCats = new Set((fetchedProducts || []).map(p => p.category).filter(Boolean));
+      productCats.forEach((cat) => {
+        if (!base.some(b => b.value === cat)) {
+          const emoji = emojiMap[cat] ? `${emojiMap[cat]} ` : "";
+          base.push({ value: cat, label: `${emoji}${cat}` });
+        }
+      });
+    } catch (e) {
+      // silent fallback if fetchedProducts isn't iterable yet
+    }
+
+    return base;
+  }, [fetchedProducts]);
 
   const sortOptions = [
     { value: "featured", label: "Featured First" },
@@ -53,33 +80,38 @@ function Products() {
 
   // Sort products client-side
   const products = useMemo(() => {
-    if (!fetchedProducts || fetchedProducts.length === 0) return [];
+    if (!Array.isArray(fetchedProducts) || fetchedProducts.length === 0) return [];
     
     const sorted = [...fetchedProducts].sort((a, b) => {
+      // Defensive: ensure we have valid objects with required fields
+      if (!a || !b) return 0;
+      
       switch (sortBy) {
         case "price-low":
-          return parseFloat(a.price) - parseFloat(b.price);
+          return (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0);
         case "price-high":
-          return parseFloat(b.price) - parseFloat(a.price);
+          return (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0);
         case "power-high":
-          return (b.power_level || 0) - (a.power_level || 0);
+          return (b.power_level || b.powerLevel || 0) - (a.power_level || a.powerLevel || 0);
         case "power-low":
-          return (a.power_level || 0) - (b.power_level || 0);
+          return (a.power_level || a.powerLevel || 0) - (b.power_level || b.powerLevel || 0);
         case "name":
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case "featured":
         default:
           // Featured first, then by power level
-          if (a.featured && !b.featured) return -1;
-          if (!a.featured && b.featured) return 1;
-          return (b.power_level || 0) - (a.power_level || 0);
+          const aFeatured = a.featured || a.is_featured;
+          const bFeatured = b.featured || b.is_featured;
+          if (aFeatured && !bFeatured) return -1;
+          if (!aFeatured && bFeatured) return 1;
+          return (b.power_level || b.powerLevel || 0) - (a.power_level || a.powerLevel || 0);
       }
     });
     return sorted;
   }, [fetchedProducts, sortBy]);
 
-  const featuredProducts = products.filter(product => product.featured);
-  const regularProducts = products.filter(product => !product.featured);
+  const featuredProducts = Array.isArray(products) ? products.filter(product => product?.featured || product?.is_featured) : [];
+  const regularProducts = Array.isArray(products) ? products.filter(product => !(product?.featured || product?.is_featured)) : [];
 
   // Loading state
   if (isLoading) {

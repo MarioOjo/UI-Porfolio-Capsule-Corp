@@ -14,13 +14,21 @@ button, a, [role="button"], .cursor-pointer {
   pointer-events: auto;
 }
 
+/* Focus states for accessibility */
+button:focus-visible, 
+a:focus-visible, 
+[role="button"]:focus-visible {
+  outline: 2px solid #FF9E00;
+  outline-offset: 2px;
+}
+
 /* Decorative elements can ignore pointer events */
 .energy-aura::before,
 .energy-aura::after {
   pointer-events: none;
 }
 
-/* Glow effect example */
+/* Glow effect */
 .kamehameha-glow {
   box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
   transition: box-shadow 0.3s ease;
@@ -32,27 +40,27 @@ button, a, [role="button"], .cursor-pointer {
 
 /* ===== LAYOUT & SCROLL ===== */
 html, body, #root {
-  height: auto; /* Let document handle scrolling */
+  height: 100%;
   margin: 0;
   padding: 0;
   max-width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  overflow-y: auto;   /* Single vertical scrollbar */
+  overflow-x: hidden;
+  /* No overflow-y - let browser handle scrolling naturally */
 }
 
 .app-root {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Ensure footer participates in flow */
+  min-height: 100vh;
 }
 
 .app-main {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Allows flex children to shrink */
+  min-height: 0;
   overflow-x: hidden;
-  overflow-y: visible; /* Document scroll */
+  /* No overflow-y - content scrolls naturally in body */
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -75,7 +83,7 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* ===== DARK MODE VARIABLES ===== */
+/* ===== CSS VARIABLES FOR THEMING ===== */
 :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
@@ -83,6 +91,10 @@ html, body, #root {
   --text-secondary: #6b7280;
   --card-bg: #ffffff;
   --input-bg: #ffffff;
+  --primary-color: #FF9E00;
+  --primary-glow: rgba(255, 158, 0, 0.6);
+  --border-radius: 1rem;
+  --transition-standard: 0.3s ease;
 }
 
 .dark {
@@ -92,25 +104,26 @@ html, body, #root {
   --text-secondary: #cbd5e1;
   --card-bg: #1e293b;
   --input-bg: #334155;
+  --primary-glow: rgba(255, 158, 0, 0.8);
 }
 
 /* Dark mode for components */
-.dark .bg-white { background-color: var(--card-bg) !important; }
-.dark .text-gray-800 { color: var(--text-primary) !important; }
-.dark .text-gray-600 { color: var(--text-secondary) !important; }
+.dark .bg-white { background-color: var(--card-bg); }
+.dark .text-gray-800 { color: var(--text-primary); }
+.dark .text-gray-600 { color: var(--text-secondary); }
 .dark input, .dark textarea, .dark select {
-  background-color: var(--input-bg) !important;
-  color: var(--text-primary) !important;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
 }
 
 /* ===== IMAGES & FLEX CLEANUP ===== */
-img, iframe { max-width: 100%; height: auto; }
+.img, img, picture, iframe, video { max-width: 100%; height: auto; display: block; }
 .flex, .grid { min-width: 0; }
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 640px) {
   .mobile-grid { grid-template-columns: 1fr; gap: 1rem; }
-  
+
   .mobile-bottom-nav {
     position: fixed;
     bottom: 0;
@@ -121,9 +134,10 @@ img, iframe { max-width: 100%; height: auto; }
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0.5rem));
     border-top: 1px solid #eee;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    height: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   .mobile-menu-panel {
@@ -135,12 +149,12 @@ img, iframe { max-width: 100%; height: auto; }
     height: 100%;
     background: var(--bg-primary);
     z-index: 200;
-    transform: translateY(-100%);
+    transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(.4,0,.2,1);
     box-sizing: border-box;
   }
   .mobile-menu-overlay.open .mobile-menu-panel {
-    transform: translateY(0);
+    transform: translateX(0);
   }
 
   .mobile-menu-overlay {
@@ -152,21 +166,32 @@ img, iframe { max-width: 100%; height: auto; }
     background: rgba(0,0,0,0.32);
     z-index: 199;
   }
+
+  /* Use margin instead of padding to prevent double scroll */
+  .app-main {
+    margin-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (min-width: 641px) {
-  .mobile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+  .mobile-grid { display: grid; grid-template-columns: repeat(2, minmax(250px, 1fr)); gap: 1.5rem; }
 }
 @media (min-width: 1024px) {
-  .mobile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
+  .mobile-grid { display: grid; grid-template-columns: repeat(4, minmax(250px, 1fr)); gap: 1.75rem; }
 }
 
 /* ===== UTILITIES ===== */
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar, .scrollbar-hide, .hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar { display: none; }
 
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scroll-smooth { scroll-behavior: smooth; }
+.tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+.select-none { user-select: none; }
 
 /* ===== ANIMATIONS ===== */
 @keyframes popover-pop {
@@ -181,7 +206,7 @@ img, iframe { max-width: 100%; height: auto; }
   padding: 1.25rem 1.5rem;
   box-sizing: border-box;
   overflow: visible;
-  border-radius: 1rem;
+  border-radius: var(--border-radius);
   box-shadow: 0 8px 32px -4px rgba(59,76,202,0.18), 0 0 0 1px rgba(255,255,255,0.08) inset;
   border: 1px solid #3B4CCA22;
   background: var(--card-bg, #fff);
@@ -191,27 +216,122 @@ img, iframe { max-width: 100%; height: auto; }
   .popover-panel {
     min-width: 90%;
     max-width: 98%;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    left: 50%;
+    transform: translateX(-50%);
     padding: 1rem;
   }
 }
 
-/* Hover effect for dropdown items */
+/* Hover and focus effects for dropdown items */
 .popover-panel a, .popover-panel button {
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
-.popover-panel a:hover, .popover-panel button:hover {
+.popover-panel a:hover, .popover-panel button:hover,
+.popover-panel a:focus, .popover-panel button:focus {
   background: linear-gradient(90deg, #FF9E0022, #FF9E0022);
   color: #FF9E00;
   box-shadow: 0 2px 8px rgba(255,158,0,0.08);
 }
 
-/* Mobile-friendly slide-in animations */
-@keyframes slide-in { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-.animate-slide-in { animation: slide-in 0.3s ease-out; }
+/* Mobile-friendly slide-in animation */
+@keyframes slide-in { 
+  from { transform: translateX(100%); opacity: 0; } 
+  to { transform: translateX(0); opacity: 1; } 
+}
+.animate-slide-in { 
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Performance optimizations */
+.animate-slide-in, 
+.popover-panel,
+.mobile-menu-panel {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in, 
+  .popover-panel,
+  .mobile-menu-panel,
+  .kamehameha-glow {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 /* Prevent body scrolling when mobile menus or modal dialogs are open */
-.no-scroll {
+.no-scroll { 
   overflow: hidden !important;
+}
+
+/* Modal & dialog touch-scrolling */
+[role="dialog"], [aria-modal="true"], .modal-overlay, .mobile-menu-overlay {
+  -webkit-overflow-scrolling: touch;
+}
+[role="dialog"] .overflow-y-auto, [aria-modal="true"] .overflow-y-auto,
+.modal-overlay .overflow-y-auto, .mobile-menu-overlay .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+/* ===== ENHANCED STATES ===== */
+/* Loading states */
+.skeleton-loader {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Error states for forms */
+.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Page transition animations for SPA */
+.page-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Print styles */
+@media print {
+  .mobile-bottom-nav,
+  .mobile-menu-overlay,
+  .kamehameha-glow {
+    display: none !important;
+  }
+  
+  .app-main {
+    margin-bottom: 0;
+  }
 }

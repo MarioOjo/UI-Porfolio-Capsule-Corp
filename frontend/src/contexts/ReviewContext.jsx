@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/usePerformance';
+import { apiFetch } from '../utils/api';
 
 const ReviewContext = createContext();
 
@@ -72,47 +73,35 @@ export const ReviewProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      // Simulate API call - replace with actual API
-      const mockReviews = [
-        {
-          id: 1,
-          productId,
-          userId: 1,
-          userName: 'Goku',
-          rating: 5,
-          title: 'Amazing power level boost!',
-          comment: 'This training gear helped me reach new heights! Highly recommend for any Saiyan.',
-          date: '2024-01-15',
-          verified: true,
-          helpful: 12
-        },
-        {
-          id: 2,
-          productId,
-          userId: 2,
-          userName: 'Vegeta',
-          rating: 4,
-          title: 'Worthy of a Prince',
-          comment: 'Quality is acceptable for royal training. Could use more style.',
-          date: '2024-01-10',
-          verified: true,
-          helpful: 8
-        }
-      ];
+      // Fetch reviews from backend API
+      const response = await apiFetch(`/api/products/${productId}/reviews`);
+      const reviews = response.reviews || [];
 
       // Cache the results
-      const updatedCache = { ...reviewCache, [productId]: mockReviews };
+      const updatedCache = { ...reviewCache, [productId]: reviews };
       setReviewCache(updatedCache);
       
-      dispatch({ type: 'SET_REVIEWS', payload: mockReviews });
+      dispatch({ type: 'SET_REVIEWS', payload: reviews });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      console.error('Error fetching reviews:', error);
+      // If API fails, show empty state instead of error
+      dispatch({ type: 'SET_REVIEWS', payload: [] });
     }
   };
 
   const addReview = async (reviewData) => {
     try {
-      const newReview = {
+      // Submit review to backend API
+      const response = await apiFetch(`/api/products/${reviewData.productId}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify({
+          rating: reviewData.rating,
+          title: reviewData.title,
+          comment: reviewData.comment
+        })
+      });
+
+      const newReview = response.review || {
         id: Date.now(),
         ...reviewData,
         date: new Date().toISOString().split('T')[0],
@@ -132,6 +121,7 @@ export const ReviewProvider = ({ children }) => {
       
       return newReview;
     } catch (error) {
+      console.error('Error adding review:', error);
       dispatch({ type: 'SET_ERROR', payload: error.message });
       throw error;
     }
@@ -139,7 +129,12 @@ export const ReviewProvider = ({ children }) => {
 
   const markHelpful = async (reviewId) => {
     try {
-      // Update review helpful count
+      // Send helpful vote to backend API
+      await apiFetch(`/api/reviews/${reviewId}/helpful`, {
+        method: 'POST'
+      });
+
+      // Update review helpful count locally
       const updatedReviews = state.reviews.map(review =>
         review.id === reviewId
           ? { ...review, helpful: review.helpful + 1 }
@@ -147,7 +142,19 @@ export const ReviewProvider = ({ children }) => {
       );
       
       dispatch({ type: 'SET_REVIEWS', payload: updatedReviews });
+      
+      // Update cache
+      Object.keys(reviewCache).forEach(productId => {
+        const productReviews = reviewCache[productId].map(review =>
+          review.id === reviewId
+            ? { ...review, helpful: review.helpful + 1 }
+            : review
+        );
+        reviewCache[productId] = productReviews;
+      });
+      setReviewCache({ ...reviewCache });
     } catch (error) {
+      console.error('Error marking review helpful:', error);
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
   };

@@ -18,12 +18,10 @@ function HomeNavigation() {
   const [open, setOpen] = useState(false);
 
   const handleToggleMenu = () => {
-    console.log('🍔 Mobile menu toggled:', !open);
     setOpen(!open);
   };
 
   const handleLinkClick = (linkName) => {
-    console.log('🔗 Navigation link clicked:', linkName);
     setOpen(false);
   };
 
@@ -71,7 +69,6 @@ function HomeNavigation() {
             className={({ isActive }) =>
               `nav-link-desktop ${isActive ? 'active' : ''}`
             }
-            onClick={() => console.log('💻 Desktop nav clicked:', link.name)}
           >
             <span className="icon">{link.icon}</span>
             <span>{link.name}</span>

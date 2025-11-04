@@ -13,6 +13,13 @@
   background: linear-gradient(135deg, rgba(255,158,0,1) 0%, rgba(255,132,50,1) 40%, rgba(255,77,77,1) 100%);
 }
 
+/* Reduce the hero min-height on small screens to avoid excessive vertical space
+   and potential overflow on mobile devices. This is a low-risk responsive
+   tweak that preserves desktop visuals. */
+@media (max-width: 640px) {
+  .section { min-height: 420px; }
+}
+
 /* overlays */
 .overlayDark{
   position: absolute;

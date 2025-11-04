@@ -11,6 +11,9 @@
   transition: transform 0.3s ease;
 }
 
+/* Prevent logo container from causing overflow in tight header layouts */
+.capsule-logo-container { min-width: 0; }
+
 .capsule-logo-container:hover {
   transform: scale(1.02);
 }
@@ -38,6 +41,7 @@
   color: #3B4CCA;
   font-size: 1.25rem; /* text-xl */
 }
+.capsule-logo-icon svg { display: block; }
 
 /* Logo Text */
 .capsule-logo-text {
