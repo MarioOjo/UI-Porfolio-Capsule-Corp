@@ -125,7 +125,7 @@ function Cart() {
                           onError={(e) => {
                             try { e.target.onerror = null; } catch {}
 <<<<<<< Updated upstream
-                            // Fallback to gradient background with text if image fails
+                            try { e.target.onerror = null; } catch {}
 =======
 >>>>>>> Stashed changes
                             e.target.style.display = 'none';

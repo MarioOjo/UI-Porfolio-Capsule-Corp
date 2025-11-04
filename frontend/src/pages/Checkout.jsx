@@ -8,7 +8,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
 <<<<<<< Updated upstream
 import { resolveImageSrc } from "../utils/images";
-import Breadcrumb from "../components/Breadcrumb";
+import { resolveImageSrc } from '../utils/images';
 =======
 import { resolveImageSrc } from '../utils/images';
 >>>>>>> Stashed changes
@@ -574,17 +574,10 @@ function Checkout() {
                           }`}>
                             <div className="flex items-center space-x-3 sm:space-x-4">
                               <img 
-<<<<<<< Updated upstream
-                                src={resolveImageSrc(item, 80)} 
-                                alt={item.name}
-                                className="w-16 h-16 object-cover rounded-lg"
-                                onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
-=======
                                 src={resolveImageSrc(item, 300)}
                                 alt={item.name}
                                 className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg"
                                 loading="lazy"
->>>>>>> Stashed changes
                               />
                               <div>
                                 <div className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>
@@ -714,17 +707,10 @@ function Checkout() {
                   <div key={item.id} className="flex justify-between items-start gap-2 sm:gap-3">
                     <div className="flex items-start gap-2 sm:gap-3 flex-1">
                       <img 
-<<<<<<< Updated upstream
-                        src={resolveImageSrc(item, 80)} 
-                        alt={item.name}
-                        className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
-                        onError={(e)=>{ try{ e.target.onerror=null }catch{}; e.target.src='/assets/images/placeholder-80.png'}}
-=======
                         src={resolveImageSrc(item, 80)}
                         alt={item.name}
                         className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                         loading="lazy"
->>>>>>> Stashed changes
                       />
                       <div className="flex-1 min-w-0">
                         <div className={`font-medium text-xs sm:text-sm truncate ${themeClasses.text.primary}`}>
