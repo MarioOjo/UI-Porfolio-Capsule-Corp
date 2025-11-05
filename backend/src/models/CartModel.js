@@ -142,11 +142,10 @@ class CartModel {
 
         // Insert new item
         const insertQuery = `
-          INSERT INTO ${this.table} (user_id, product_id, quantity, metadata) 
-          VALUES (?, ?, ?, ?)
+          INSERT INTO ${this.table} (user_id, product_id, quantity) 
+          VALUES (?, ?, ?)
         `;
-        const metadata = options ? JSON.stringify(options) : null;
-        const result = await this.db.executeQuery(insertQuery, [userId, productId, safeQuantity, metadata]);
+        const result = await this.db.executeQuery(insertQuery, [userId, productId, safeQuantity]);
         
         return {
           action: 'added',
