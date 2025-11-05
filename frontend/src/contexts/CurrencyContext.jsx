@@ -313,7 +313,7 @@ export const CurrencyProvider = ({ children }) => {
 
   // Expose a tiny dev helper so you can call window.__capsule.changeCurrency('ZAR') in the browser console
   useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (typeof window !== 'undefined' && import.meta.env.MODE === 'development') {
       window.__capsule = window.__capsule || {};
       window.__capsule.changeCurrency = changeCurrency;
       window.__capsule.currency = currency;
