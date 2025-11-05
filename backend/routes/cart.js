@@ -117,4 +117,44 @@ router.post('/sync', AuthMiddleware.authenticateToken, asyncHandler(async (req, 
   }
 }));
 
+// POST /api/cart/clear - clear user's cart
+router.post('/clear', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  
+  try {
+    await CartModel.clearCart(userId);
+    res.json({ success: true, cart: [] });
+  } catch (err) {
+    if (isNoSuchTableError(err)) {
+      console.warn('[cart] missing table detected on clear, returning empty cart (temporary)');
+      return res.json({ success: true, cart: [] });
+    }
+    throw err;
+  }
+}));
+
+// POST /api/cart/merge - merge guest cart with user cart (on login/signup)
+router.post('/merge', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const { guestCart } = req.body;
+  
+  if (!Array.isArray(guestCart)) {
+    return res.status(400).json({ error: 'Guest cart must be an array' });
+  }
+  
+  try {
+    const result = await CartModel.mergeCarts(userId, guestCart);
+    const cart = await CartModel.getCart(userId);
+    res.json({ cart, merged: result.merged, failed: result.failed });
+  } catch (err) {
+    if (isNoSuchTableError(err)) {
+      console.warn('[cart] missing table detected on merge, returning empty cart (temporary)');
+      return res.json({ cart: [], merged: 0, failed: guestCart.length });
+    }
+    throw err;
+  }
+}));
+
 module.exports = router;
