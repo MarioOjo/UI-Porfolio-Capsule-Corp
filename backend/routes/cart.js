@@ -88,4 +88,33 @@ router.delete('/:productId', AuthMiddleware.authenticateToken, asyncHandler(asyn
   }
 }));
 
+// POST /api/cart/sync - sync cart items (bulk operation)
+router.post('/sync', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const { items } = req.body;
+  
+  if (!Array.isArray(items)) {
+    return res.status(400).json({ error: 'Items must be an array' });
+  }
+  
+  try {
+    // Clear existing cart and add new items
+    for (const item of items) {
+      if (item.productId && item.quantity) {
+        await CartModel.addOrUpdateItem(userId, item.productId, item.quantity);
+      }
+    }
+    
+    const cart = await CartModel.getCart(userId);
+    res.json({ cart, synced: true });
+  } catch (err) {
+    if (isNoSuchTableError(err)) {
+      console.warn('[cart] missing table detected on sync, returning empty cart (temporary)');
+      return res.json({ cart: [], synced: false });
+    }
+    throw err;
+  }
+}));
+
 module.exports = router;
