@@ -13,6 +13,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import ReviewDisplay from "../components/ReviewSystem";
 import { apiFetch } from "../utils/api";
 import { products as localProducts } from "../data/products";
+import ProductSchema from "../components/SEO/ProductSchema";
 
 function ProductDetail() {
   const { slug } = useParams();
@@ -158,6 +159,7 @@ function ProductDetail() {
   if (!product) {
     return (
       <div className={`min-h-0 ${themeClasses.background} overflow-x-hidden`}>
+        <ProductSchema product={null} />
         <div className="max-w-6xl mx-auto px-4 py-8 sm:py-16">
           <Breadcrumb />
           <div className="text-center mt-8 sm:mt-12">
@@ -184,6 +186,7 @@ function ProductDetail() {
 
   return (
     <div className={`min-h-0 ${themeClasses.background} overflow-x-hidden`}>
+      <ProductSchema product={product} />
       <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8">
         <Breadcrumb />
         

@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow admin and user account pages
+Disallow: /admin
+Disallow: /profile
+Disallow: /orders
+Disallow: /checkout
+Disallow: /cart
+
+# Sitemap location
+Sitemap: https://capsulecorps.dev/sitemap.xml

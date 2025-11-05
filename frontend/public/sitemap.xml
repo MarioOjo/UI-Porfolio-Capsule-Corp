@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://capsulecorps.dev/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <!-- Main Pages -->
+  <url>
+    <loc>https://capsulecorps.dev/products</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/about</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/cart</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <!-- Category Pages -->
+  <url>
+    <loc>https://capsulecorps.dev/products?category=Capsules</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products?category=Training</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products?category=Equipment</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products?category=Transportation</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products?category=Technology</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <!-- Featured Products (add your most important products here) -->
+  <url>
+    <loc>https://capsulecorps.dev/products/house-capsule-pro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products/vehicle-capsule-set</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products/saiyan-armor</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products/gravity-chamber</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products/flying-nimbus-cloud</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://capsulecorps.dev/products/dragon-radar</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-11-05</lastmod>
+  </url>
+  
+  <!-- 
+    NOTE: This is a static sitemap. For automatic sitemap generation
+    based on database products, consider using a backend endpoint:
+    GET /api/sitemap.xml that dynamically generates this XML
+  -->
+</urlset>

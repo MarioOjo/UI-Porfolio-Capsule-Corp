@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import './index.css'
@@ -58,25 +59,27 @@ async function bootstrap() {
 
     createRoot(rootElement).render(
       <StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <ThemeProvider>
-              <NotificationProvider>
-                <CurrencyProvider>
-                  <AuthProvider>
-                    <ReviewProvider>
-                      <CartProvider>
-                        <WishlistProvider>
-                          <App />
-                        </WishlistProvider>
-                      </CartProvider>
-                    </ReviewProvider>
-                  </AuthProvider>
-                </CurrencyProvider>
-              </NotificationProvider>
-            </ThemeProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+        <HelmetProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <ThemeProvider>
+                <NotificationProvider>
+                  <CurrencyProvider>
+                    <AuthProvider>
+                      <ReviewProvider>
+                        <CartProvider>
+                          <WishlistProvider>
+                            <App />
+                          </WishlistProvider>
+                        </CartProvider>
+                      </ReviewProvider>
+                    </AuthProvider>
+                  </CurrencyProvider>
+                </NotificationProvider>
+              </ThemeProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </HelmetProvider>
       </StrictMode>
     );
   } catch (e) {
