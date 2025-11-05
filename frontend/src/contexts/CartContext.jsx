@@ -22,15 +22,37 @@ export function CartProvider({ children }) {
       try {
         if (user && user.id) {
           // Load from backend for authenticated users
-          const res = await apiFetch('/api/cart');
-          const backendCart = Array.isArray(res.cart) ? res.cart : [];
-          setCartItems(backendCart);
-          
-          // Sync localStorage with backend data
           try {
-            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(backendCart));
-          } catch (storageError) {
-            console.warn('Failed to sync cart to localStorage:', storageError);
+            console.log('[CartContext] Loading cart for user:', user.id);
+            const res = await apiFetch('/api/cart');
+            const backendCart = Array.isArray(res.cart) ? res.cart : [];
+            console.log('[CartContext] Loaded cart:', backendCart.length, 'items');
+            setCartItems(backendCart);
+            
+            // Sync localStorage with backend data
+            try {
+              localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(backendCart));
+            } catch (storageError) {
+              console.warn('Failed to sync cart to localStorage:', storageError);
+            }
+          } catch (apiError) {
+            // If backend cart fails, fall back to localStorage gracefully
+            console.warn('[CartContext] Backend cart failed, using localStorage fallback:', apiError.message);
+            const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+            if (savedCart) {
+              try {
+                const parsed = JSON.parse(savedCart);
+                setCartItems(Array.isArray(parsed) ? parsed : []);
+                console.log('[CartContext] Loaded from localStorage:', parsed.length, 'items');
+              } catch (parseError) {
+                console.error('Error parsing cart from localStorage:', parseError);
+                setCartItems([]);
+                localStorage.removeItem(CART_STORAGE_KEY);
+              }
+            } else {
+              setCartItems([]);
+            }
+            // Don't show error to user - graceful degradation
           }
         } else {
           // Load from localStorage for guests
@@ -50,7 +72,7 @@ export function CartProvider({ children }) {
         }
       } catch (error) {
         console.error('Error loading cart:', error);
-        showError('Failed to load your cart. Please refresh the page.');
+        // Only show error for unexpected failures, not backend unavailability
         setCartItems([]);
       } finally {
         setLoading(false);
@@ -71,13 +93,15 @@ export function CartProvider({ children }) {
       if (user && user.id) {
         // Sync to backend for authenticated users
         try {
+          console.log('[CartContext] Syncing cart to backend:', cartToSave.length, 'items');
           await apiFetch('/api/cart/sync', {
             method: 'POST',
             body: JSON.stringify({ items: cartToSave })
           });
+          console.log('[CartContext] Cart synced successfully');
         } catch (apiError) {
-          console.error('Failed to sync cart to backend:', apiError);
-          // Continue with localStorage as fallback
+          console.warn('[CartContext] Failed to sync cart to backend:', apiError.message);
+          // Continue with localStorage as fallback - don't throw error
         }
       }
       
@@ -116,19 +140,43 @@ export function CartProvider({ children }) {
     try {
       if (user && user.id) {
         // Backend operation for authenticated users
-        await apiFetch('/api/cart', {
-          method: 'POST',
-          body: JSON.stringify({ 
-            productId: product.id, 
-            quantity: safeQuantity,
-            options 
-          })
-        });
-        
-        // Refresh cart from backend
-        const res = await apiFetch('/api/cart');
-        const updatedCart = Array.isArray(res.cart) ? res.cart : [];
-        setCartItems(updatedCart);
+        try {
+          console.log('[CartContext] Adding to backend cart - product:', product.id, 'quantity:', safeQuantity);
+          await apiFetch('/api/cart', {
+            method: 'POST',
+            body: JSON.stringify({ 
+              productId: product.id, 
+              quantity: safeQuantity,
+              options 
+            })
+          });
+          
+          // Refresh cart from backend
+          const res = await apiFetch('/api/cart');
+          const updatedCart = Array.isArray(res.cart) ? res.cart : [];
+          setCartItems(updatedCart);
+          showSuccess(`💫 ${product.name} added to cart!`);
+        } catch (apiError) {
+          console.error('[CartContext] Backend add to cart failed:', apiError.message);
+          // Fall back to local cart if backend fails
+          setCartItems(currentItems => {
+            const existingItemIndex = currentItems.findIndex(item => item.id === product.id);
+            
+            if (existingItemIndex >= 0) {
+              const updatedItems = [...currentItems];
+              updatedItems[existingItemIndex] = {
+                ...updatedItems[existingItemIndex],
+                quantity: updatedItems[existingItemIndex].quantity + safeQuantity,
+                cartAddedAt: new Date().toISOString()
+              };
+              showInfo(`🔄 ${product.name} added to local cart (offline mode)`);
+              return updatedItems;
+            } else {
+              showInfo(`💫 ${product.name} added to local cart (offline mode)`);
+              return [...currentItems, { ...finalProduct, quantity: safeQuantity }];
+            }
+          });
+        }
       } else {
         // Local operation for guests
         setCartItems(currentItems => {
