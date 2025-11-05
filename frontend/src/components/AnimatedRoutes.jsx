@@ -7,9 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 // is only fetched when the transition component is rendered.
 const PageTransition = lazy(() => import('./PageTransition'));
 
-// Enhanced loading components with DBZ theme
+// Enhanced loading component
 const LoadingSpinner = lazy(() => import('./LoadingSpinner'));
-const DBZLoadingScreen = lazy(() => import('./DBZLoadingScreen'));
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('../pages/Home'));
@@ -49,95 +48,15 @@ const AdminUsers = lazy(() => import('../pages/Admin/AdminUsers'));
 
 const NotFound = lazy(() => import('../pages/NotFound'));
 
-// Route-specific loading messages
-const getRouteLoadingConfig = (pathname) => {
-  const routeConfigs = {
-    '/': {
-      title: 'WELCOME TO CAPSULE CORP',
-      message: 'Initializing headquarters systems...',
-      type: 'energy'
-    },
-    '/products': {
-      title: 'BROWSE LEGENDARY GEAR',
-      message: 'Scanning capsule inventory for powerful equipment...',
-      type: 'scouter'
-    },
-    '/battle-gear': {
-      title: 'BATTLE GEAR COLLECTION',
-      message: 'Loading combat-ready equipment and weapons...',
-      type: 'battle'
-    },
-    '/capsules': {
-      title: 'CAPSULE TECHNOLOGY',
-      message: 'Accessing portable storage and transportation systems...',
-      type: 'capsule'
-    },
-    '/training': {
-      title: 'TRAINING GROUNDS',
-      message: 'Preparing training equipment and power-up gear...',
-      type: 'training'
-    },
-    '/cart': {
-      title: 'YOUR CAPSULE CART',
-      message: 'Calculating total power level and zeni requirements...',
-      type: 'cart'
-    },
-    '/checkout': {
-      title: 'CHECKOUT PROCESS',
-      message: 'Securing your legendary gear purchase...',
-      type: 'secure'
-    },
-    '/wishlist': {
-      title: 'WARRIOR WISHLIST',
-      message: 'Gathering your desired equipment collection...',
-      type: 'wishlist'
-    },
-    '/auth': {
-      title: 'WARRIOR AUTHENTICATION',
-      message: 'Verifying your power level and credentials...',
-      type: 'auth'
-    },
-    '/profile': {
-      title: 'WARRIOR PROFILE',
-      message: 'Accessing your personal dojo and battle records...',
-      type: 'profile'
-    },
-    '/admin': {
-      title: 'CAPSULE CORP ADMIN',
-      message: 'Initializing corporate management systems...',
-      type: 'admin'
-    }
-  };
-
-  // Find the best matching route
-  const matchedRoute = Object.keys(routeConfigs).find(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  );
-
-  return routeConfigs[matchedRoute] || {
-    title: 'POWERING UP SYSTEMS',
-    message: 'Charging ki energy and loading content...',
-    type: 'default'
-  };
-};
-
 const AnimatedRoutes = () => {
   const location = useLocation();
   const { isDarkMode } = useTheme();
   const { user, isAuthenticated } = useAuth();
 
-  const loadingConfig = getRouteLoadingConfig(location.pathname);
-
-  // Enhanced loading component with DBZ theme
+  // Simple loading component
   const loadingComponent = (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-300`}>
-      <DBZLoadingScreen 
-        title={loadingConfig.title}
-        message={loadingConfig.message}
-        type={loadingConfig.type}
-        user={user}
-        isDarkMode={isDarkMode}
-      />
+    <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors duration-300`}>
+      <LoadingSpinner />
     </div>
   );
 
