@@ -30,8 +30,8 @@ const contactFormValidation = [
     .trim()
     .notEmpty()
     .withMessage('Subject is required')
-    .isLength({ min: 5, max: 200 })
-    .withMessage('Subject must be between 5 and 200 characters'),
+    .isLength({ min: 3, max: 200 })
+    .withMessage('Subject must be between 3 and 200 characters'),
   
   body('message')
     .trim()
@@ -44,7 +44,13 @@ const contactFormValidation = [
     .optional()
     .trim()
     .isIn(['general', 'support', 'sales', 'feedback', 'complaint', 'other'])
-    .withMessage('Invalid category')
+    .withMessage('Invalid category'),
+  
+  body('user_id')
+    .optional(),
+  
+  body('timestamp')
+    .optional()
 ];
 
 module.exports = {
