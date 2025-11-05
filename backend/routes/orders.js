@@ -1,19 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const OrderModel = require('../src/models/OrderModel');
-
-// Middleware to check admin access
-const requireAdmin = (req, res, next) => {
-  // In production, implement proper JWT validation
-  const userEmail = req.headers['x-user-email'];
-  const isAdmin = userEmail?.includes('admin') || userEmail === 'mario@capsulecorp.com';
-  
-  if (!isAdmin) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
-  
-  next();
-};
+const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 
 // Create new order (customer checkout)
 router.post('/', async (req, res) => {
@@ -40,7 +28,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all orders (admin only)
-router.get('/', requireAdmin, async (req, res) => {
+router.get('/', AuthMiddleware.AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const filters = {
       status: req.query.status,
@@ -65,7 +53,7 @@ router.get('/', requireAdmin, async (req, res) => {
 });
 
 // Get order statistics (admin only)
-router.get('/statistics', requireAdmin, async (req, res) => {
+router.get('/statistics', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const { date_from, date_to } = req.query;
     const stats = await OrderModel.getStatistics(date_from, date_to);
@@ -147,7 +135,7 @@ router.get('/user/:userId/stats', async (req, res) => {
 });
 
 // Update order status (admin only)
-router.patch('/:id/status', requireAdmin, async (req, res) => {
+router.patch('/:id/status', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const { status, notes } = req.body;
     
@@ -202,7 +190,7 @@ router.patch('/:id/status', requireAdmin, async (req, res) => {
 });
 
 // Update tracking information (admin only)
-router.patch('/:id/tracking', requireAdmin, async (req, res) => {
+router.patch('/:id/tracking', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const { tracking_number, carrier } = req.body;
     
@@ -223,7 +211,7 @@ router.patch('/:id/tracking', requireAdmin, async (req, res) => {
 });
 
 // Update admin notes (admin only)
-router.patch('/:id/notes', requireAdmin, async (req, res) => {
+router.patch('/:id/notes', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const { notes } = req.body;
     
@@ -240,7 +228,7 @@ router.patch('/:id/notes', requireAdmin, async (req, res) => {
 });
 
 // Delete order (admin only)
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete('/:id', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const deleted = await OrderModel.delete(req.params.id);
     
