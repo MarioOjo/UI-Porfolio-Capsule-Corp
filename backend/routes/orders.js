@@ -31,7 +31,7 @@ router.post('/', createOrderValidation, ValidationMiddleware.handleValidationErr
 });
 
 // Get all orders (admin only)
-router.get('/', AuthMiddleware.AuthMiddleware.requireAdmin, async (req, res) => {
+router.get('/', AuthMiddleware.requireAdmin, async (req, res) => {
   try {
     const filters = {
       status: req.query.status,
