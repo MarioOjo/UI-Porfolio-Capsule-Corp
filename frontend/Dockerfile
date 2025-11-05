@@ -16,6 +16,6 @@ COPY --from=build /app/dist ./dist
 COPY server.js ./server.js
 RUN npm install --production express@4.18.2
 
-ENV PORT=3000
+ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["node", "server.js"]
