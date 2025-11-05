@@ -28,6 +28,7 @@ const app = express();
 // CORS: Allow localhost only for development
 const allowedOrigins = [
   'http://localhost:3000',
+  'https://capsulecorps.dev',
   process.env.FRONTEND_ORIGIN,
   'https://invigorating-mercy-production-9989.up.railway.app'
 ].filter(Boolean);
@@ -41,7 +42,7 @@ app.use(cors({
     callback(null, false);
   },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Request-ID'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 200
 }));
