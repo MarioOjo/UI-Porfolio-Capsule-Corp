@@ -5,7 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
-import { apiFetch } from "../../utils/api";
+import { products as localProducts } from "../../data/products";
 import Price from "../../components/Price";
 import "./ProductCarousel.css";
 
@@ -45,6 +45,12 @@ function ProductCarousel() {
       if (img.startsWith('http://') || img.startsWith('https://')) {
         // Optimize external images with Cloudinary if needed
         if (img.includes('cloudinary.com')) {
+          // Check if URL already has transformations (contains parameters after /upload/)
+          if (img.match(/\/upload\/[^/]+\//)) {
+            // Already has transformations, return as-is to avoid duplicates
+            return img;
+          }
+          // No transformations yet, add them
           return img.replace('/upload/', `/upload/c_fill,w_${size},h_${size},f_auto,q_auto/`);
         }
         return img;
@@ -65,27 +71,34 @@ function ProductCarousel() {
 
   // Fetch products with enhanced error handling
   useEffect(() => {
-    const fetchCarouselProducts = async () => {
+    const loadCarouselProducts = () => {
       try {
         setLoading(true);
         setError(null);
-        // Use the correct API endpoint: /api/products?featured=true
-        const response = await apiFetch('/api/products?featured=true');
         
-        if (response.products && response.products.length > 0) {
-          const enhancedProducts = response.products.slice(0, 6).map(product => ({
-            ...product,
-            powerLevel: Math.floor(Math.random() * 9000) + 1000, // DBZ-themed power level
-            rarity: getRarityLevel(product.price),
-            features: getDBZFeatures(product.category)
-          }));
+        // Use local product data, filter for featured items
+        const featuredProducts = localProducts.filter(p => p.featured).slice(0, 6);
+        
+        if (featuredProducts.length > 0) {
+          const enhancedProducts = featuredProducts.map(product => {
+            // Ensure price is always a valid number
+            const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
+            
+            return {
+              ...product,
+              price: validPrice,
+              powerLevel: Math.floor(Math.random() * 9000) + 1000, // DBZ-themed power level
+              rarity: getRarityLevel(validPrice),
+              features: getDBZFeatures(product.category)
+            };
+          });
           setProducts(enhancedProducts);
         } else {
           setProducts([]);
           setError('No legendary gear found');
         }
       } catch (err) {
-        console.error('Error fetching carousel products:', err);
+        console.error('Error loading carousel products:', err);
         setError('Failed to load legendary equipment');
         setProducts([]);
       } finally {
@@ -93,7 +106,7 @@ function ProductCarousel() {
       }
     };
 
-    fetchCarouselProducts();
+    loadCarouselProducts();
   }, []);
 
   // DBZ-themed product enhancements

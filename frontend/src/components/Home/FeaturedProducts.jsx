@@ -28,13 +28,19 @@ function FeaturedProducts() {
         setError(null);
         
         // Use local product data instead of API
-        const enhancedProducts = localFeaturedProducts.slice(0, 6).map(product => ({
-          ...product,
-          powerLevel: product.powerLevel || Math.floor(Math.random() * 9000) + 1000,
-          rarity: getRarityLevel(product.price || product.originalPrice),
-          category: product.category || 'Battle Gear',
-          features: getProductFeatures(product.category)
-        }));
+        const enhancedProducts = localFeaturedProducts.slice(0, 6).map(product => {
+          // Ensure price is always a valid number
+          const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
+          
+          return {
+            ...product,
+            price: validPrice,
+            powerLevel: product.powerLevel || Math.floor(Math.random() * 9000) + 1000,
+            rarity: getRarityLevel(validPrice),
+            category: product.category || 'Battle Gear',
+            features: getProductFeatures(product.category)
+          };
+        });
         
         setFeaturedProducts(enhancedProducts);
       } catch (err) {
@@ -66,21 +72,6 @@ function FeaturedProducts() {
       'armor': ['Auto-Defense', 'Damage Reduction', 'Regeneration']
     };
     return features[category?.toLowerCase()] || ['Power Boost', 'Enhanced Performance', 'Unique Ability'];
-  };
-
-  const handleAddToCart = (product) => {
-    addToCart(product, 1, {
-      rarity: product.rarity.level,
-      powerLevel: product.powerLevel
-    });
-  };
-
-  const handleToggleWishlist = (product) => {
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(product);
-    }
   };
 
   const filteredProducts = featuredProducts.filter(product => {
@@ -252,27 +243,6 @@ function FeaturedProducts() {
                     showFeatures={true}
                     showPowerLevel={true}
                   />
-
-                  {/* Quick Actions */}
-                  <div className="quick-actions">
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="quick-action-btn cart-btn saiyan-body-sm"
-                    >
-                      <FaShoppingCart />
-                      ADD TO CAPSULE
-                    </button>
-                    
-                    <button
-                      onClick={() => handleToggleWishlist(product)}
-                      className={`quick-action-btn wishlist-btn saiyan-body-sm ${
-                        isInWishlist(product.id) ? 'active' : ''
-                      }`}
-                    >
-                      <FaHeart />
-                      {isInWishlist(product.id) ? 'SAVED' : 'WISHLIST'}
-                    </button>
-                  </div>
                 </div>
               </div>
             ))}
