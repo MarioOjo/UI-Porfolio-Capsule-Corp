@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
-import "./AuthPage.css";
+import './Login.css';
 
 function Login({ onSwitchTab }) {
   const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ function Login({ onSwitchTab }) {
       return;
     }
     if (!validateEmail(email)) {
-      setError("Scouter cannot read this email frequency!");
+      setError("Scouter cannot read this email format!");
       return;
     }
 
@@ -47,11 +47,7 @@ function Login({ onSwitchTab }) {
       await login(email, password, rememberMe);
       showSuccess("🚀 Power level rising! Welcome back, Warrior!", {
         title: "SCOUTER ACTIVATED",
-        duration: 4000,
-        action: {
-          label: "Continue Training",
-          onClick: () => navigate("/dashboard")
-        }
+        duration: 4000
       });
       
       setTimeout(() => {
@@ -85,190 +81,169 @@ function Login({ onSwitchTab }) {
   };
 
   return (
-    <div className={`auth-page ${isDarkMode ? 'dark' : 'light'}`} ref={formRef}>
-      <div className="auth-container">
-        {/* Header */}
-        <div className="auth-header">
-          <div className="auth-logo">
-            <span className="logo-icon">🐉</span>
-            <span className="logo-text">Capsule Corp</span>
+    <div className={`login-container ${isDarkMode ? 'dark' : 'light'}`} ref={formRef}>
+      {/* Demo Accounts */}
+      <div className="demo-section">
+        <h3 className="demo-title">🎮 QUICK TRAINING ACCESS</h3>
+        <div className="demo-grid">
+          {demoAccounts.map((account) => (
+            <button
+              key={account.character}
+              type="button"
+              onClick={() => fillDemoAccount(account)}
+              className="demo-account-btn"
+            >
+              <div className="demo-character">{account.character}</div>
+              <div className="demo-hint">Click to fill</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <GoogleSignInButton variant="primary" />
+      
+      {/* Divider */}
+      <div className="form-divider">
+        <span>OR USE SCOUTER AUTHENTICATION</span>
+      </div>
+
+      {/* Login Form */}
+      <form className="auth-form" onSubmit={handleLogin}>
+        {/* Email Field */}
+        <div className="form-field">
+          <label className="field-label">
+            📡 SCOUTER FREQUENCY
+          </label>
+          <div className="input-wrapper">
+            <FaGlasses className="input-icon" />
+            <input
+              type="email"
+              placeholder="goku@capsulecorp.com"
+              className="form-input"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="auth-content">
-          <div className="auth-card">
-            <div className="auth-title-section">
-              <h1 className="auth-title">WELCOME BACK, WARRIOR</h1>
-              <p className="auth-subtitle">Access your Capsule Corp account and continue your journey!</p>
-            </div>
-
-            {/* Demo Accounts */}
-            <div className="demo-accounts-section">
-              <h3 className="demo-title">🎮 QUICK TRAINING ACCESS</h3>
-              <div className="demo-grid">
-                {demoAccounts.map((account, index) => (
-                  <button
-                    key={account.character}
-                    type="button"
-                    onClick={() => fillDemoAccount(account)}
-                    className="demo-account-btn"
-                  >
-                    <div className="demo-character">{account.character}</div>
-                    <div className="demo-hint">Click to fill</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <GoogleSignInButton variant="primary" />
-            
-            {/* Divider */}
-            <div className="auth-divider">
-              <span>OR USE SCOUTER AUTHENTICATION</span>
-            </div>
-
-            {/* Login Form */}
-            <form className="auth-form" onSubmit={handleLogin}>
-              {/* Email Field */}
-              <div className="form-group">
-                <label className="form-label">
-                  📡 SCOUTER FREQUENCY
-                </label>
-                <div className="input-container">
-                  <FaGlasses className="input-icon" />
-                  <input
-                    type="email"
-                    placeholder="goku@capsulecorp.com"
-                    className="auth-input"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div className="form-group">
-                <div className="password-header">
-                  <label className="form-label">
-                    💪 BATTLE PASSWORD
-                  </label>
-                  <button
-                    type="button"
-                    className="forgot-password-btn"
-                  >
-                    🐉 Forgot Ki Energy?
-                  </button>
-                </div>
-                <div className="input-container">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    placeholder="Channel your ki energy..."
-                    className="auth-input"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPass(s => !s)}
-                    tabIndex={-1}
-                  >
-                    {showPass ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Me */}
-              <div className="form-options">
-                <div className="remember-me">
-                  <input
-                    type="checkbox"
-                    className="checkbox"
-                    checked={rememberMe}
-                    onChange={e => setRememberMe(e.target.checked)}
-                    id="remember"
-                  />
-                  <label htmlFor="remember" className="checkbox-label">
-                    Remember this Scouter
-                  </label>
-                </div>
-                
-                <div className="security-status">
-                  <div className="status-indicator"></div>
-                  <span>Capsule Corp Secure</span>
-                </div>
-              </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="error-message">
-                  <span className="error-icon">⚡</span>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className={`submit-btn ${loading ? 'loading' : ''}`}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="btn-loading">
-                    <FaDragon className="loading-icon" />
-                    <span>POWERING UP SCOUTER...</span>
-                  </span>
-                ) : (
-                  <span className="btn-content">
-                    <FaFistRaised className="btn-icon" />
-                    <span>ACTIVATE SCOUTER</span>
-                  </span>
-                )}
-              </button>
-
-              {/* Security Features */}
-              <div className="security-features">
-                <div className="security-item">
-                  <div className="security-dot ssl"></div>
-                  <span>SSL Encrypted</span>
-                </div>
-                <div className="security-item">
-                  <div className="security-dot power"></div>
-                  <span>Power Level Secure</span>
-                </div>
-                <div className="security-item">
-                  <div className="security-dot verified"></div>
-                  <span>Z-Fighter Verified</span>
-                </div>
-              </div>
-
-              {/* Footer Links */}
-              <div className="auth-footer">
-                <button
-                  type="button"
-                  className="footer-link forgot-link"
-                >
-                  <span>🔮 Use the Dragon Balls</span>
-                  <span className="link-badge">Forgot Password?</span>
-                </button>
-                
-                <div className="footer-divider">
-                  <span>New Warrior?</span>
-                </div>
-                
-                <button
-                  type="button"
-                  className="footer-link signup-link"
-                  onClick={onSwitchTab}
-                >
-                  🐉 JOIN THE Z-FIGHTERS
-                </button>
-              </div>
-            </form>
+        {/* Password Field */}
+        <div className="form-field">
+          <div className="field-header">
+            <label className="field-label">
+              💪 BATTLE PASSWORD
+            </label>
+            <button
+              type="button"
+              className="forgot-password-btn"
+            >
+              🐉 Forgot Ki Energy?
+            </button>
           </div>
+          <div className="input-wrapper">
+            <input
+              type={showPass ? "text" : "password"}
+              placeholder="Channel your ki energy..."
+              className="form-input"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPass(s => !s)}
+              tabIndex={-1}
+            >
+              {showPass ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+        </div>
+
+        {/* Remember Me */}
+        <div className="form-options">
+          <div className="remember-me">
+            <input
+              type="checkbox"
+              className="option-checkbox"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              id="remember"
+            />
+            <label htmlFor="remember" className="option-label">
+              Remember this Scouter
+            </label>
+          </div>
+          
+          <div className="security-status">
+            <div className="status-indicator"></div>
+            <span>Capsule Corp Secure</span>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="error-message">
+            <span className="error-icon">⚡</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className={`submit-btn ${loading ? 'loading' : ''}`}
+          disabled={loading}
+        >
+          {loading ? (
+            <span className="btn-loading">
+              <FaDragon className="loading-icon" />
+              <span>POWERING UP SCOUTER...</span>
+            </span>
+          ) : (
+            <span className="btn-content">
+              <FaFistRaised className="btn-icon" />
+              <span>ACTIVATE SCOUTER</span>
+            </span>
+          )}
+        </button>
+
+        {/* Security Features */}
+        <div className="security-features">
+          <div className="security-item">
+            <div className="security-dot ssl"></div>
+            <span>SSL Encrypted</span>
+          </div>
+          <div className="security-item">
+            <div className="security-dot power"></div>
+            <span>Power Level Secure</span>
+          </div>
+          <div className="security-item">
+            <div className="security-dot verified"></div>
+            <span>Z-Fighter Verified</span>
+          </div>
+        </div>
+      </form>
+
+      {/* Footer Links */}
+      <div className="form-footer">
+        <button
+          type="button"
+          className="footer-link"
+        >
+          <span>🔮 Use the Dragon Balls</span>
+          <span className="link-badge">Forgot Password?</span>
+        </button>
+        
+        <div className="switch-tab-prompt">
+          <span>New Warrior? </span>
+          <button
+            type="button"
+            className="switch-tab-btn"
+            onClick={onSwitchTab}
+          >
+            Join the Z-Fighters
+          </button>
         </div>
       </div>
     </div>

@@ -204,15 +204,39 @@
 .product-tag { font-size: 0.75rem; background-color: #FFEDD5; color: #EA580C; padding: 0.25rem 0.5rem; border-radius: 9999px; font-weight: 500; }
 
 /* Price Section */
-.price-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.price-container { display: flex; align-items: center; }
-.original-price { font-size: 0.75rem; color: var(--product-card-gray); text-decoration: line-through; margin-right: 0.5rem; }
+.price-section { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  margin-bottom: 1rem;
+  min-height: 2.5rem; /* Ensure consistent height */
+}
+.price-container { 
+  display: flex; 
+  align-items: center; 
+  flex-wrap: wrap; /* Allow wrapping for long prices */
+  gap: 0.25rem; /* Add small gap between elements */
+  width: 100%; /* Take full width */
+}
+.original-price { 
+  font-size: 0.75rem; 
+  color: var(--product-card-gray); 
+  text-decoration: line-through; 
+  white-space: nowrap; /* Prevent breaking */
+}
 @media (min-width: 640px) { .original-price { font-size: 0.875rem; } }
-.current-price { font-weight: 800; color: #34D399; font-family: var(--font-saiyan, 'Inter', sans-serif); }
-.current-price-small { font-size: 1rem; }
-.current-price-medium { font-size: 1.125rem; }
-@media (min-width: 640px) { .current-price-medium { font-size: 1.25rem; } }
-.current-price-large { font-size: 1.5rem; }
+.current-price { 
+  font-weight: 800; 
+  color: #34D399; 
+  font-family: var(--font-saiyan, 'Inter', sans-serif);
+  white-space: nowrap; /* Prevent price from breaking */
+  flex-shrink: 0; /* Don't shrink the price */
+}
+.current-price-small { font-size: 0.95rem; } /* Slightly smaller for better fit */
+.current-price-medium { font-size: 1rem; }
+@media (min-width: 640px) { .current-price-medium { font-size: 1.125rem; } }
+.current-price-large { font-size: 1.25rem; }
+@media (min-width: 640px) { .current-price-large { font-size: 1.5rem; } }
 .stock-warning { font-size: 0.75rem; color: var(--product-card-red); font-weight: 500; }
 @media (max-width: 640px) { .stock-warning { display: none; } }
 

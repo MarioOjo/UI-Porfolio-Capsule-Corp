@@ -133,11 +133,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signup = async (email, password, firstName = '', lastName = '') => {
+  const signup = async (userData) => {
     try {
+      // If called with old signature (email, password, firstName, lastName), convert to object
+      if (typeof userData === 'string') {
+        const [email, password, firstName = '', lastName = ''] = arguments;
+        const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        userData = { email, password, username, firstName, lastName };
+      }
+      
       const res = await apiFetch('/api/auth/signup', {
         method: 'POST',
-        body: JSON.stringify({ email, password, firstName, lastName })
+        body: JSON.stringify(userData)
       });
       if (res.user) setUser(res.user);
       if (res.token) localStorage.setItem('authToken', res.token);

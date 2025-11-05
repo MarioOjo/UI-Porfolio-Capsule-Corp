@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FaBox, FaEye, FaTruck, FaCheckCircle, FaClock, FaTimes, FaSearch } from 'react-icons/fa';
 import Price from '../../components/Price';
 import { resolveImageSrc } from '../../utils/images';
-import apiFetch from '../../utils/api';
-import { resolveImageSrc } from '../../utils/images';
+import { apiFetch } from '../../utils/api';
 
 const OrderHistory = () => {
   const { user } = useAuth();
@@ -231,15 +230,7 @@ const OrderHistory = () => {
                         {order.items && order.items.map((item) => (
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                              src={resolveImageSrc({ image: item.image }, 80)}
-=======
-                              src={resolveImageSrc(item, 80)}
->>>>>>> Stashed changes
-=======
-                              src={resolveImageSrc(item, 80)}
->>>>>>> Stashed changes
+                              src={item.image}
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                               onError={(e) => {

@@ -1,6 +1,6 @@
 import { FaShieldAlt, FaHeart, FaFistRaised, FaDragon, FaBolt, FaCapsules, FaRegCopyright } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../contexts/ThemeContext";
 import './AuthFooter.css';
 
 function AuthFooter({ className = "" }) {

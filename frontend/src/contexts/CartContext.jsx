@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNotifications } from './NotificationContext';
 import { useAuth } from "./AuthContext";
 import apiFetch from '../utils/api';
@@ -7,209 +7,430 @@ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
-  const { showSuccess, showInfo } = useNotifications();
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const { showSuccess, showInfo, showError } = useNotifications();
+  const { user, authInitialized } = useAuth();
+
+  // Enhanced cart storage key
+  const CART_STORAGE_KEY = 'capsule-cart-v2';
 
   // Load cart from backend or localStorage on mount/login
   useEffect(() => {
     async function loadCart() {
-      if (user && user.id) {
-        try {
+      setLoading(true);
+      try {
+        if (user && user.id) {
+          // Load from backend for authenticated users
           const res = await apiFetch('/api/cart');
-          setCartItems(Array.isArray(res.cart) ? res.cart : []);
-        } catch (e) {
-          console.error('Error loading cart from backend:', e);
-          // Fallback to empty cart on error
-          setCartItems([]);
-        }
-      } else {
-        const savedCart = localStorage.getItem('capsule-cart');
-        if (savedCart) {
+          const backendCart = Array.isArray(res.cart) ? res.cart : [];
+          setCartItems(backendCart);
+          
+          // Sync localStorage with backend data
           try {
-            const parsed = JSON.parse(savedCart);
-            setCartItems(Array.isArray(parsed) ? parsed : []);
-          } catch (error) {
-            console.error('Error parsing cart from localStorage:', error);
-            setCartItems([]);
-            localStorage.removeItem('capsule-cart'); // Clear corrupted data
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(backendCart));
+          } catch (storageError) {
+            console.warn('Failed to sync cart to localStorage:', storageError);
           }
         } else {
-          setCartItems([]);
+          // Load from localStorage for guests
+          const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+          if (savedCart) {
+            try {
+              const parsed = JSON.parse(savedCart);
+              setCartItems(Array.isArray(parsed) ? parsed : []);
+            } catch (error) {
+              console.error('Error parsing cart from localStorage:', error);
+              setCartItems([]);
+              localStorage.removeItem(CART_STORAGE_KEY);
+            }
+          } else {
+            setCartItems([]);
+          }
         }
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        showError('Failed to load your cart. Please refresh the page.');
+        setCartItems([]);
+      } finally {
+        setLoading(false);
+        setLastUpdated(new Date());
       }
     }
-    loadCart();
+
+    if (authInitialized) {
+      loadCart();
+    }
+  }, [user, authInitialized, showError]);
+
+  // Enhanced save cart function
+  const saveCartToStorage = useCallback(async (items) => {
+    const cartToSave = Array.isArray(items) ? items : [];
+    
+    try {
+      if (user && user.id) {
+        // Sync to backend for authenticated users
+        try {
+          await apiFetch('/api/cart/sync', {
+            method: 'POST',
+            body: JSON.stringify({ items: cartToSave })
+          });
+        } catch (apiError) {
+          console.error('Failed to sync cart to backend:', apiError);
+          // Continue with localStorage as fallback
+        }
+      }
+      
+      // Always save to localStorage as backup
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartToSave));
+    } catch (storageError) {
+      console.error('Failed to save cart to storage:', storageError);
+      // Silently fail - localStorage might be full or disabled
+    }
   }, [user]);
 
-  // Save cart to localStorage whenever it changes (guests only)
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (!user || !user.id) {
-      try {
-        localStorage.setItem('capsule-cart', JSON.stringify(Array.isArray(cartItems) ? cartItems : []));
-      } catch (error) {
-        console.error('Error saving cart to localStorage:', error);
-        // Silently fail - localStorage might be full or disabled
-      }
+    if (cartItems.length > 0 || lastUpdated) {
+      saveCartToStorage(cartItems);
     }
-  }, [cartItems, user]);
+  }, [cartItems, lastUpdated, saveCartToStorage]);
 
-  const addToCart = async (product, quantity = 1) => {
-    // Defensive: ensure product exists and has required fields
+  // Enhanced add to cart with better validation and options
+  const addToCart = useCallback(async (product, quantity = 1, options = {}) => {
+    // Enhanced validation
     if (!product || !product.id || !product.name) {
       console.error('Invalid product passed to addToCart:', product);
-      return;
+      showError('Invalid product. Please try again.');
+      return false;
     }
 
-    // Defensive: ensure quantity is positive
-    const safeQuantity = Math.max(1, parseInt(quantity) || 1);
+    // Enhanced quantity validation
+    const safeQuantity = Math.max(1, Math.min(999, parseInt(quantity) || 1));
+    const finalProduct = {
+      ...product,
+      cartAddedAt: new Date().toISOString(),
+      cartOptions: options
+    };
 
-    if (user && user.id) {
-      try {
+    try {
+      if (user && user.id) {
+        // Backend operation for authenticated users
         await apiFetch('/api/cart', {
           method: 'POST',
-          body: JSON.stringify({ productId: product.id, quantity: safeQuantity })
+          body: JSON.stringify({ 
+            productId: product.id, 
+            quantity: safeQuantity,
+            options 
+          })
         });
-        showSuccess(`💫 ${product.name} added to cart!`);
+        
         // Refresh cart from backend
         const res = await apiFetch('/api/cart');
-        setCartItems(Array.isArray(res.cart) ? res.cart : []);
-      } catch (e) {
-        console.error('Error adding to cart:', e);
-        showInfo('⚠️ Could not add to cart. Please try again.');
+        const updatedCart = Array.isArray(res.cart) ? res.cart : [];
+        setCartItems(updatedCart);
+      } else {
+        // Local operation for guests
+        setCartItems(currentItems => {
+          const existingItemIndex = currentItems.findIndex(item => item.id === product.id);
+          
+          if (existingItemIndex >= 0) {
+            // Update existing item
+            const updatedItems = [...currentItems];
+            updatedItems[existingItemIndex] = {
+              ...updatedItems[existingItemIndex],
+              quantity: updatedItems[existingItemIndex].quantity + safeQuantity,
+              cartAddedAt: new Date().toISOString()
+            };
+            showInfo(`🔄 Updated ${product.name} quantity in cart!`);
+            return updatedItems;
+          } else {
+            // Add new item
+            showSuccess(`💫 ${product.name} added to cart!`);
+            return [...currentItems, { ...finalProduct, quantity: safeQuantity }];
+          }
+        });
       }
-    } else {
-      setCartItems(currentItems => {
-        const existingItem = currentItems.find(item => item.id === product.id);
-        if (existingItem) {
-          showInfo(`🔄 Updated ${product.name} quantity in cart!`);
-          return currentItems.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + safeQuantity }
-              : item
-          );
-        } else {
-          showSuccess(`💫 ${product.name} added to cart!`);
-          return [...currentItems, { ...product, quantity: safeQuantity }];
-        }
-      });
+      
+      setLastUpdated(new Date());
+      return true;
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      showError('⚠️ Could not add to cart. Please try again.');
+      return false;
     }
-  };
+  }, [user, showSuccess, showInfo, showError]);
 
-  const removeFromCart = async (productId) => {
-    // Defensive: validate productId
+  // Enhanced remove from cart
+  const removeFromCart = useCallback(async (productId) => {
     if (!productId) {
       console.error('Invalid productId in removeFromCart');
-      return;
+      return false;
     }
 
-    if (user && user.id) {
-      try {
+    const itemToRemove = cartItems.find(item => item?.id === productId);
+    
+    try {
+      if (user && user.id) {
         await apiFetch(`/api/cart/${productId}`, { method: 'DELETE' });
-        showInfo('🗑️ Item removed from cart');
         const res = await apiFetch('/api/cart');
         setCartItems(Array.isArray(res.cart) ? res.cart : []);
-      } catch (e) {
-        console.error('Error removing from cart:', e);
-        showInfo('⚠️ Could not remove item. Please try again.');
+      } else {
+        setCartItems(currentItems => {
+          const filteredItems = currentItems.filter(item => item?.id !== productId);
+          if (itemToRemove && itemToRemove.name) {
+            showInfo(`🗑️ ${itemToRemove.name} removed from cart`);
+          }
+          return filteredItems;
+        });
       }
-    } else {
-      setCartItems(currentItems => {
-        const item = currentItems.find(item => item?.id === productId);
-        if (item && item.name) {
-          showInfo(`🗑️ ${item.name} removed from cart`);
-        }
-        return currentItems.filter(item => item?.id !== productId);
-      });
+      
+      setLastUpdated(new Date());
+      return true;
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      showError('⚠️ Could not remove item. Please try again.');
+      return false;
     }
-  };
+  }, [user, cartItems, showInfo, showError]);
 
-  const updateQuantity = async (productId, quantity) => {
-    // Defensive: validate inputs
+  // Enhanced update quantity with bounds checking
+  const updateQuantity = useCallback(async (productId, quantity) => {
     if (!productId) {
       console.error('Invalid productId in updateQuantity');
-      return;
+      return false;
     }
 
-    const safeQuantity = parseInt(quantity) || 0;
+    const safeQuantity = Math.max(0, Math.min(999, parseInt(quantity) || 0));
     
     if (safeQuantity <= 0) {
-      await removeFromCart(productId);
-      return;
+      return await removeFromCart(productId);
     }
 
-    if (user && user.id) {
-      try {
+    try {
+      if (user && user.id) {
         await apiFetch(`/api/cart/${productId}`, {
           method: 'PUT',
           body: JSON.stringify({ quantity: safeQuantity })
         });
         const res = await apiFetch('/api/cart');
         setCartItems(Array.isArray(res.cart) ? res.cart : []);
-      } catch (e) {
-        console.error('Error updating cart quantity:', e);
-        showInfo('⚠️ Could not update quantity. Please try again.');
+      } else {
+        setCartItems(currentItems =>
+          currentItems.map(item =>
+            item.id === productId ? { ...item, quantity: safeQuantity } : item
+          )
+        );
       }
-    } else {
-      setCartItems(currentItems =>
-        currentItems.map(item =>
-          item.id === productId ? { ...item, quantity: safeQuantity } : item
-        )
-      );
+      
+      setLastUpdated(new Date());
+      return true;
+    } catch (error) {
+      console.error('Error updating cart quantity:', error);
+      showError('⚠️ Could not update quantity. Please try again.');
+      return false;
     }
-  };
+  }, [user, removeFromCart, showError]);
 
-  const clearCart = async () => {
-    if (user && user.id) {
-      try {
-        // Remove all items one by one
-        for (const item of cartItems) {
-          await apiFetch(`/api/cart/${item.id}`, { method: 'DELETE' });
-        }
-        setCartItems([]);
-        showInfo('🧹 Cart cleared');
-      } catch (e) {
-        console.error('Error clearing cart:', e);
+  // Enhanced clear cart with confirmation
+  const clearCart = useCallback(async () => {
+    try {
+      if (user && user.id) {
+        // Clear all items from backend
+        await apiFetch('/api/cart/clear', { method: 'POST' });
       }
-    } else {
+      
       setCartItems([]);
-      showInfo('🧹 Cart cleared');
+      setLastUpdated(new Date());
+      showInfo('🧹 Cart cleared successfully');
+      return true;
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      showError('⚠️ Could not clear cart. Please try again.');
+      return false;
     }
-  };
+  }, [user, showInfo, showError]);
 
-  const getCartTotal = () => {
-    if (!Array.isArray(cartItems)) return 0;
+  // Enhanced cart total calculation
+  const getCartTotal = useCallback(() => {
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
+    
     return cartItems.reduce((total, item) => {
       const price = parseFloat(item?.price) || 0;
       const qty = parseInt(item?.quantity) || 0;
       return total + (price * qty);
     }, 0);
-  };
+  }, [cartItems]);
 
-  const getCartCount = () => {
+  // Enhanced cart count calculation
+  const getCartCount = useCallback(() => {
     if (!Array.isArray(cartItems)) return 0;
+    
     return cartItems.reduce((total, item) => {
       const qty = parseInt(item?.quantity) || 0;
       return total + qty;
     }, 0);
-  };
+  }, [cartItems]);
 
-  const getItemQuantity = (productId) => {
+  // Enhanced item quantity getter
+  const getItemQuantity = useCallback((productId) => {
     if (!Array.isArray(cartItems)) return 0;
+    
     const item = cartItems.find(item => item?.id === productId);
     return item ? parseInt(item.quantity) || 0 : 0;
+  }, [cartItems]);
+
+  // Check if product is in cart
+  const isInCart = useCallback((productId) => {
+    return cartItems.some(item => item?.id === productId);
+  }, [cartItems]);
+
+  // Get cart item by ID
+  const getCartItem = useCallback((productId) => {
+    return cartItems.find(item => item?.id === productId) || null;
+  }, [cartItems]);
+
+  // Merge guest cart with user cart on login
+  const mergeCarts = useCallback(async (guestCart) => {
+    if (!user || !user.id) return false;
+
+    try {
+      const mergedItems = [...cartItems];
+      const guestItems = Array.isArray(guestCart) ? guestCart : [];
+
+      for (const guestItem of guestItems) {
+        const existingItemIndex = mergedItems.findIndex(item => item.id === guestItem.id);
+        
+        if (existingItemIndex >= 0) {
+          // Merge quantities
+          mergedItems[existingItemIndex].quantity += guestItem.quantity;
+        } else {
+          // Add new item
+          mergedItems.push(guestItem);
+        }
+      }
+
+      // Update backend with merged cart
+      await apiFetch('/api/cart/merge', {
+        method: 'POST',
+        body: JSON.stringify({ items: mergedItems })
+      });
+
+      // Refresh from backend
+      const res = await apiFetch('/api/cart');
+      setCartItems(Array.isArray(res.cart) ? res.cart : []);
+      setLastUpdated(new Date());
+
+      // Clear guest cart
+      localStorage.removeItem(CART_STORAGE_KEY);
+      
+      return true;
+    } catch (error) {
+      console.error('Error merging carts:', error);
+      return false;
+    }
+  }, [user, cartItems]);
+
+  // Calculate cart statistics
+  const getCartStats = useCallback(() => {
+    const total = getCartTotal();
+    const count = getCartCount();
+    const itemCount = cartItems.length;
+    const hasFreeShipping = total > 500;
+    const freeShippingRemaining = Math.max(0, 500 - total);
+
+    return {
+      total,
+      count,
+      itemCount,
+      hasFreeShipping,
+      freeShippingRemaining,
+      freeShippingProgress: Math.min((total / 500) * 100, 100)
+    };
+  }, [cartItems, getCartTotal, getCartCount]);
+
+  // Export cart data (for sharing/backup)
+  const exportCart = useCallback(() => {
+    return {
+      items: cartItems,
+      totals: getCartStats(),
+      exportedAt: new Date().toISOString(),
+      version: '2.0'
+    };
+  }, [cartItems, getCartStats]);
+
+  // Import cart data
+  const importCart = useCallback(async (cartData) => {
+    if (!cartData || !Array.isArray(cartData.items)) {
+      showError('Invalid cart data format');
+      return false;
+    }
+
+    try {
+      setCartItems(cartData.items);
+      setLastUpdated(new Date());
+      showSuccess('Cart imported successfully');
+      return true;
+    } catch (error) {
+      console.error('Error importing cart:', error);
+      showError('Failed to import cart');
+      return false;
+    }
+  }, [showSuccess, showError]);
+
+  // Validate cart items (remove invalid items)
+  const validateCart = useCallback(() => {
+    setCartItems(currentItems => {
+      const validItems = currentItems.filter(item => 
+        item && 
+        item.id && 
+        item.name && 
+        item.price != null &&
+        item.quantity > 0
+      );
+
+      if (validItems.length !== currentItems.length) {
+        showInfo('Removed invalid items from cart');
+      }
+
+      return validItems;
+    });
+  }, [showInfo]);
+
+  // Context value
+  const contextValue = {
+    // State
+    cartItems,
+    loading,
+    lastUpdated,
+    
+    // Core actions
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    
+    // Getters
+    getCartTotal,
+    getCartCount,
+    getItemQuantity,
+    isInCart,
+    getCartItem,
+    
+    // Enhanced features
+    getCartStats,
+    mergeCarts,
+    exportCart,
+    importCart,
+    validateCart,
+    
+    // Utility
+    hasItems: cartItems.length > 0,
+    isEmpty: cartItems.length === 0
   };
 
   return (
-    <CartContext.Provider value={{
-      cartItems,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      getCartTotal,
-      getCartCount,
-      getItemQuantity,
-    }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

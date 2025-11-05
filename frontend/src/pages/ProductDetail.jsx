@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaStar, FaArrowLeft, FaMinus, FaPlus, FaCheckCircle, FaBolt } from "react-icons/fa";
-import { apiFetch } from "../utils/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
@@ -12,6 +11,8 @@ import Price from "../components/Price";
 import Breadcrumb from "../components/Breadcrumb";
 import { useTheme } from "../contexts/ThemeContext";
 import ReviewDisplay from "../components/ReviewSystem";
+import { apiFetch } from "../utils/api";
+import { products as localProducts } from "../data/products";
 
 function ProductDetail() {
   const { slug } = useParams();
@@ -54,37 +55,54 @@ function ProductDetail() {
   };
 
   useEffect(() => {
-    const fetchProductAndRelated = async () => {
+    const loadProductAndRelated = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Fetch product by slug
-        const productResponse = await apiFetch(`/api/products/slug/${slug}`);
+        // Try to fetch from API first (for database products)
+        try {
+          const data = await apiFetch(`/api/products/slug/${slug}`);
+          if (data && data.id) {
+            setProduct(data);
+            
+            // Get related products from same category
+            const relatedData = await apiFetch(`/api/products?category=${encodeURIComponent(data.category)}`);
+            const related = (relatedData || [])
+              .filter(p => p.id !== data.id)
+              .slice(0, 4);
+            setRelatedProducts(related);
+            setLoading(false);
+            return; // Successfully loaded from API
+          }
+        } catch (apiError) {
+          console.warn('API fetch failed, trying local data:', apiError);
+        }
         
-        if (productResponse.product) {
-          setProduct(productResponse.product);
+        // Fallback to local data if API fails
+        const foundProduct = localProducts.find(p => p.slug === slug);
+        
+        if (foundProduct) {
+          setProduct(foundProduct);
           
-          // Fetch related products from same category
-          const relatedResponse = await apiFetch(`/api/products?category=${encodeURIComponent(productResponse.product.category)}&limit=5`);
-          const related = (relatedResponse.products || [])
-            .filter(p => p.id !== productResponse.product.id)
+          // Get related products from same category
+          const related = localProducts
+            .filter(p => p.category === foundProduct.category && p.id !== foundProduct.id)
             .slice(0, 4);
           setRelatedProducts(related);
         } else {
-          navigate('/products');
+          setError('Product not found');
         }
       } catch (err) {
-        console.error('Error fetching product:', err);
+        console.error('Error loading product:', err);
         setError('Product not found');
-        navigate('/products');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProductAndRelated();
-  }, [slug, navigate]);
+    loadProductAndRelated();
+  }, [slug]);
 
   // Preload selected image and update imageLoaded when ready
   useEffect(() => {

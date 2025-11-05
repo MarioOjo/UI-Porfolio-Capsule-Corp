@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart Image Debug Tool</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    h2 {
+      color: #764ba2;
+      margin-top: 0;
+    }
+    pre {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .item-card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #e1e8ed;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .item-card img {
+      max-width: 100px;
+      border-radius: 6px;
+      border: 2px solid #ddd;
+    }
+    .item-header {
+      display: flex;
+      gap: 15px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+    .item-details {
+      flex: 1;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    .status.ok {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .status.placeholder {
+      background: #fff3cd;
+      color: #856404;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 5px;
+    }
+    button:hover {
+      background: #764ba2;
+    }
+    .url-display {
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 12px;
+      background: #f1f3f5;
+      padding: 8px;
+      border-radius: 4px;
+      margin: 5px 0;
+    }
+    .property {
+      margin: 8px 0;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .property-label {
+      font-weight: 600;
+      color: #667eea;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛒 Cart Image Debug Tool</h1>
+    
+    <div class="section">
+      <h2>LocalStorage Cart Data</h2>
+      <button onclick="loadCartData()">Load Cart from LocalStorage</button>
+      <button onclick="clearCart()">Clear Cart</button>
+      <div id="cart-data"></div>
+    </div>
+
+    <div class="section">
+      <h2>Cart Items Analysis</h2>
+      <div id="cart-items"></div>
+    </div>
+
+    <div class="section">
+      <h2>Image Resolution Test</h2>
+      <div id="resolution-test"></div>
+    </div>
+  </div>
+
+  <script>
+    // Copy of resolveImageSrc from images.js
+    const CLOUDINARY_BASE = 'https://res.cloudinary.com/dx8wt3el4/image/upload';
+    
+    function resolveImageSrc(input, size = 300) {
+      let img = null;
+      if (typeof input === 'string' || Array.isArray(input)) {
+        img = input;
+      } else if (input && typeof input === 'object') {
+        img = input.image || input.images || input.gallery || null;
+      }
+      try {
+        if (!img) return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+        if (typeof img === 'string' && img.trim().startsWith('[')) {
+          const parsed = JSON.parse(img);
+          if (Array.isArray(parsed) && parsed.length) img = parsed[0];
+        }
+        if (Array.isArray(img)) img = img[0];
+        if (!img || typeof img !== 'string') return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+        img = img.trim();
+        if (img.startsWith('http://') || img.startsWith('https://')) {
+          if (img.includes('cloudinary.com')) {
+            if (img.match(/\/upload\/[^/]+\//)) {
+              return img;
+            }
+            return img.replace('/upload/', `/upload/c_fill,w_${size===80?80:400},h_${size===80?80:400},g_center/`);
+          }
+          return img;
+        }
+        if (/^[\w-]+\.[a-z]{2,4}$/i.test(img) || img.indexOf('/') === -1) {
+          return `${CLOUDINARY_BASE}/c_fill,w_${size===80?80:400},h_${size===80?80:400},g_center/${img}`;
+        }
+        return img.startsWith('/') ? img : `/${img}`;
+      } catch (e) {
+        return `/assets/images/placeholder-${size === 80 ? '80' : '300'}.png`;
+      }
+    }
+
+    function loadCartData() {
+      const cartJson = localStorage.getItem('capsule-cart');
+      const cartDataEl = document.getElementById('cart-data');
+      const cartItemsEl = document.getElementById('cart-items');
+      const resolutionTestEl = document.getElementById('resolution-test');
+      
+      if (!cartJson) {
+        cartDataEl.innerHTML = '<p>No cart data found in localStorage</p>';
+        cartItemsEl.innerHTML = '';
+        resolutionTestEl.innerHTML = '';
+        return;
+      }
+
+      try {
+        const cart = JSON.parse(cartJson);
+        
+        // Display raw JSON
+        cartDataEl.innerHTML = `
+          <p><strong>Found ${cart.length} item(s) in cart</strong></p>
+          <pre>${JSON.stringify(cart, null, 2)}</pre>
+        `;
+
+        // Analyze each item
+        let itemsHtml = '';
+        cart.forEach((item, index) => {
+          const hasImage = !!(item.image || item.images || item.gallery);
+          const resolved80 = resolveImageSrc(item, 80);
+          const resolved300 = resolveImageSrc(item, 300);
+          const isPlaceholder80 = resolved80.includes('placeholder');
+          const isPlaceholder300 = resolved300.includes('placeholder');
+
+          itemsHtml += `
+            <div class="item-card">
+              <div class="item-header">
+                <div>
+                  <img src="${resolved80}" alt="${item.name}" 
+                       onerror="this.style.border='2px solid red'">
+                </div>
+                <div class="item-details">
+                  <h3>${item.name || 'Unnamed Product'} 
+                    <span class="status ${hasImage ? 'ok' : 'error'}">
+                      ${hasImage ? 'Has Image Data' : 'Missing Image'}
+                    </span>
+                    ${isPlaceholder80 ? '<span class="status placeholder">Using Placeholder</span>' : ''}
+                  </h3>
+                  <div class="property">
+                    <span class="property-label">ID:</span> ${item.id}
+                  </div>
+                  <div class="property">
+                    <span class="property-label">Price:</span> $${item.price}
+                  </div>
+                  <div class="property">
+                    <span class="property-label">Quantity:</span> ${item.quantity}
+                  </div>
+                  <div class="property">
+                    <span class="property-label">item.image:</span> 
+                    <code>${item.image || 'undefined'}</code>
+                  </div>
+                  <div class="property">
+                    <span class="property-label">item.images:</span> 
+                    <code>${JSON.stringify(item.images) || 'undefined'}</code>
+                  </div>
+                  <div class="property">
+                    <span class="property-label">item.gallery:</span> 
+                    <code>${JSON.stringify(item.gallery) || 'undefined'}</code>
+                  </div>
+                </div>
+              </div>
+              <div class="property">
+                <span class="property-label">Resolved URL (80px):</span>
+                <div class="url-display">${resolved80}</div>
+              </div>
+              <div class="property">
+                <span class="property-label">Resolved URL (300px):</span>
+                <div class="url-display">${resolved300}</div>
+              </div>
+            </div>
+          `;
+        });
+
+        cartItemsEl.innerHTML = itemsHtml || '<p>No items to display</p>';
+
+        // Resolution test
+        if (cart.length > 0) {
+          const testItem = cart[0];
+          resolutionTestEl.innerHTML = `
+            <h3>Testing first item: ${testItem.name}</h3>
+            <div style="display: flex; gap: 20px; margin-top: 20px;">
+              <div>
+                <h4>80px version</h4>
+                <img src="${resolveImageSrc(testItem, 80)}" alt="80px test" style="max-width: 200px;">
+                <p class="url-display">${resolveImageSrc(testItem, 80)}</p>
+              </div>
+              <div>
+                <h4>300px version</h4>
+                <img src="${resolveImageSrc(testItem, 300)}" alt="300px test" style="max-width: 200px;">
+                <p class="url-display">${resolveImageSrc(testItem, 300)}</p>
+              </div>
+            </div>
+          `;
+        }
+
+      } catch (e) {
+        cartDataEl.innerHTML = `<p style="color: red;">Error parsing cart data: ${e.message}</p>`;
+      }
+    }
+
+    function clearCart() {
+      if (confirm('Are you sure you want to clear the cart from localStorage?')) {
+        localStorage.removeItem('capsule-cart');
+        alert('Cart cleared! Reload the page.');
+        loadCartData();
+      }
+    }
+
+    // Auto-load on page load
+    window.addEventListener('load', loadCartData);
+  </script>
+</body>
+</html>

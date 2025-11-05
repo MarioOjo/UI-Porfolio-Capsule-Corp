@@ -4,18 +4,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useCart } from "../contexts/CartContext";
 import Price from "../components/Price";
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-import { resolveImageSrc } from "../utils/images";
-=======
 import { resolveImageSrc } from '../utils/images';
->>>>>>> Stashed changes
-=======
-import { resolveImageSrc } from '../utils/images';
->>>>>>> Stashed changes
 
 function Wishlist() {
-  const { user, loading: authLoading, authInitialized } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { wishlistItems, removeFromWishlist, loading: wishlistLoading } = useWishlist();
   const { addToCart } = useCart();
 
@@ -23,18 +15,14 @@ function Wishlist() {
     addToCart(item);
   };
 
-  const handleRemoveFromWishlist = (itemId) => {
-    removeFromWishlist(itemId);
-  };
-
   // Show loading while auth is initializing
-  if (authLoading || !authInitialized) {
+  if (authLoading) {
     return (
-      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300 font-saiyan">Powering up...</p>
+            <p className="text-gray-600 font-saiyan">Powering up...</p>
           </div>
         </div>
       </div>
@@ -43,14 +31,14 @@ function Wishlist() {
 
   if (!user) {
     return (
-      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
-            <FaHeart className="text-6xl text-gray-300 dark:text-gray-600 mx-auto mb-6" />
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 font-saiyan">
+            <FaHeart className="text-6xl text-gray-300 mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4 font-saiyan">
               SAIYAN WISHLIST
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-8">
+            <p className="text-gray-600 mb-8">
               Login to save your favorite Capsule Corp. gear for later!
             </p>
             <Link
@@ -68,11 +56,11 @@ function Wishlist() {
   // Show loading while wishlist is being fetched
   if (wishlistLoading) {
     return (
-      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50">
         <div className="max-w-4xl mx-auto px-4 py-16">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-300 font-saiyan">Loading your wishlist...</p>
+            <p className="text-gray-600 font-saiyan">Loading your wishlist...</p>
           </div>
         </div>
       </div>
@@ -80,26 +68,26 @@ function Wishlist() {
   }
 
   return (
-    <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 overflow-x-hidden">
-      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8">
+    <div className="min-h-0 bg-gradient-to-br from-blue-50 to-orange-50 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto px-4 py-4 sm:py-8 p-4">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl xs:text-base sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-4 font-saiyan flex items-center">
+          <h1 className="text-2xl xs:text-base sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 font-saiyan flex items-center">
             <FaHeart className="text-red-500 mr-2 sm:mr-4 text-xl sm:text-3xl" />
             <span className="hidden sm:inline">SAIYAN WISHLIST</span>
             <span className="sm:hidden">WISHLIST</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-            Your saved Capsule Corp. gear ({wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'})
+          <p className="text-gray-600 text-sm sm:text-base">
+            Your saved Capsule Corp. gear ({wishlistItems.length} items)
           </p>
         </div>
 
         {wishlistItems.length === 0 ? (
           <div className="text-center py-12 sm:py-16">
-            <FaHeart className="text-4xl sm:text-6xl text-gray-300 dark:text-gray-600 mx-auto mb-4 sm:mb-6" />
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-4 font-saiyan">
+            <FaHeart className="text-4xl sm:text-6xl text-gray-300 mx-auto mb-4 sm:mb-6" />
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 font-saiyan">
               YOUR WISHLIST IS EMPTY
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 px-4">
+            <p className="text-gray-600 mb-6 sm:mb-8 px-4">
               Start adding items you love to build your ultimate collection!
             </p>
             <Link
@@ -110,32 +98,24 @@ function Wishlist() {
             </Link>
           </div>
         ) : (
-          <div className="mobile-grid gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {wishlistItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105"
               >
                 <div className="relative">
                   <img
                     src={resolveImageSrc(item, 300)}
                     alt={item.name || 'Product'}
                     className="w-full sm:h-48 h-32 object-cover"
-                    loading="lazy"
                     onError={(e) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                      try { e.target.onerror = null; } catch {}
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
                       e.target.src = '/assets/images/placeholder-300.png';
                     }}
                   />
                   <button
-                    onClick={() => handleRemoveFromWishlist(item.id)}
-                    className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    onClick={() => removeFromWishlist(item.id)}
+                    className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
                     aria-label="Remove from wishlist"
                   >
                     <FaTrash className="text-sm" />
@@ -150,17 +130,14 @@ function Wishlist() {
                 <div className="p-4 sm:p-6">
                   {item.category && (
                     <div className="mb-2">
-                      <span className="text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full">
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
                         {item.category}
                       </span>
                     </div>
                   )}
                   
-                  <Link 
-                    to={`/product/${item.slug || item.id}`}
-                    className="focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 rounded"
-                  >
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white mb-2 font-saiyan hover:text-orange-600 dark:hover:text-orange-400 transition-colors line-clamp-2">
+                  <Link to={`/product/${item.slug || item.id}`}>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 font-saiyan hover:text-orange-600 transition-colors line-clamp-2">
                       {item.name || 'Unnamed Product'}
                     </h3>
                   </Link>
@@ -168,14 +145,14 @@ function Wishlist() {
                   {item.powerLevel && (
                     <div className="flex items-center mb-3">
                       <FaStar className="text-yellow-400 mr-1" />
-                      <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         Power Level: {item.powerLevel.toLocaleString()}
                       </span>
                     </div>
                   )}
                   
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400 font-saiyan">
+                    <span className="text-xl sm:text-2xl font-bold text-orange-600 font-saiyan">
                       <Price value={item.price || 0} />
                     </span>
                   </div>
@@ -184,10 +161,10 @@ function Wishlist() {
                     <button
                       onClick={() => handleAddToCart(item)}
                       disabled={item.inStock === false}
-                      className={`flex-1 flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-saiyan font-bold text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                      className={`flex-1 flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl font-saiyan font-bold text-xs sm:text-sm transition-all ${
                         item.inStock !== false
                           ? "bg-gradient-to-r from-orange-400 to-orange-600 text-white kamehameha-glow hover:scale-105 hover:shadow-xl"
-                          : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                     >
                       <FaShoppingCart className="mr-1 sm:mr-2" />

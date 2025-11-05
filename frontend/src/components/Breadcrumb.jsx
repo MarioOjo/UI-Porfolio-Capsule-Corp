@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaChevronRight, FaBolt, FaHome, FaDragon } from "react-icons/fa";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../contexts/ThemeContext";
 import './Breadcrumb.css';
 
 function Breadcrumb({ 

@@ -50,15 +50,15 @@ router.post('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res)
   }
 }));
 
-// PUT /api/cart/:itemId - update item quantity
-router.put('/:itemId', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+// PUT /api/cart/:productId - update item quantity by product ID
+router.put('/:productId', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
   const { quantity } = req.body;
-  const itemId = req.params.itemId;
+  const productId = req.params.productId;
   if (!quantity) return res.status(400).json({ error: 'Quantity required' });
   try {
-    await CartModel.updateQuantity(userId, itemId, quantity);
+    await CartModel.updateQuantityByProduct(userId, productId, quantity);
     const cart = await CartModel.getCart(userId);
     res.json({ cart });
   } catch (err) {
@@ -70,13 +70,13 @@ router.put('/:itemId', AuthMiddleware.authenticateToken, asyncHandler(async (req
   }
 }));
 
-// DELETE /api/cart/:itemId - remove item from cart
-router.delete('/:itemId', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+// DELETE /api/cart/:productId - remove item from cart by product ID
+router.delete('/:productId', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-  const itemId = req.params.itemId;
+  const productId = req.params.productId;
   try {
-    await CartModel.removeItem(userId, itemId);
+    await CartModel.removeItemByProduct(userId, productId);
     const cart = await CartModel.getCart(userId);
     res.json({ cart });
   } catch (err) {
