@@ -1,24 +1,68 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle } from "react-icons/fa";
+import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle, FaImage } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
-<<<<<<< Updated upstream
-import { resolveImageSrc } from "../utils/images";
 import { resolveImageSrc } from '../utils/images';
-=======
-import { resolveImageSrc } from '../utils/images';
->>>>>>> Stashed changes
 import { useCurrency } from "../contexts/CurrencyContext";
+
+// Enhanced Image Component for Checkout
+const CheckoutImage = ({ item, size = 120, className = "" }) => {
+  const [imageError, setImageError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState("");
+
+  useEffect(() => {
+    if (item?.image) {
+      setCurrentSrc(resolveImageSrc(item, size));
+    }
+  }, [item, size]);
+
+  const handleError = () => {
+    if (!imageError && item?.image) {
+      // First try the original image directly
+      setCurrentSrc(item.image);
+      setImageError(true);
+    } else {
+      // Final fallback - show placeholder
+      setCurrentSrc("");
+    }
+  };
+
+  if (!currentSrc || imageError) {
+    return (
+      <div className={`${className} bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold rounded-lg`}>
+        {item?.name ? (
+          <>
+            <FaImage className="text-sm mr-1" />
+            <span className="text-xs">{item.name.charAt(0)}</span>
+          </>
+        ) : (
+          <FaImage className="text-sm" />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={currentSrc}
+      alt={item?.name || "Product image"}
+      className={className}
+      onError={handleError}
+      loading="lazy"
+    />
+  );
+};
 
 function Checkout() {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user, authInitialized } = useAuth();
   const { showSuccess, showError } = useNotifications();
   const { isDarkMode } = useTheme();
+  const { currency, location, getAvailableCurrencies, CURRENCIES } = useCurrency();
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -33,7 +77,7 @@ function Checkout() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States',
+    country: location?.country || 'United States',
     
     // Payment Information
     cardNumber: '',
@@ -83,6 +127,16 @@ function Checkout() {
     }
   }, [user, authInitialized]);
 
+  // Update country when currency changes
+  useEffect(() => {
+    if (location?.country) {
+      setFormData(prev => ({
+        ...prev,
+        country: location.country
+      }));
+    }
+  }, [location]);
+
   // Redirect if not authenticated or cart is empty
   useEffect(() => {
     if (authInitialized && (!user || cartItems.length === 0)) {
@@ -99,12 +153,12 @@ function Checkout() {
   // Calculate order totals with useMemo for performance
   const orderTotals = useMemo(() => {
     const subtotal = getCartTotal();
-    const shipping = subtotal > 500 ? 0 : 25.99; // Free shipping over $500
+    const shippingCost = formData.shippingMethod === 'express' ? 49.99 : (subtotal > 500 ? 0 : 25.99);
     const tax = subtotal * 0.08; // 8% tax
-    const total = subtotal + shipping + tax;
+    const total = subtotal + shippingCost + tax;
     
-    return { subtotal, shipping, tax, total };
-  }, [getCartTotal]);
+    return { subtotal, shipping: shippingCost, tax, total };
+  }, [getCartTotal, formData.shippingMethod]);
 
   const { subtotal, shipping, tax, total } = orderTotals;
 
@@ -156,9 +210,9 @@ function Checkout() {
       if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
       if (!formData.address.trim()) newErrors.address = 'Address is required';
       if (!formData.city.trim()) newErrors.city = 'City is required';
-      if (!formData.state.trim()) newErrors.state = 'State is required';
-      if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
-      else if (!/^\d{5}(-\d{4})?$/.test(formData.zipCode)) newErrors.zipCode = 'ZIP code is invalid';
+      if (!formData.state.trim()) newErrors.state = 'State/Province is required';
+      if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP/Postal code is required';
+      if (!formData.country) newErrors.country = 'Country is required';
     }
 
     if (step === 2) {
@@ -212,9 +266,11 @@ function Checkout() {
           cardLastFour: formData.cardNumber.slice(-4)
         },
         totals: orderTotals,
-        user_id: user?.id
+        user_id: user?.id,
+        order_number: `CC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
       };
 
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Clear cart and show success
@@ -228,7 +284,7 @@ function Checkout() {
       // Track conversion
       if (window.gtag) {
         window.gtag('event', 'purchase', {
-          transaction_id: `ORD-${Date.now()}`,
+          transaction_id: orderData.order_number,
           value: total,
           currency: 'USD',
           items: cartItems.map(item => ({
@@ -260,6 +316,17 @@ function Checkout() {
     { number: 2, title: 'Payment', description: 'Payment details', icon: FaCreditCard },
     { number: 3, title: 'Review', description: 'Confirm order', icon: FaCheck }
   ];
+
+  // Get supported countries from currency context
+  const supportedCountries = useMemo(() => {
+    const availableCurrencies = getAvailableCurrencies();
+    return availableCurrencies.map(curr => ({
+      value: curr.country,
+      label: curr.country,
+      flag: curr.flag,
+      currency: curr.code
+    }));
+  }, [getAvailableCurrencies]);
 
   const shippingOptions = [
     {
@@ -353,8 +420,8 @@ function Checkout() {
                       { name: 'phone', label: 'Phone *', type: 'tel', placeholder: '(555) 123-4567' },
                       { name: 'address', label: 'Address *', type: 'text', placeholder: '123 Main Street', fullWidth: true },
                       { name: 'city', label: 'City *', type: 'text', placeholder: 'West City' },
-                      { name: 'state', label: 'State *', type: 'text', placeholder: 'CA' },
-                      { name: 'zipCode', label: 'ZIP Code *', type: 'text', placeholder: '12345' },
+                      { name: 'state', label: 'State/Province *', type: 'text', placeholder: 'CA' },
+                      { name: 'zipCode', label: 'ZIP/Postal Code *', type: 'text', placeholder: '12345' },
                     ].map((field) => (
                       <div key={field.name} className={field.fullWidth ? 'md:col-span-2' : ''}>
                         <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
@@ -379,6 +446,37 @@ function Checkout() {
                         )}
                       </div>
                     ))}
+                    
+                    {/* Country Selector */}
+                    <div className="md:col-span-2">
+                      <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                        Country *
+                      </label>
+                      <select
+                        name="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                          themeClasses.input
+                        } ${errors.country ? 'border-red-500 focus:ring-red-200' : ''}`}
+                      >
+                        {supportedCountries.map((country) => (
+                          <option key={country.value} value={country.value}>
+                            {country.flag} {country.label}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.country && (
+                        <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                          <FaExclamationTriangle className="mr-1" />
+                          {errors.country}
+                        </p>
+                      )}
+                      <p className={`text-xs mt-2 ${themeClasses.text.muted}`}>
+                        💡 Shipping to {supportedCountries.length} countries. Currency automatically set to {CURRENCIES[currency]?.name || 'US Dollar'}.
+                      </p>
+                    </div>
                   </div>
 
                   {/* Shipping Options */}
@@ -573,11 +671,10 @@ function Checkout() {
                             isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
                           }`}>
                             <div className="flex items-center space-x-3 sm:space-x-4">
-                              <img 
-                                src={resolveImageSrc(item, 300)}
-                                alt={item.name}
-                                className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-lg"
-                                loading="lazy"
+                              <CheckoutImage 
+                                item={item}
+                                size={160}
+                                className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover flex-shrink-0"
                               />
                               <div>
                                 <div className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>
@@ -586,6 +683,11 @@ function Checkout() {
                                 <div className={`text-xs sm:text-sm ${themeClasses.text.muted}`}>
                                   Qty: {item.quantity}
                                 </div>
+                                {item.category && (
+                                  <div className={`text-xs ${themeClasses.text.muted}`}>
+                                    {item.category}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className={`font-bold text-sm sm:text-base text-orange-500`}>
@@ -605,7 +707,9 @@ function Checkout() {
                         <div className={themeClasses.text.primary}>{formData.firstName} {formData.lastName}</div>
                         <div className={themeClasses.text.secondary}>{formData.address}</div>
                         <div className={themeClasses.text.secondary}>{formData.city}, {formData.state} {formData.zipCode}</div>
+                        <div className={themeClasses.text.secondary}>{formData.country}</div>
                         <div className={themeClasses.text.secondary}>{formData.phone}</div>
+                        <div className={themeClasses.text.secondary}>{formData.email}</div>
                       </div>
                     </div>
 
@@ -615,8 +719,29 @@ function Checkout() {
                       <div className={`p-3 sm:p-4 rounded-xl ${
                         isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
                       }`}>
-                        <div className={themeClasses.text.primary}>**** **** **** {formData.cardNumber.slice(-4)}</div>
+                        <div className={themeClasses.text.primary}>Credit Card ending in {formData.cardNumber.slice(-4)}</div>
                         <div className={themeClasses.text.secondary}>{formData.nameOnCard}</div>
+                        <div className={themeClasses.text.secondary}>
+                          Expires: {formData.expiryMonth}/{formData.expiryYear}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shipping Method */}
+                    <div>
+                      <h3 className={`text-lg font-bold mb-3 sm:mb-4 ${themeClasses.text.primary}`}>Shipping Method</h3>
+                      <div className={`p-3 sm:p-4 rounded-xl ${
+                        isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
+                      }`}>
+                        <div className={themeClasses.text.primary}>
+                          {shippingOptions.find(opt => opt.value === formData.shippingMethod)?.label}
+                        </div>
+                        <div className={themeClasses.text.secondary}>
+                          {shippingOptions.find(opt => opt.value === formData.shippingMethod)?.description}
+                        </div>
+                        <div className={`font-medium ${shipping === 0 ? 'text-green-500' : 'text-orange-500'}`}>
+                          {shipping === 0 ? 'FREE' : <Price value={shipping} />}
+                        </div>
                       </div>
                     </div>
 
@@ -702,21 +827,26 @@ function Checkout() {
                 ORDER SUMMARY
               </h3>
               
-              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+              {/* Order Items */}
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-80 overflow-y-auto">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-start gap-2 sm:gap-3">
-                    <div className="flex items-start gap-2 sm:gap-3 flex-1">
-                      <img 
-                        src={resolveImageSrc(item, 80)}
-                        alt={item.name}
-                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
-                        loading="lazy"
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      <CheckoutImage 
+                        item={item}
+                        size={80}
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <div className={`font-medium text-xs sm:text-sm truncate ${themeClasses.text.primary}`}>
                           {item.name}
                         </div>
                         <div className={`text-xs ${themeClasses.text.muted}`}>Qty: {item.quantity}</div>
+                        {item.category && (
+                          <div className={`text-xs ${themeClasses.text.muted} truncate`}>
+                            {item.category}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className={`font-bold text-xs sm:text-sm whitespace-nowrap text-orange-500`}>
@@ -728,6 +858,7 @@ function Checkout() {
 
               <hr className={`border-gray-200 dark:border-slate-600 mb-3 sm:mb-4`} />
               
+              {/* Order Totals */}
               <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className={themeClasses.text.secondary}>Subtotal:</span>
@@ -748,6 +879,28 @@ function Checkout() {
                   <span className={themeClasses.text.primary}>Total:</span>
                   <span className="text-orange-500 font-saiyan"><Price value={total} /></span>
                 </div>
+
+                {/* Free Shipping Progress */}
+                {subtotal < 500 && (
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className={themeClasses.text.muted}>
+                        ${(500 - subtotal).toFixed(2)} away from free shipping!
+                      </span>
+                      <span className={themeClasses.text.muted}>
+                        {Math.min((subtotal / 500) * 100, 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className={`w-full h-2 rounded-full ${
+                      isDarkMode ? 'bg-slate-600' : 'bg-gray-200'
+                    }`}>
+                      <div 
+                        className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min((subtotal / 500) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Security Features */}
