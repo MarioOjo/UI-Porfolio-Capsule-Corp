@@ -18,6 +18,7 @@ const signupValidation = [
     .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   
   body('username')
+    .optional()
     .trim()
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
