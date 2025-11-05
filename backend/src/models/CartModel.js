@@ -343,8 +343,7 @@ class CartModel {
         SELECT 
           COUNT(*) as itemCount,
           SUM(ci.quantity) as totalQuantity,
-          SUM(ci.quantity * p.price) as subtotal,
-          MAX(p.shipping_cost) as maxShippingCost
+          SUM(ci.quantity * p.price) as subtotal
         FROM ${this.table} ci
         LEFT JOIN products p ON ci.product_id = p.id
         WHERE ci.user_id = ?
@@ -354,7 +353,7 @@ class CartModel {
       const stat = stats[0] || {};
       
       const subtotal = parseFloat(stat.subtotal) || 0;
-      const shippingCost = subtotal > 500 ? 0 : (parseFloat(stat.maxShippingCost) || 25.99);
+      const shippingCost = subtotal > 500 ? 0 : 25.99;
       const tax = subtotal * 0.08;
       const total = subtotal + shippingCost + tax;
 
