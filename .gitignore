@@ -9,6 +9,10 @@ frontend/public/env.json
 frontend/.env
 backend/.env
 
+# Build artifacts
+frontend/dist/
+dist/
+
 # Explicit per-project ignores (keeps repo tidy)
 frontend/node_modules/
 backend/node_modules/
