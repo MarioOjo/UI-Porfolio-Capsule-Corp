@@ -2,16 +2,19 @@ const express = require('express');
 const router = express.Router();
 const OrderModel = require('../src/models/OrderModel');
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
+const ValidationMiddleware = require('../src/middleware/ValidationMiddleware');
+const { 
+  createOrderValidation, 
+  orderIdValidation,
+  updateOrderStatusValidation,
+  updateTrackingValidation,
+  updateNotesValidation
+} = require('../src/validators/orderValidators');
 
 // Create new order (customer checkout)
-router.post('/', async (req, res) => {
+router.post('/', createOrderValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const orderData = req.body;
-    
-    // Validate required fields
-    if (!orderData.customer_name || !orderData.customer_email || !orderData.items || orderData.items.length === 0) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
 
     const result = await OrderModel.create(orderData);
     
@@ -135,18 +138,9 @@ router.get('/user/:userId/stats', async (req, res) => {
 });
 
 // Update order status (admin only)
-router.patch('/:id/status', AuthMiddleware.requireAdmin, async (req, res) => {
+router.patch('/:id/status', AuthMiddleware.requireAdmin, orderIdValidation, updateOrderStatusValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const { status, notes } = req.body;
-    
-    if (!status) {
-      return res.status(400).json({ error: 'Status is required' });
-    }
-
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
 
     // Get user_id from header (in production, extract from JWT)
     const userId = req.headers['x-user-id'];
@@ -190,13 +184,9 @@ router.patch('/:id/status', AuthMiddleware.requireAdmin, async (req, res) => {
 });
 
 // Update tracking information (admin only)
-router.patch('/:id/tracking', AuthMiddleware.requireAdmin, async (req, res) => {
+router.patch('/:id/tracking', AuthMiddleware.requireAdmin, orderIdValidation, updateTrackingValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const { tracking_number, carrier } = req.body;
-    
-    if (!tracking_number) {
-      return res.status(400).json({ error: 'Tracking number is required' });
-    }
 
     await OrderModel.updateTracking(req.params.id, tracking_number, carrier);
     
@@ -211,7 +201,7 @@ router.patch('/:id/tracking', AuthMiddleware.requireAdmin, async (req, res) => {
 });
 
 // Update admin notes (admin only)
-router.patch('/:id/notes', AuthMiddleware.requireAdmin, async (req, res) => {
+router.patch('/:id/notes', AuthMiddleware.requireAdmin, orderIdValidation, updateNotesValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const { notes } = req.body;
     
@@ -228,7 +218,7 @@ router.patch('/:id/notes', AuthMiddleware.requireAdmin, async (req, res) => {
 });
 
 // Delete order (admin only)
-router.delete('/:id', AuthMiddleware.requireAdmin, async (req, res) => {
+router.delete('/:id', AuthMiddleware.requireAdmin, orderIdValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const deleted = await OrderModel.delete(req.params.id);
     

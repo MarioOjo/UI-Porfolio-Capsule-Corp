@@ -5,6 +5,14 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const os = require('os');
+const ValidationMiddleware = require('../src/middleware/ValidationMiddleware');
+const {
+  createProductValidation,
+  updateProductValidation,
+  productIdValidation,
+  productSlugValidation,
+  productQueryValidation
+} = require('../src/validators/productValidators');
 
 // Configure Cloudinary if env present
 if (process.env.CLOUDINARY_URL) {
@@ -17,7 +25,10 @@ const upload = multer({ dest: os.tmpdir() });
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // GET /api/products
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/',
+  productQueryValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const { category, search, featured } = req.query;
   let products;
   
@@ -36,21 +47,27 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // GET /api/products/slug/:slug
 // Specific routes MUST come before parameterized routes
-router.get('/slug/:slug', asyncHandler(async (req, res) => {
+router.get('/slug/:slug',
+  productSlugValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const product = await ProductModel.findBySlug(req.params.slug);
   if (!product) return res.status(404).json({ error: 'Product not found' });
   res.json({ product });
 }));
 
 // GET /api/products/:id
-router.get('/:id', asyncHandler(async (req, res) => {
+router.get('/:id',
+  productIdValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const product = await ProductModel.findById(req.params.id);
   if (!product) return res.status(404).json({ error: 'Product not found' });
   res.json({ product });
 }));
 
 // POST /api/products - Create new product (admin only)
-router.post('/', upload.array('images'), asyncHandler(async (req, res) => {
+router.post('/', upload.array('images'), createProductValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
   // If multipart/form-data with files
   if (req.files && req.files.length) {
     const uploadedUrls = [];
@@ -102,7 +119,7 @@ router.post('/', upload.array('images'), asyncHandler(async (req, res) => {
 }));
 
 // PUT /api/products/:id - Update product (admin only)
-router.put('/:id', upload.array('images'), asyncHandler(async (req, res) => {
+router.put('/:id', upload.array('images'), updateProductValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
   if (req.files && req.files.length) {
     const uploadedUrls = [];
     try {
@@ -153,7 +170,7 @@ router.put('/:id', upload.array('images'), asyncHandler(async (req, res) => {
 }));
 
 // DELETE /api/products/:id - Delete product (admin only)
-router.delete('/:id', asyncHandler(async (req, res) => {
+router.delete('/:id', productIdValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
   const success = await ProductModel.delete(req.params.id);
   if (!success) return res.status(404).json({ error: 'Product not found' });
   res.json({ message: 'Product deleted successfully' });

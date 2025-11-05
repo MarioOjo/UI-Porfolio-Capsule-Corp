@@ -4,14 +4,24 @@ const UserModel = require('../src/models/UserModel');
 let bcrypt;
 try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
+const ValidationMiddleware = require('../src/middleware/ValidationMiddleware');
+const {
+  signupValidation,
+  loginValidation,
+  changePasswordValidation,
+  passwordResetRequestValidation,
+  passwordResetValidation
+} = require('../src/validators/authValidators');
 
 // Utility async wrapper
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // POST /api/auth/request-password-reset
-router.post('/request-password-reset', asyncHandler(async (req, res) => {
+router.post('/request-password-reset', 
+  passwordResetRequestValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email required' });
   const user = await UserModel.findByEmail(email);
   if (!user) return res.status(404).json({ error: 'User not found' });
   // Generate reset token (JWT, short expiry)
@@ -24,9 +34,11 @@ router.post('/request-password-reset', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/reset-password
-router.post('/reset-password', asyncHandler(async (req, res) => {
+router.post('/reset-password',
+  passwordResetValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const { token, newPassword } = req.body;
-  if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password required' });
   const authService = require('../src/services/AuthService');
   let decoded;
   try {
@@ -43,12 +55,15 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/change-password - authenticated route
-router.post('/change-password', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+router.post('/change-password',
+  AuthMiddleware.authenticateToken,
+  changePasswordValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Both current and new password are required' });
 
   const user = await UserModel.findById(userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -67,9 +82,11 @@ router.post('/change-password', AuthMiddleware.authenticateToken, asyncHandler(a
 }));
 
 // POST /api/auth/signup
-router.post('/signup', asyncHandler(async (req, res) => {
+router.post('/signup',
+  signupValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const { email, password, username, firstName, lastName } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const existing = await UserModel.findByEmail(email);
   if (existing) return res.status(409).json({ error: 'Email already exists' });
   const password_hash = await bcrypt.hash(password, 10);
@@ -101,9 +118,11 @@ router.post('/signup', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/auth/login
-router.post('/login', asyncHandler(async (req, res) => {
+router.post('/login',
+  loginValidation,
+  ValidationMiddleware.handleValidationErrors,
+  asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   const user = await UserModel.findByEmail(email);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, user.password_hash);

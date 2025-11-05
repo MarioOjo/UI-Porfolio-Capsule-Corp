@@ -2,27 +2,15 @@ const express = require('express');
 const router = express.Router();
 const ContactModel = require('../src/models/ContactModel');
 const emailService = require('../src/utils/emailService');
+const ValidationMiddleware = require('../src/middleware/ValidationMiddleware');
+const { contactFormValidation } = require('../src/validators/contactValidators');
 
 // Utility async wrapper
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // POST /api/contact - Submit contact form
-router.post('/', asyncHandler(async (req, res) => {
+router.post('/', contactFormValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
   const { name, email, subject, message, user_id } = req.body;
-
-  // Validate required fields
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ 
-      error: 'Missing required fields',
-      required: ['name', 'email', 'subject', 'message']
-    });
-  }
-
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Invalid email format' });
-  }
 
   // Save to database
   const contactMessage = await ContactModel.create({
