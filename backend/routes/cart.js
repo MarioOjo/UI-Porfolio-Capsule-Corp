@@ -17,11 +17,22 @@ const isNoSuchTableError = (err) => {
 // GET /api/cart - fetch user's cart
 router.get('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res, next) => {
   const userId = req.user && req.user.id;
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!userId) {
+    console.error('[cart GET] No user ID in request:', req.user);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  console.log(`[cart GET] Fetching cart for user ${userId}`);
   try {
     const cart = await CartModel.getCart(userId);
+    console.log(`[cart GET] Successfully fetched ${cart.length} items for user ${userId}`);
     res.json({ cart });
   } catch (err) {
+    console.error('[cart GET] Error:', {
+      userId,
+      error: err.message,
+      code: err.code,
+      stack: err.stack
+    });
     // If the cart table is missing in production, return an empty cart (temporary mitigation)
     if (isNoSuchTableError(err)) {
       console.warn('[cart] missing table detected, returning empty cart (temporary)');
@@ -34,14 +45,30 @@ router.get('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res, 
 // POST /api/cart - add/update items in cart
 router.post('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
-  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!userId) {
+    console.error('[cart POST] No user ID in request:', req.user);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   const { productId, quantity } = req.body;
-  if (!productId || !quantity) return res.status(400).json({ error: 'Product and quantity required' });
+  console.log(`[cart POST] Adding to cart - user: ${userId}, product: ${productId}, quantity: ${quantity}`);
+  if (!productId || !quantity) {
+    console.error('[cart POST] Missing required fields:', { productId, quantity });
+    return res.status(400).json({ error: 'Product and quantity required' });
+  }
   try {
     await CartModel.addOrUpdateItem(userId, productId, quantity);
     const cart = await CartModel.getCart(userId);
+    console.log(`[cart POST] Successfully added item. Cart now has ${cart.length} items`);
     res.json({ cart });
   } catch (err) {
+    console.error('[cart POST] Error:', {
+      userId,
+      productId,
+      quantity,
+      error: err.message,
+      code: err.code,
+      stack: err.stack
+    });
     if (isNoSuchTableError(err)) {
       console.warn('[cart] missing table detected on add/update, returning empty cart (temporary)');
       return res.json({ cart: [] });
