@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaDragon, FaEnvelope } from 'react-icons/fa';
-import { apiFetch } from '../../lib/apiFetch';
+import { apiFetch } from '../../utils/api';
 import './ForgotPassword.css';
 
 function ForgotPassword({ onBack }) {
