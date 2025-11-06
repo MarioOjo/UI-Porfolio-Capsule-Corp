@@ -69,7 +69,8 @@ function Contact() {
         })
       });
 
-      if (response.success) {
+      // Backend returns { message: '...', data: {...} } on success (201 status)
+      if (response.message || response.data) {
         showSuccess('✅ Message sent successfully! Our Z-Fighter support team will respond within 24 hours.', {
           duration: 5000,
           position: 'top-center'
@@ -90,7 +91,7 @@ function Contact() {
           });
         }
       } else {
-        throw new Error(response.message || 'Failed to send message');
+        throw new Error('Failed to send message');
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
