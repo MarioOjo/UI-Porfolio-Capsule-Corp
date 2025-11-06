@@ -162,6 +162,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', reviewRoutes); // Review routes include /api/products/:id/reviews and /api/reviews/:id
 app.use('/api/returns', returnsRoutes);
+const emergencyRoutes = require('./routes/emergency');
+app.use('/api', emergencyRoutes);
 
 // Basic error handler
 app.use((err, req, res, next) => { // eslint-disable-line
