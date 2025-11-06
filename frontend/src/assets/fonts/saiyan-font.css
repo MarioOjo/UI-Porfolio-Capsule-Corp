@@ -1,4 +1,11 @@
-/* DBZ Saiyan-Sans font import */
+/* DBZ Saiyan-Sans font - Using web-safe fallback until actual font files are added */
+/* To add the real font:
+   1. Download Saiyan-Sans font files (.woff2 and .woff)
+   2. Place in frontend/public/assets/fonts/
+   3. Uncomment the @font-face rule below
+*/
+
+/*
 @font-face {
   font-family: 'Saiyan-Sans';
   src: url('/assets/fonts/Saiyan-Sans.woff2') format('woff2'),
@@ -6,4 +13,12 @@
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+*/
+
+/* Temporary fallback - uses Orbitron (already loaded) */
+.font-saiyan {
+  font-family: 'Orbitron', 'Impact', 'Arial Black', sans-serif !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
