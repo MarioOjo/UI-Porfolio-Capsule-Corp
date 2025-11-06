@@ -15,15 +15,15 @@ function AdminDashboard() {
     topProducts: ['Saiyan Battle Armor', 'Elite Scouter Mk III', 'Gravity Chamber']
   });
 
-  // Check if user is admin (you can implement proper admin role checking)
+  // Check if user is admin
   useEffect(() => {
     if (!user) {
       navigate('/auth');
       return;
     }
     
-    // For demo purposes, check if user email contains 'admin' or has admin role
-    const isAdmin = user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com';
+    // Check if user has admin role
+    const isAdmin = user.email?.includes('admin') || user.role === 'admin';
     if (!isAdmin) {
       navigate('/');
       return;

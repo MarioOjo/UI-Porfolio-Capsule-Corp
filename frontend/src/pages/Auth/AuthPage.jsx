@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import Login from './Login';
 import Signup from './Signup';
+import ForgotPassword from './ForgotPassword';
 import './AuthPage.css';
 
 function AuthPage() {
@@ -12,6 +13,7 @@ function AuthPage() {
   const { user } = useAuth();
   const { isDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'login');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -30,7 +32,17 @@ function AuthPage() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setShowForgotPassword(false);
     navigate(`/auth?tab=${tab}`, { replace: true });
+  };
+
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
+    setActiveTab('login');
   };
 
   return (
@@ -81,8 +93,13 @@ function AuthPage() {
           {/* Tab Content */}
           <div className="tab-content-container">
             <div className="tab-content">
-              {activeTab === 'login' ? (
-                <Login onSwitchTab={() => handleTabChange('signup')} />
+              {showForgotPassword ? (
+                <ForgotPassword onBack={handleBackToLogin} />
+              ) : activeTab === 'login' ? (
+                <Login 
+                  onSwitchTab={() => handleTabChange('signup')} 
+                  onForgotPassword={handleForgotPassword}
+                />
               ) : (
                 <Signup onSwitchTab={() => handleTabChange('login')} />
               )}

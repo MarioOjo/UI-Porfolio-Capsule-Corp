@@ -7,7 +7,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
 import './Login.css';
 
-function Login({ onSwitchTab }) {
+function Login({ onSwitchTab, onForgotPassword }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -82,24 +82,6 @@ function Login({ onSwitchTab }) {
 
   return (
     <div className={`login-container ${isDarkMode ? 'dark' : 'light'}`} ref={formRef}>
-      {/* Demo Accounts */}
-      <div className="demo-section">
-        <h3 className="demo-title">🎮 QUICK TRAINING ACCESS</h3>
-        <div className="demo-grid">
-          {demoAccounts.map((account) => (
-            <button
-              key={account.character}
-              type="button"
-              onClick={() => fillDemoAccount(account)}
-              className="demo-account-btn"
-            >
-              <div className="demo-character">{account.character}</div>
-              <div className="demo-hint">Click to fill</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <GoogleSignInButton variant="primary" />
       
       {/* Divider */}
@@ -230,6 +212,7 @@ function Login({ onSwitchTab }) {
         <button
           type="button"
           className="footer-link"
+          onClick={onForgotPassword}
         >
           <span>🔮 Use the Dragon Balls</span>
           <span className="link-badge">Forgot Password?</span>
