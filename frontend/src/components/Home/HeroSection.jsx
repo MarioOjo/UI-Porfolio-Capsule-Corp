@@ -204,7 +204,6 @@ function HeroSection() {
                   </div>
                 ))}
               </div>
-              <span className="collect-text">Collect all 7 Dragon Balls for a wish!</span>
             </div>
           </div>
 
@@ -273,12 +272,6 @@ function HeroSection() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="scroll-indicator">
-          <div className="scroll-arrow"></div>
-          <span className="scroll-text">Scroll to Explore</span>
         </div>
       </div>
     </section>
