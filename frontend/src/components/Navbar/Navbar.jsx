@@ -71,7 +71,7 @@ function Navbar() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
 
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { cartItems, removeFromCart, getCartCount, getCartTotal } = useCart();
   const { wishlistItems, removeFromWishlist, getWishlistCount } = useWishlist();
   const navigate = useNavigate();
@@ -422,6 +422,15 @@ function Navbar() {
                           <FaUser className="dropdown-emoji" />
                           My Profile
                         </Link>
+                        {isAdmin && (
+                          <>
+                            <Link to="/admin" className="dropdown-link" onClick={() => setActiveDropdown(null)}>
+                              <span className="dropdown-emoji">⚡</span>
+                              Admin Dashboard
+                            </Link>
+                            <div className="dropdown-divider"></div>
+                          </>
+                        )}
                         <Link to="/profile/order-history" className="dropdown-link" onClick={() => setActiveDropdown(null)}>
                           <span className="dropdown-emoji">📦</span>
                           Order History
@@ -639,6 +648,12 @@ function Navbar() {
                     <span className="mobile-menu-emoji">👤</span>
                     My Profile
                   </Link>
+                  {isAdmin && (
+                    <Link to="/admin" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      <span className="mobile-menu-emoji">⚡</span>
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <Link to="/profile/order-history" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
                     <span className="mobile-menu-emoji">📦</span>
                     Order History
