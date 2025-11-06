@@ -9,23 +9,32 @@ const multer = require('multer');
 const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 
-// Admin check middleware
+// Admin check middleware - FIXED
 // Requires a valid authenticated token. Then checks either a role on the token
 // (recommended), or an allowlist of admin emails set in ADMIN_EMAILS env (comma-separated).
 function requireAdmin(req, res, next) {
-  // If req.user exists (maybe set by earlier middleware), use it; otherwise
-  // attempt to authenticate the token.
   const ensureAndCheck = () => {
     const user = req.user;
-    const allowedEmails = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).filter(Boolean);
-    if (user && (user.role === 'admin' || allowedEmails.includes(user.email))) return next();
+    const allowedEmails = (process.env.ADMIN_EMAILS || 'mario@capsulecorp.com,admin@capsulecorp.com').split(',').map(s => s.trim()).filter(Boolean);
+    
+    // Check if user has admin role or is in allowed emails
+    if (user && (user.role === 'admin' || allowedEmails.includes(user.email))) {
+      return next();
+    }
     return res.status(403).json({ error: 'Admin access required' });
   };
 
-  if (req.user) return ensureAndCheck();
+  if (req.user) {
+    return ensureAndCheck();
+  }
 
   // Try authenticating the token and then check role
-  return AuthMiddleware.authenticateToken(req, res, () => ensureAndCheck());
+  return AuthMiddleware.authenticateToken(req, res, (err) => {
+    if (err) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    ensureAndCheck();
+  });
 }
 
 // --- Product Management ---
