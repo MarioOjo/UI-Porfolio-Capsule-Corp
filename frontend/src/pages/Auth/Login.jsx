@@ -21,6 +21,12 @@ function Login({ onSwitchTab, onForgotPassword }) {
   const { isDarkMode } = useTheme();
   const formRef = useRef(null);
 
+  // Quick fill for testing
+  const handleQuickFill = () => {
+    setEmail("admin@capsulecorp.com");
+    setPassword("Admin2025!");
+  };
+
   function validateEmail(email) {
     return /\S+@\S+\.\S+/.test(email);
   }
@@ -146,10 +152,33 @@ function Login({ onSwitchTab, onForgotPassword }) {
             </label>
           </div>
           
-          <div className="security-status">
-            <div className="status-indicator"></div>
-            <span>Capsule Corp Secure</span>
-          </div>
+          <button
+            type="button"
+            onClick={handleQuickFill}
+            className="quick-fill-btn"
+            style={{
+              fontSize: '11px',
+              padding: '4px 12px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            ⚡ Quick Fill
+          </button>
+        </div>
+
+        {/* Security Status Moved Below */}
+        <div className="security-status" style={{ marginTop: '8px' }}>
+          <div className="status-indicator"></div>
+          <span>Capsule Corp Secure</span>
         </div>
 
         {/* Error Message */}
