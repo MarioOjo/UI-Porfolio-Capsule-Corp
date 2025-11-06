@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaBox, FaShoppingCart, FaChartLine, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { apiFetch } from '../../lib/apiFetch';
+import { apiFetch } from '../../utils/api';
 
 function AdminDashboard() {
   const { user, logout } = useAuth();

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
 import Price from '../../components/Price';
 import { CLOUDINARY_BASE } from '../../utils/images';
-import { apiFetch } from '../../lib/apiFetch';
+import { apiFetch } from '../../utils/api';
 
 function AdminUsers() {
   const { user } = useAuth();
