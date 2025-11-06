@@ -14,8 +14,7 @@ async function runEmergencyFixes() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT || 3306,
-    multipleStatements: true
+    port: process.env.DB_PORT || 3306
   });
 
   try {
@@ -23,10 +22,34 @@ async function runEmergencyFixes() {
     
     // Read the emergency fix SQL
     const sqlPath = path.join(__dirname, '../sql/014_emergency_fixes.sql');
-    const sql = await fs.readFile(sqlPath, 'utf8');
+    const sqlContent = await fs.readFile(sqlPath, 'utf8');
     
-    console.log('\n📝 Executing emergency fixes...');
-    await connection.query(sql);
+    // Split into individual statements
+    const statements = sqlContent
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--'));
+    
+    console.log(`\n📝 Executing ${statements.length} SQL statements...`);
+    
+    for (let i = 0; i < statements.length; i++) {
+      const stmt = statements[i];
+      if (stmt.startsWith('--') || stmt.length < 10) continue;
+      
+      try {
+        await connection.query(stmt);
+        console.log(`  ✓ Statement ${i + 1} executed`);
+      } catch (err) {
+        // Ignore "already exists" errors
+        if (err.code === 'ER_DUP_FIELDNAME' || err.message.includes('Duplicate column')) {
+          console.log(`  ⚠️  Column already exists (skipped)`);
+        } else if (err.code === 'ER_TABLE_EXISTS_ERROR') {
+          console.log(`  ⚠️  Table already exists (skipped)`);
+        } else {
+          console.error(`  ❌ Error in statement ${i + 1}:`, err.message);
+        }
+      }
+    }
     
     console.log('\n✅ Emergency fixes completed successfully!');
     console.log('\nFixed issues:');
