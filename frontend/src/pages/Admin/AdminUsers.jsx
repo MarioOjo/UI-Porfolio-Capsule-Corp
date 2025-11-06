@@ -72,16 +72,38 @@ function AdminUsers() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleStatusUpdate = (userId, newStatus) => {
-    setUsers(users.map(u => 
-      u.id === userId ? { ...u, status: newStatus } : u
-    ));
+  const handleStatusUpdate = async (userId, newStatus) => {
+    try {
+      await apiFetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, status: newStatus } : u
+      ));
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      alert('Failed to update user status');
+    }
   };
 
-  const handleRoleUpdate = (userId, newRole) => {
-    setUsers(users.map(u => 
-      u.id === userId ? { ...u, role: newRole } : u
-    ));
+  const handleRoleUpdate = async (userId, newRole) => {
+    try {
+      await apiFetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ role: newRole })
+      });
+      
+      // Update local state
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, role: newRole } : u
+      ));
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      alert('Failed to update user role');
+    }
   };
 
   const totalUsers = users.length;

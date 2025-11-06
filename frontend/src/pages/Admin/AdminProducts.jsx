@@ -22,6 +22,16 @@ function AdminProducts() {
     try {
       const fd = new FormData();
       fd.append('name', productData.name);
+      
+      // Auto-generate slug from name if not provided
+      const slug = productData.slug || productData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+      fd.append('slug', slug);
+      
       fd.append('description', productData.description);
       fd.append('price', String(productData.price));
       fd.append('category', productData.category);
@@ -57,6 +67,16 @@ function AdminProducts() {
     try {
       const fd = new FormData();
       fd.append('name', productData.name);
+      
+      // Auto-generate slug from name if not provided
+      const slug = productData.slug || productData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+      fd.append('slug', slug);
+      
       fd.append('description', productData.description);
       fd.append('price', String(productData.price));
       fd.append('category', productData.category);
@@ -125,8 +145,15 @@ function AdminProducts() {
       setErrors(newErrors);
       if (Object.keys(newErrors).length > 0) return;
       
+      // Generate slug from product name
+      const slug = formData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
       onSave({
         ...formData,
+        slug, // Add auto-generated slug
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         powerLevel: parseInt(formData.powerLevel) || 0,
@@ -411,9 +438,15 @@ function AdminProducts() {
       setErrors(newErrors);
       if (Object.keys(newErrors).length > 0) return;
       
+      // Generate slug from product name if name changed, otherwise use existing slug
+      const slug = formData.name !== product?.name 
+        ? formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+        : product.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      
       onSave({
         ...product,
         ...formData,
+        slug, // Add auto-generated slug
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         powerLevel: parseInt(formData.powerLevel) || 0,
