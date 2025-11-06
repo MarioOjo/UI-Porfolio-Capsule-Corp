@@ -227,8 +227,10 @@ function AdminProducts() {
                 >
                   <option value="Battle Gear">Battle Gear</option>
                   <option value="Training">Training</option>
-                  <option value="Technology">Technology</option>
                   <option value="Capsules">Capsules</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Weapons">Weapons</option>
                 </select>
                 {errors.category && <div className="text-red-600 text-xs mt-1">{errors.category}</div>}
               </div>
