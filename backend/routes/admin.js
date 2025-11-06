@@ -127,6 +127,24 @@ router.get('/orders', requireAdmin, async (req, res) => {
   const orders = await OrderModel.findAll();
   res.json({ orders });
 });
+
+// Admin dashboard stats
+router.get('/orders/stats', requireAdmin, async (req, res) => {
+  try {
+    const orders = await OrderModel.findAll();
+    const total_orders = orders.length;
+    const total_revenue = orders.reduce((sum, order) => {
+      return sum + (parseFloat(order.total_amount) || 0);
+    }, 0);
+    res.json({ 
+      total_orders, 
+      total_revenue: total_revenue.toFixed(2)
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.put('/orders/:id', requireAdmin, async (req, res) => {
   const order = await OrderModel.update(req.params.id, req.body);
   res.json({ order });
