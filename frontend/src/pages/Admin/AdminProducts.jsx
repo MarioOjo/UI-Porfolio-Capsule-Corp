@@ -3,7 +3,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft } from 'react-icons/fa';
-import { apiFetch } from '../../utils/api.js';
+import { apiFetch } from '../../utils/api';
 import Price from '../../components/Price';
 
 function AdminProducts() {
