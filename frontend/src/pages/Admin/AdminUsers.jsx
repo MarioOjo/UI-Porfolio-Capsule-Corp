@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
 import Price from '../../components/Price';
 import { CLOUDINARY_BASE } from '../../utils/images';
+import { apiFetch } from '../../lib/apiFetch';
 
 function AdminUsers() {
   const { user } = useAuth();
@@ -12,84 +13,23 @@ function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
 
-  // Mock users data
+  // Fetch real users from API
   useEffect(() => {
-    const mockUsers = [
-      {
-        id: 1,
-        name: 'Goku Son',
-        email: 'goku@dragonball.com',
-        role: 'customer',
-        status: 'active',
-        joinDate: '2023-06-15',
-        lastLogin: '2024-01-15',
-        orders: 12,
-        totalSpent: 2450.00,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/goku-avatar_pxvhdf.jpg'
-      },
-      {
-        id: 2,
-        name: 'Vegeta Prince',
-        email: 'vegeta@saiyans.com',
-        role: 'customer',
-        status: 'active',
-        joinDate: '2023-08-20',
-        lastLogin: '2024-01-14',
-        orders: 8,
-        totalSpent: 3200.00,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/vegeta-avatar_kmqrpd.jpg'
-      },
-      {
-        id: 3,
-        name: 'Piccolo Namekian',
-        email: 'piccolo@namek.com',
-        role: 'customer',
-        status: 'active',
-        joinDate: '2023-09-10',
-        lastLogin: '2024-01-13',
-        orders: 5,
-        totalSpent: 1150.00,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/piccolo-avatar_hztqmn.jpg'
-      },
-      {
-        id: 4,
-        name: 'Mario Capsule',
-        email: 'mario@capsulecorp.com',
-        role: 'admin',
-        status: 'active',
-        joinDate: '2023-01-01',
-        lastLogin: '2024-01-16',
-        orders: 0,
-        totalSpent: 0,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/admin-avatar_pqwxrf.jpg'
-      },
-      {
-        id: 5,
-        name: 'Trunks Briefs',
-        email: 'trunks@capsulecorp.com',
-        role: 'customer',
-        status: 'inactive',
-        joinDate: '2023-11-05',
-        lastLogin: '2023-12-20',
-        orders: 3,
-        totalSpent: 850.00,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/trunks-avatar_mxbqhk.jpg'
-      },
-      {
-        id: 6,
-        name: 'Gohan Son',
-        email: 'gohan@orangestar.edu',
-        role: 'customer',
-        status: 'suspended',
-        joinDate: '2023-10-15',
-        lastLogin: '2024-01-05',
-        orders: 2,
-        totalSpent: 450.00,
-        avatar: 'https://res.cloudinary.com/dz4nqmtfp/image/upload/v1737024566/gohan-avatar_nqrmhx.jpg'
+    const fetchUsers = async () => {
+      try {
+        const response = await apiFetch('/api/admin/users');
+        setUsers(response.data || []);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      } finally {
+        setLoading(false);
       }
-    ];
-    setUsers(mockUsers);
+    };
+
+    fetchUsers();
   }, []);
 
   // Check admin access
@@ -151,6 +91,17 @@ function AdminUsers() {
 
   if (!user) {
     return <div>Loading...</div>;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <FaUserShield className="text-6xl text-blue-600 animate-pulse mx-auto mb-4" />
+          <p className="text-xl font-saiyan text-gray-700">Loading Users...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

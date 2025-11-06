@@ -69,17 +69,6 @@ function Login({ onSwitchTab, onForgotPassword }) {
     }
   }
 
-  const demoAccounts = [
-    { email: "goku@capsulecorp.com", password: "kamehameha", character: "Goku" },
-    { email: "vegeta@capsulecorp.com", password: "prince123", character: "Vegeta" },
-    { email: "bulma@capsulecorp.com", password: "science!", character: "Bulma" }
-  ];
-
-  const fillDemoAccount = (account) => {
-    setEmail(account.email);
-    setPassword(account.password);
-  };
-
   return (
     <div className={`login-container ${isDarkMode ? 'dark' : 'light'}`} ref={formRef}>
       <GoogleSignInButton variant="primary" />

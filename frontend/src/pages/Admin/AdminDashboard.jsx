@@ -2,18 +2,51 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaBox, FaShoppingCart, FaChartLine, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { apiFetch } from '../../lib/apiFetch';
 
 function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
-    totalUsers: 1247,
-    totalProducts: 32,
-    totalOrders: 893,
-    totalRevenue: 2847932.50,
-    monthlyGrowth: 12.5,
-    topProducts: ['Saiyan Battle Armor', 'Elite Scouter Mk III', 'Gravity Chamber']
+    totalUsers: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+    monthlyGrowth: 0,
+    topProducts: []
   });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch from multiple endpoints
+        const [productsRes, ordersRes] = await Promise.all([
+          apiFetch('/api/products'),
+          apiFetch('/api/admin/orders/stats').catch(() => ({ data: { total_orders: 0, total_revenue: 0 } }))
+        ]);
+
+        const products = productsRes.data || [];
+        const orderStats = ordersRes.data || {};
+
+        setStats({
+          totalUsers: 0, // TODO: Add users count endpoint
+          totalProducts: products.length || 0,
+          totalOrders: orderStats.total_orders || 0,
+          totalRevenue: parseFloat(orderStats.total_revenue) || 0,
+          monthlyGrowth: 0, // TODO: Calculate from historical data
+          topProducts: products.slice(0, 3).map(p => p.name) || []
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Check if user is admin
   useEffect(() => {
@@ -37,6 +70,17 @@ function AdminDashboard() {
 
   if (!user) {
     return <div>Loading...</div>;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center">
+          <FaCog className="text-6xl text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-xl font-saiyan text-gray-700">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -145,49 +189,45 @@ function AdminDashboard() {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 font-saiyan mb-4">Monthly Growth</h3>
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-500 font-saiyan mb-2">
-                +{stats.monthlyGrowth}%
-              </div>
-              <p className="text-gray-600">Revenue increase this month</p>
-              <div className="mt-4 bg-green-100 rounded-lg p-3">
-                <p className="text-green-700 font-medium">📈 Excellent performance!</p>
-              </div>
+              {stats.monthlyGrowth > 0 ? (
+                <>
+                  <div className="text-4xl font-bold text-green-500 font-saiyan mb-2">
+                    +{stats.monthlyGrowth}%
+                  </div>
+                  <p className="text-gray-600">Revenue increase this month</p>
+                  <div className="mt-4 bg-green-100 rounded-lg p-3">
+                    <p className="text-green-700 font-medium">📈 Excellent performance!</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-bold text-gray-400 font-saiyan mb-2">
+                    --
+                  </div>
+                  <p className="text-gray-600">No historical data yet</p>
+                  <div className="mt-4 bg-gray-100 rounded-lg p-3">
+                    <p className="text-gray-600 font-medium">📊 Start collecting data</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 font-saiyan mb-4">Top Products</h3>
             <div className="space-y-3">
-              {stats.topProducts.map((product, index) => (
-                <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {index + 1}
+              {stats.topProducts.length > 0 ? (
+                stats.topProducts.map((product, index) => (
+                  <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <span className="text-gray-700 font-medium text-sm">{product}</span>
                   </div>
-                  <span className="text-gray-700 font-medium text-sm">{product}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 font-saiyan mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-700">New order #1247 - Saiyan Battle Armor</span>
-              <span className="text-gray-500 text-sm ml-auto">2 minutes ago</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">User registration: goku@dbz.com</span>
-              <span className="text-gray-500 text-sm ml-auto">5 minutes ago</span>
-            </div>
-            <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span className="text-gray-700">Low stock alert: Dragon Radar (3 left)</span>
-              <span className="text-gray-500 text-sm ml-auto">1 hour ago</span>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No products yet</p>
+              )}
             </div>
           </div>
         </div>
