@@ -195,12 +195,7 @@ function AuthFooter({ className = "" }) {
           </div>
         </div>
 
-        {/* Dragon Ball Easter Egg */}
-        <div className="dragon-ball-hint">
-          <span className="saiyan-body-xs hint-text">
-            Collect all 7 Dragon Balls for a wish! 🐉
-          </span>
-        </div>
+
       </div>
     </footer>
   );
