@@ -43,16 +43,32 @@ const createProductValidation = [
     .withMessage('Stock must be a non-negative integer'),
   
   body('inStock')
-    .optional()
-    .isBoolean()
+    .optional({ checkFalsy: false })
+    .custom((value) => {
+      return value === true || value === false || value === 'true' || value === 'false' || value === '1' || value === '0' || value === 1 || value === 0;
+    })
     .withMessage('inStock must be a boolean'),
   
+  body('in_stock')
+    .optional({ checkFalsy: false })
+    .custom((value) => {
+      return value === true || value === false || value === 'true' || value === 'false' || value === '1' || value === '0' || value === 1 || value === 0;
+    })
+    .withMessage('in_stock must be a boolean'),
+  
   body('featured')
-    .optional()
-    .isBoolean()
+    .optional({ checkFalsy: false })
+    .custom((value) => {
+      return value === true || value === false || value === 'true' || value === 'false' || value === '1' || value === '0' || value === 1 || value === 0;
+    })
     .withMessage('featured must be a boolean'),
   
   body('powerLevel')
+    .optional()
+    .isInt({ min: 0, max: 999999 })
+    .withMessage('Power level must be between 0 and 999999'),
+  
+  body('power_level')
     .optional()
     .isInt({ min: 0, max: 999999 })
     .withMessage('Power level must be between 0 and 999999'),
@@ -65,13 +81,55 @@ const createProductValidation = [
   
   body('gallery')
     .optional()
-    .isArray()
-    .withMessage('Gallery must be an array'),
+    .custom((value) => {
+      // Allow string (for FormData with JSON.stringify) or array
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed);
+        } catch {
+          return false;
+        }
+      }
+      return Array.isArray(value);
+    })
+    .withMessage('Gallery must be an array or JSON string'),
   
-  body('gallery.*')
+  body('imageUrl')
     .optional()
+    .trim()
     .isURL()
-    .withMessage('Each gallery item must be a valid URL')
+    .withMessage('Image URL must be valid'),
+  
+  body('tags')
+    .optional()
+    .custom((value) => {
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed);
+        } catch {
+          return false;
+        }
+      }
+      return Array.isArray(value);
+    })
+    .withMessage('Tags must be an array or JSON string'),
+  
+  body('specifications')
+    .optional()
+    .custom((value) => {
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          return typeof parsed === 'object' && parsed !== null;
+        } catch {
+          return false;
+        }
+      }
+      return typeof value === 'object' && value !== null;
+    })
+    .withMessage('Specifications must be an object or JSON string')
 ];
 
 const updateProductValidation = [
