@@ -36,9 +36,7 @@ class CartModel {
           p.power_level AS powerLevel,
           p.featured,
           p.original_price AS originalPrice,
-          p.tags,
-          p.weight,
-          p.dimensions
+          p.tags
         FROM ${this.table} ci
         LEFT JOIN products p ON ci.product_id = p.id
         WHERE ci.user_id = ?
