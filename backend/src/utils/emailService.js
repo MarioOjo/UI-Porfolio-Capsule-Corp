@@ -21,7 +21,7 @@ async function sendEmail({ to, subject, html }) {
     throw new Error('Resend API key not configured');
   }
   return resend.emails.send({
-    from: 'onboarding@resend.dev', // Or your verified sender
+    from: 'Capsule Corp <noreply@send.capsulecorps.dev>', // Verified sender domain
     to,
     subject,
     html,
@@ -48,5 +48,51 @@ async function sendContactNotification(contactData) {
   });
 }
 
-module.exports = { sendEmail, sendContactNotification };
+async function sendCustomerConfirmation(contactData) {
+  const { name, email, subject } = contactData;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:0 auto; padding:20px; background:#f9fafb; border-radius:8px;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <h1 style="color:#3B4CCA; margin:0;">🚀 Capsule Corp</h1>
+      </div>
+      <div style="background:#fff; padding:30px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color:#1f2937; margin-top:0;">Thanks for reaching out, ${name}! 👋</h2>
+        <p style="color:#4b5563; line-height:1.6;">
+          We've received your message about "<strong>${subject}</strong>" and our Z-Fighter support team will respond within 24 hours.
+        </p>
+        <div style="background:#eff6ff; border-left:4px solid #3B4CCA; padding:15px; margin:20px 0; border-radius:4px;">
+          <p style="margin:0; color:#1e40af;">
+            <strong>💡 Pro Tip:</strong> Check your spam folder if you don't see our response in your inbox!
+          </p>
+        </div>
+        <p style="color:#4b5563; line-height:1.6;">
+          In the meantime, feel free to explore our products or check your order status.
+        </p>
+        <div style="text-align:center; margin:30px 0;">
+          <a href="${process.env.FRONTEND_URL || 'https://capsulecorps.dev'}" 
+             style="background:#3B4CCA; color:#fff; padding:12px 30px; border-radius:6px; text-decoration:none; display:inline-block; font-weight:bold;">
+            Visit Capsule Corp
+          </a>
+        </div>
+        <hr style="border:none; border-top:1px solid #e5e7eb; margin:30px 0;">
+        <p style="color:#6b7280; font-size:14px; line-height:1.5;">
+          <strong>Need immediate assistance?</strong><br>
+          📧 Email: <a href="mailto:support@send.capsulecorps.dev" style="color:#3B4CCA;">support@send.capsulecorps.dev</a><br>
+          🌐 Website: <a href="${process.env.FRONTEND_URL || 'https://capsulecorps.dev'}" style="color:#3B4CCA;">capsulecorps.dev</a>
+        </p>
+      </div>
+      <p style="text-align:center; color:#9ca3af; font-size:12px; margin-top:20px;">
+        © ${new Date().getFullYear()} Capsule Corp. All rights reserved.<br>
+        Powering the future with Capsule Technology 🎯
+      </p>
+    </div>
+  `;
+  return sendEmail({
+    to: email,
+    subject: '✅ We received your message - Capsule Corp',
+    html,
+  });
+}
+
+module.exports = { sendEmail, sendContactNotification, sendCustomerConfirmation };
 module.exports.sendPasswordResetEmail = sendPasswordResetEmail;
