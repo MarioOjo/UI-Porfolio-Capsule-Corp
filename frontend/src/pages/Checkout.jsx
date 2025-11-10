@@ -8,6 +8,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
 import { resolveImageSrc } from '../utils/images';
 import { useCurrency } from "../contexts/CurrencyContext";
+import { apiFetch } from "../utils/api";
 
 // Enhanced Image Component for Checkout
 const CheckoutImage = ({ item, size = 120, className = "" }) => {
@@ -257,52 +258,96 @@ function Checkout() {
 
     setLoading(true);
     try {
-      // Simulate API call with actual order data
+      // Prepare order data for API
       const orderData = {
-        items: cartItems,
-        shipping: formData,
-        payment: {
-          method: formData.paymentMethod,
-          cardLastFour: formData.cardNumber.slice(-4)
+        user_id: user?.id || null,
+        customer_name: formData.fullName,
+        customer_email: formData.email,
+        customer_phone: formData.phone || null,
+        shipping_address: {
+          line1: formData.address,
+          line2: formData.apartment || null,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country
         },
-        totals: orderTotals,
-        user_id: user?.id,
-        order_number: `CC-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+        billing_address: {
+          line1: formData.address,
+          line2: formData.apartment || null,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country
+        },
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          image: item.image,
+          category: item.category,
+          power_level: item.powerLevel || 0,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        subtotal: subtotal,
+        shipping_cost: shippingCost,
+        tax: tax,
+        total: total,
+        payment_method: formData.paymentMethod,
+        payment_status: 'pending',
+        customer_notes: formData.orderNotes || null
       };
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Clear cart and show success
-      clearCart();
-      showSuccess('🎉 Order placed successfully! Your capsules are being prepared for battle!', {
-        title: 'ORDER CONFIRMED',
-        duration: 5000,
-        position: 'top-center'
+      // Call the backend API
+      const response = await apiFetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
       });
-      
-      // Track conversion
-      if (window.gtag) {
-        window.gtag('event', 'purchase', {
-          transaction_id: orderData.order_number,
-          value: total,
-          currency: 'USD',
-          items: cartItems.map(item => ({
-            item_id: item.id,
-            item_name: item.name,
-            price: item.price,
-            quantity: item.quantity
-          }))
+
+      if (response.success) {
+        // Clear cart and show success
+        clearCart();
+        showSuccess('🎉 Order placed successfully! Your capsules are being prepared for battle!', {
+          title: 'ORDER CONFIRMED',
+          duration: 5000,
+          position: 'top-center'
         });
+        
+        // Track conversion
+        if (window.gtag) {
+          window.gtag('event', 'purchase', {
+            transaction_id: response.order_number,
+            value: total,
+            currency: currentCurrency,
+            items: cartItems.map(item => ({
+              item_id: item.id,
+              item_name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            }))
+          });
+        }
+        
+        navigate('/order-confirmation', { 
+          state: { 
+            orderData: {
+              ...orderData,
+              order_number: response.order_number,
+              order_id: response.order_id
+            }
+          },
+          replace: true 
+        });
+      } else {
+        throw new Error(response.error || 'Failed to create order');
       }
-      
-      navigate('/order-confirmation', { 
-        state: { orderData },
-        replace: true 
-      });
     } catch (error) {
       console.error('Order submission error:', error);
-      showError('Failed to place order. Please try again.', {
+      showError(error.message || 'Failed to place order. Please try again.', {
         title: 'ORDER FAILED',
         duration: 4000
       });
