@@ -72,9 +72,8 @@ class DatabaseMigration {
         '000_create_roles_table.sql',
         '001_create_users_table.sql',
         '002_create_categories_table.sql',
-        '003_seed_products_data.sql',
+        '003_create_products_table.sql',
         '004_create_capsule_products_table.sql',
-        '004_add_capsule_products.sql',
         '005_create_contact_messages_table.sql',
         '006_create_orders_tables.sql',
         // Added: cart_items table migration (idempotent)
