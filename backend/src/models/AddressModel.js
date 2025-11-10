@@ -16,43 +16,131 @@ class AddressModel {
   }
 
   async create(userId, address) {
-    const {
-      line1, line2 = null, city = null, state = null, zip = null, country = 'USA', label = 'Home'
-    } = address;
+    // Support both old format (line1, line2, label) and new format (street, fullName, type, name, phone)
+    const line1 = address.street || address.line1 || '';
+    const line2 = address.line2 || null;
+    const city = address.city || null;
+    const state = address.state || null;
+    const zip = address.zip || null;
+    const country = address.country || 'USA';
+    const label = address.name || address.label || address.type || 'Home';
+    const fullName = address.fullName || '';
+    const phone = address.phone || '';
+    
     const query = `
-      INSERT INTO ${this.table} (user_id, line1, line2, city, state, zip, country, label, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      INSERT INTO ${this.table} (user_id, line1, line2, city, state, zip, country, label, full_name, phone, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
-    const result = await this.db.executeQuery(query, [userId, line1, line2, city, state, zip, country, label]);
-    return { id: result.insertId, user_id: userId, ...address };
+    const result = await this.db.executeQuery(query, [userId, line1, line2, city, state, zip, country, label, fullName, phone]);
+    
+    // Return in frontend format
+    return { 
+      id: result.insertId, 
+      user_id: userId, 
+      street: line1,
+      line1,
+      line2,
+      city,
+      state,
+      zip,
+      country,
+      name: label,
+      label,
+      type: address.type || 'home',
+      fullName,
+      phone,
+      isDefault: false
+    };
   }
 
   async listByUser(userId) {
     const query = `SELECT * FROM ${this.table} WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC`;
-    return await this.db.executeQuery(query, [userId]);
+    const rows = await this.db.executeQuery(query, [userId]);
+    
+    // Map database columns to frontend format
+    return rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      street: row.line1,
+      line1: row.line1,
+      line2: row.line2,
+      city: row.city,
+      state: row.state,
+      zip: row.zip,
+      country: row.country,
+      name: row.label,
+      label: row.label,
+      type: row.type || 'home',
+      fullName: row.full_name || '',
+      phone: row.phone || '',
+      isDefault: Boolean(row.is_default),
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    }));
   }
 
   async findById(id) {
     const query = `SELECT * FROM ${this.table} WHERE id = ? AND deleted_at IS NULL`;
     const rows = await this.db.executeQuery(query, [id]);
-    return rows[0] || null;
+    const row = rows[0] || null;
+    
+    if (!row) return null;
+    
+    // Map to frontend format
+    return {
+      id: row.id,
+      user_id: row.user_id,
+      street: row.line1,
+      line1: row.line1,
+      line2: row.line2,
+      city: row.city,
+      state: row.state,
+      zip: row.zip,
+      country: row.country,
+      name: row.label,
+      label: row.label,
+      type: row.type || 'home',
+      fullName: row.full_name || '',
+      phone: row.phone || '',
+      isDefault: Boolean(row.is_default),
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    };
   }
 
   async update(id, address) {
     const fields = [];
     const values = [];
-    const allowed = ['line1','line2','city','state','zip','country','label'];
-    for (const k of allowed) {
-      if (k in address) {
-        fields.push(`${k} = ?`);
-        values.push(address[k]);
+    
+    // Map frontend fields to database columns
+    const fieldMap = {
+      street: 'line1',
+      line1: 'line1',
+      line2: 'line2',
+      city: 'city',
+      state: 'state',
+      zip: 'zip',
+      country: 'country',
+      name: 'label',
+      label: 'label',
+      fullName: 'full_name',
+      phone: 'phone',
+      type: 'type'
+    };
+    
+    for (const [frontendKey, dbColumn] of Object.entries(fieldMap)) {
+      if (frontendKey in address) {
+        fields.push(`${dbColumn} = ?`);
+        values.push(address[frontendKey]);
       }
     }
-    if (fields.length === 0) return null;
+    
+    if (fields.length === 0) return await this.findById(id);
+    
     const query = `UPDATE ${this.table} SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`;
     values.push(id);
     await this.db.executeQuery(query, values);
-    return this.findById(id);
+    return await this.findById(id);
   }
 
   async remove(id) {

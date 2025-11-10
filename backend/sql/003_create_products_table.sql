@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS products (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) UNIQUE,
+  description TEXT,
+  category_id INT,
+  price DECIMAL(10,2) NOT NULL,
+  original_price DECIMAL(10,2),
+  power_level INT,
+  image VARCHAR(500),
+  gallery JSON,
+  in_stock BOOLEAN DEFAULT TRUE,
+  stock INT DEFAULT 0,
+  featured BOOLEAN DEFAULT FALSE,
+  tags JSON,
+  specifications JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (category_id) REFERENCES categories(id)
+);

@@ -197,10 +197,10 @@ const OrderHistory = () => {
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                         <div>
                           <h3 className={`text-lg font-bold font-saiyan ${isDarkMode ? 'text-white' : 'text-[#3B4CCA]'}`}>
-                            {order.id}
+                            {order.order_number || `Order #${order.id}`}
                           </h3>
                           <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Ordered on {new Date(order.date).toLocaleDateString('en-US', { 
+                            Ordered on {new Date(order.placed_at || order.created_at || order.date).toLocaleDateString('en-US', { 
                               year: 'numeric', 
                               month: 'long', 
                               day: 'numeric' 
@@ -255,10 +255,13 @@ const OrderHistory = () => {
                       {/* Order Actions */}
                       <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                         <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <p><strong>Shipping:</strong> {order.shipping?.address || 'N/A'}</p>
-                          <p><strong>Method:</strong> {order.shipping?.method || 'Standard'}</p>
-                          {order.shipping?.tracking && (
-                            <p><strong>Tracking:</strong> {order.shipping.tracking}</p>
+                          <p><strong>Payment Method:</strong> {order.payment_method || 'Credit Card'}</p>
+                          <p><strong>Order Number:</strong> {order.order_number || order.id}</p>
+                          {order.tracking_number && (
+                            <>
+                              <p><strong>Tracking Number:</strong> {order.tracking_number}</p>
+                              {order.carrier && <p><strong>Carrier:</strong> {order.carrier}</p>}
+                            </>
                           )}
                         </div>
                         <div className="flex space-x-3">
@@ -269,7 +272,7 @@ const OrderHistory = () => {
                             <FaEye />
                             <span>VIEW DETAILS</span>
                           </button>
-                          {order.status === 'shipped' && (
+                          {(order.status === 'shipped' || order.tracking_number) && (
                             <button className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-saiyan text-sm">
                               <FaTruck />
                               <span>TRACK ORDER</span>
@@ -321,9 +324,10 @@ const OrderHistory = () => {
                     ORDER INFORMATION
                   </h3>
                   <div className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <p><strong>Order ID:</strong> {selectedOrder.id}</p>
-                    <p><strong>Date:</strong> {new Date(selectedOrder.date).toLocaleDateString()}</p>
-                    <p><strong>Status:</strong> {selectedOrder.status}</p>
+                    <p><strong>Order Number:</strong> {selectedOrder.order_number || selectedOrder.id}</p>
+                    <p><strong>Date:</strong> {new Date(selectedOrder.placed_at || selectedOrder.created_at || selectedOrder.date).toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> <span className="capitalize">{selectedOrder.status}</span></p>
+                    <p><strong>Payment Method:</strong> {selectedOrder.payment_method || 'N/A'}</p>
                     <p><strong>Total:</strong> <Price value={selectedOrder.total} /></p>
                   </div>
                 </div>
@@ -364,10 +368,20 @@ const OrderHistory = () => {
                     SHIPPING INFORMATION
                   </h3>
                   <div className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <p><strong>Address:</strong> {selectedOrder.shipping?.address || 'N/A'}</p>
-                    <p><strong>Method:</strong> {selectedOrder.shipping?.method || 'Standard'}</p>
-                    {selectedOrder.shipping?.tracking && (
-                      <p><strong>Tracking Number:</strong> {selectedOrder.shipping.tracking}</p>
+                    <p><strong>Shipping Address:</strong> {selectedOrder.shipping_address_line1 || 'N/A'}</p>
+                    {selectedOrder.shipping_city && (
+                      <p>{selectedOrder.shipping_city}, {selectedOrder.shipping_state} {selectedOrder.shipping_zip}</p>
+                    )}
+                    {selectedOrder.shipping_country && (
+                      <p><strong>Country:</strong> {selectedOrder.shipping_country}</p>
+                    )}
+                    {selectedOrder.tracking_number && (
+                      <>
+                        <p className="mt-2"><strong>Tracking Number:</strong> {selectedOrder.tracking_number}</p>
+                        {selectedOrder.carrier && (
+                          <p><strong>Carrier:</strong> {selectedOrder.carrier}</p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

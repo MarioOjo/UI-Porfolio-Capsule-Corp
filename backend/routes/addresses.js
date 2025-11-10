@@ -31,8 +31,21 @@ router.put('/:id', AuthMiddleware.authenticateToken, asyncHandler(async (req, re
   res.json({ address: updated });
 }));
 
-// PATCH /api/addresses/:id/default - set default address for user
-router.patch('/:id/default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+// PATCH or PUT /api/addresses/:id/set-default - set default address for user
+router.patch('/:id/set-default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user && req.user.id;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const addressId = req.params.id;
+  // Unset previous default
+  await AddressModel.unsetDefault(userId);
+  // Set new default
+  await AddressModel.setDefault(addressId, userId);
+  const updated = await AddressModel.findById(addressId);
+  res.json({ address: updated });
+}));
+
+// Also support PUT for set-default (frontend uses PUT)
+router.put('/:id/set-default', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
   const addressId = req.params.id;
