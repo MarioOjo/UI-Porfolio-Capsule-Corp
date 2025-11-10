@@ -291,7 +291,7 @@ function Checkout() {
           price: item.price
         })),
         subtotal: subtotal,
-        shipping_cost: shippingCost,
+        shipping_cost: shipping,
         tax: tax,
         total: total,
         payment_method: formData.paymentMethod,
