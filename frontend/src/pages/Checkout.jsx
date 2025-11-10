@@ -265,23 +265,23 @@ function Checkout() {
         customer_email: formData.email,
         customer_phone: formData.phone || null,
         shipping_address: {
-          line1: formData.address,
+          street: formData.address,
           line2: formData.apartment || null,
           city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
+          state: formData.state || '',
+          postal_code: formData.zip,
           country: formData.country
         },
         billing_address: {
-          line1: formData.address,
+          street: formData.address,
           line2: formData.apartment || null,
           city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
+          state: formData.state || '',
+          postal_code: formData.zip,
           country: formData.country
         },
         items: cartItems.map(item => ({
-          id: item.id,
+          product_id: item.id,
           name: item.name,
           slug: item.slug,
           image: item.image,
