@@ -6,7 +6,9 @@ import {
   FaHeart,
   FaTimes,
   FaBars,
-  FaCaretDown
+  FaCaretDown,
+  FaHome,
+  FaShoppingBag
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import ThemeToggle from "../../components/ThemeToggle";
@@ -560,34 +562,68 @@ function Navbar() {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="mobile-bottom-nav fixed bottom-0 left-0 w-full flex justify-evenly items-center bg-neutral-900 text-white py-2 px-2 gap-2 md:hidden rounded-t-2xl shadow-lg border-t border-neutral-700">
-        {!user ? (
-          <>
+      <nav className="mobile-bottom-nav fixed bottom-0 left-0 w-full flex justify-center items-center bg-neutral-900 text-white py-3 px-4 md:hidden rounded-t-2xl shadow-lg border-t border-neutral-700 z-40">
+        <div className="flex justify-evenly items-center w-full max-w-md gap-2">
+          {/* Home */}
+          <button 
+            onClick={() => navigate('/')} 
+            className="flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
+          >
+            <FaHome className="text-xl mb-1 group-hover:text-blue-400 transition-colors" />
+            <span className="text-xs">Home</span>
+          </button>
+
+          {/* Products */}
+          <button 
+            onClick={() => navigate('/products')} 
+            className="flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
+          >
+            <FaShoppingBag className="text-xl mb-1 group-hover:text-green-400 transition-colors" />
+            <span className="text-xs">Shop</span>
+          </button>
+
+          {/* Cart */}
+          <button 
+            onClick={() => navigate('/cart')} 
+            className="relative flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
+          >
+            <FaShoppingCart className="text-xl mb-1 group-hover:text-orange-400 transition-colors" />
+            {cartCount > 0 && (
+              <span className="absolute top-0 right-2 bg-orange-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center font-bold">
+                {cartCount}
+              </span>
+            )}
+            <span className="text-xs">Cart</span>
+          </button>
+
+          {/* Wishlist */}
+          <button 
+            onClick={() => navigate('/wishlist')} 
+            className="flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
+          >
+            <FaHeart className="text-xl mb-1 group-hover:text-red-400 transition-colors" />
+            <span className="text-xs">Wishlist</span>
+          </button>
+
+          {/* Profile/Account */}
+          {user ? (
+            <button 
+              onClick={() => navigate('/profile')} 
+              className="flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
+            >
+              <FaUser className="text-xl mb-1 group-hover:text-purple-400 transition-colors" />
+              <span className="text-xs">Profile</span>
+            </button>
+          ) : (
             <button 
               onClick={() => navigate('/auth')} 
-              className="px-4 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-colors text-xs flex-1 text-center"
+              className="flex flex-col items-center justify-center px-4 py-2 rounded-lg hover:bg-neutral-800 transition-colors flex-1 group"
             >
-              Login
+              <FaUser className="text-xl mb-1 group-hover:text-purple-400 transition-colors" />
+              <span className="text-xs">Login</span>
             </button>
-            <button 
-              onClick={() => navigate('/auth?tab=signup')} 
-              className="px-4 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-colors text-xs flex-1 text-center"
-            >
-              Register
-            </button>
-          </>
-        ) : null}
-        <button 
-          onClick={() => navigate('/cart')} 
-          className="relative px-4 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 transition-colors flex items-center justify-center flex-1"
-        >
-          <FaShoppingCart className="text-lg"/>
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center">
-              {cartCount}
-            </span>
           )}
-        </button>
+        </div>
       </nav>
 
       {/* Mobile Slide-in Menu */}

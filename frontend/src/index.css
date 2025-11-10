@@ -72,7 +72,16 @@ select {
   flex-direction: column;
   min-height: 0;
   overflow-x: hidden;
+  /* Add padding bottom for mobile navigation */
+  padding-bottom: 0;
   /* No overflow-y - content scrolls naturally in body */
+}
+
+/* Mobile bottom padding to prevent content being hidden by nav */
+@media (max-width: 768px) {
+  .app-main {
+    padding-bottom: 80px; /* Height of mobile bottom nav + spacing */
+  }
 }
 
 /* ===== TYPOGRAPHY ===== */

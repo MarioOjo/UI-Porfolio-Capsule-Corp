@@ -109,7 +109,24 @@ router.get('/number/:orderNumber', async (req, res) => {
   }
 });
 
-// Get user's orders
+// Get user's orders (shorthand - requires authentication)
+router.get('/my-orders', AuthMiddleware.requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const orders = await OrderModel.findAll({ user_id: userId });
+    
+    res.json({
+      success: true,
+      orders: orders,
+      count: orders.length
+    });
+  } catch (error) {
+    console.error('Error fetching my orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
+  }
+});
+
+// Get user's orders (by userId)
 router.get('/user/:userId', async (req, res) => {
   try {
     const orders = await OrderModel.findAll({ user_id: req.params.userId });
