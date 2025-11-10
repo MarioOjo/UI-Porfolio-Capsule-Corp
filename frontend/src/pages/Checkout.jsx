@@ -70,13 +70,16 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     // Shipping Information
+    fullName: '',
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     address: '',
+    apartment: '',
     city: '',
     state: '',
+    zip: '',
     zipCode: '',
     country: location?.country || 'United States',
     
@@ -93,6 +96,7 @@ function Checkout() {
     promoCode: '',
     subscribeNewsletter: false,
     agreeToTerms: false,
+    orderNotes: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -121,11 +125,44 @@ function Checkout() {
     if (user && authInitialized) {
       setFormData(prev => ({
         ...prev,
-        firstName: user.displayName?.split(' ')[0] || prev.firstName,
-        lastName: user.displayName?.split(' ')[1] || prev.lastName,
-        email: user.email || prev.email
+        fullName: user.full_name || user.displayName || prev.fullName,
+        firstName: user.firstName || user.displayName?.split(' ')[0] || prev.firstName,
+        lastName: user.lastName || user.displayName?.split(' ')[1] || prev.lastName,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone
       }));
     }
+  }, [user, authInitialized]);
+
+  // Fetch and pre-fill default address
+  useEffect(() => {
+    const fetchDefaultAddress = async () => {
+      if (!user || !authInitialized) return;
+      
+      try {
+        const response = await apiFetch('/api/addresses');
+        if (response.addresses && response.addresses.length > 0) {
+          // Find default address or use first one
+          const defaultAddr = response.addresses.find(addr => addr.is_default) || response.addresses[0];
+          
+          if (defaultAddr) {
+            setFormData(prev => ({
+              ...prev,
+              address: defaultAddr.street || defaultAddr.address_line1 || prev.address,
+              apartment: defaultAddr.line2 || defaultAddr.address_line2 || prev.apartment,
+              city: defaultAddr.city || prev.city,
+              state: defaultAddr.state || prev.state,
+              zip: defaultAddr.postal_code || defaultAddr.zip || prev.zip,
+              country: defaultAddr.country || prev.country
+            }));
+          }
+        }
+      } catch (error) {
+        console.log('No saved addresses found or error fetching:', error.message);
+      }
+    };
+
+    fetchDefaultAddress();
   }, [user, authInitialized]);
 
   // Update country when currency changes
@@ -258,10 +295,13 @@ function Checkout() {
 
     setLoading(true);
     try {
+      // Ensure fullName is set from firstName + lastName if not already set
+      const customerFullName = formData.fullName || `${formData.firstName} ${formData.lastName}`.trim();
+      
       // Prepare order data for API
       const orderData = {
         user_id: user?.id || null,
-        customer_name: formData.fullName,
+        customer_name: customerFullName,
         customer_email: formData.email,
         customer_phone: formData.phone || null,
         shipping_address: {
@@ -269,7 +309,7 @@ function Checkout() {
           line2: formData.apartment || null,
           city: formData.city,
           state: formData.state || '',
-          postal_code: formData.zip,
+          postal_code: formData.zip || formData.zipCode,
           country: formData.country
         },
         billing_address: {
@@ -277,7 +317,7 @@ function Checkout() {
           line2: formData.apartment || null,
           city: formData.city,
           state: formData.state || '',
-          postal_code: formData.zip,
+          postal_code: formData.zip || formData.zipCode,
           country: formData.country
         },
         items: cartItems.map(item => ({
