@@ -28,6 +28,7 @@ const ProfileLayout = lazy(() => import('../pages/Profile/ProfileLayout'));
 const ProfileDashboard = lazy(() => import('../pages/Profile/ProfileDashboard'));
 const OrderHistory = lazy(() => import('../pages/Profile/OrderHistory'));
 const AddressBook = lazy(() => import('../pages/Profile/AddressBook'));
+const ProfileWishlist = lazy(() => import('../pages/Profile/ProfileWishlist'));
 const ChangePassword = lazy(() => import('../pages/Profile/ChangePassword'));
 const Returns = lazy(() => import('../pages/Profile/Returns'));
 const OrderTracking = lazy(() => import('../pages/OrderTracking'));
@@ -182,6 +183,7 @@ const AnimatedRoutes = () => {
               <Route path="account" element={<Profile />} />
               <Route path="order-history" element={<OrderHistory />} />
               <Route path="address-book" element={<AddressBook />} />
+              <Route path="wishlist" element={<ProfileWishlist />} />
               <Route path="change-password" element={<ChangePassword />} />
               <Route path="returns" element={<Returns />} />
             </Route>
