@@ -119,10 +119,10 @@ class OrderModel {
     }
 
     if (filters.search) {
-      // Search in order_number and metadata (which contains customer info as JSON)
-      conditions.push('(o.order_number LIKE ? OR o.metadata LIKE ?)');
+      // Search in order_number, customer_name, and customer_email columns
+      conditions.push('(o.order_number LIKE ? OR o.customer_name LIKE ? OR o.customer_email LIKE ?)');
       const searchTerm = `%${filters.search}%`;
-      params.push(searchTerm, searchTerm);
+      params.push(searchTerm, searchTerm, searchTerm);
     }
 
     if (filters.date_from) {
@@ -148,19 +148,13 @@ class OrderModel {
 
     const rows = await db.executeQuery(query, params);
     
-    // Parse metadata JSON for each order
+    // Map placed_at to created_at for frontend compatibility and ensure customer fields exist
     return rows.map(row => {
-      if (row.metadata) {
-        try {
-          const metadata = JSON.parse(row.metadata);
-          row.customer_name = metadata.customer || 'N/A';
-          row.customer_email = metadata.email || 'N/A';
-        } catch (e) {
-          row.customer_name = 'N/A';
-          row.customer_email = 'N/A';
-        }
-      }
-      row.created_at = row.placed_at; // Map placed_at to created_at for frontend compatibility
+      row.created_at = row.placed_at;
+      // customer_name and customer_email are already in the row from the database columns
+      // If they're null for any reason, provide defaults
+      row.customer_name = row.customer_name || 'N/A';
+      row.customer_email = row.customer_email || 'N/A';
       return row;
     });
   }
