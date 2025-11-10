@@ -2,27 +2,48 @@ const db = require('../config/database');
 
 class ReviewModel {
   // Get all reviews for a product
-  static async findByProductId(productId) {
+  static async findByProductId(productId, options = {}) {
+    const { sortBy = 'recent', limit = 50, offset = 0 } = options;
+    
+    // Determine ORDER BY clause based on sortBy
+    let orderClause;
+    switch(sortBy) {
+      case 'helpful':
+        orderClause = 'r.helpful_count DESC, r.created_at DESC';
+        break;
+      case 'rating_high':
+        orderClause = 'r.rating DESC, r.created_at DESC';
+        break;
+      case 'rating_low':
+        orderClause = 'r.rating ASC, r.created_at DESC';
+        break;
+      case 'recent':
+      default:
+        orderClause = 'r.created_at DESC';
+        break;
+    }
+    
     const query = `
       SELECT 
         r.id,
-        r.product_id,
-        r.user_id,
+        r.product_id AS productId,
+        r.user_id AS userId,
         r.rating,
         r.title,
         r.comment,
         r.verified_purchase AS verified,
         r.helpful_count AS helpful,
-        r.created_at AS date,
-        u.first_name || ' ' || u.last_name AS "userName",
-        u.email AS "userEmail"
+        DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+        CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) AS userName,
+        u.email AS userEmail
       FROM reviews r
       JOIN users u ON r.user_id = u.id
-      WHERE r.product_id = $1
-      ORDER BY r.created_at DESC
+      WHERE r.product_id = ?
+      ORDER BY ${orderClause}
+      LIMIT ? OFFSET ?
     `;
-    const result = await db.query(query, [productId]);
-    return result.rows;
+    const rows = await db.executeQuery(query, [productId, limit, offset]);
+    return rows || [];
   }
 
   // Get reviews by user
@@ -30,24 +51,24 @@ class ReviewModel {
     const query = `
       SELECT 
         r.id,
-        r.product_id,
-        r.user_id,
+        r.product_id AS productId,
+        r.user_id AS userId,
         r.rating,
         r.title,
         r.comment,
         r.verified_purchase AS verified,
         r.helpful_count AS helpful,
-        r.created_at AS date,
-        p.name AS "productName",
-        p.slug AS "productSlug",
-        p.image AS "productImage"
+        DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+        p.name AS productName,
+        p.slug AS productSlug,
+        p.image AS productImage
       FROM reviews r
       JOIN products p ON r.product_id = p.id
-      WHERE r.user_id = $1
+      WHERE r.user_id = ?
       ORDER BY r.created_at DESC
     `;
-    const result = await db.query(query, [userId]);
-    return result.rows;
+    const rows = await db.executeQuery(query, [userId]);
+    return rows || [];
   }
 
   // Create a new review
@@ -56,25 +77,32 @@ class ReviewModel {
     
     const query = `
       INSERT INTO reviews (product_id, user_id, rating, title, comment, verified_purchase)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING 
-        id,
-        product_id AS "productId",
-        user_id AS "userId",
-        rating,
-        title,
-        comment,
-        verified_purchase AS verified,
-        helpful_count AS helpful,
-        created_at AS date
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
     
     try {
-      const result = await db.query(query, [productId, userId, rating, title, comment, verifiedPurchase]);
-      return result.rows[0];
+      const result = await db.executeQuery(query, [productId, userId, rating, title, comment, verifiedPurchase]);
+      
+      // Fetch the newly created review
+      const selectQuery = `
+        SELECT 
+          id,
+          product_id AS productId,
+          user_id AS userId,
+          rating,
+          title,
+          comment,
+          verified_purchase AS verified,
+          helpful_count AS helpful,
+          DATE_FORMAT(created_at, '%Y-%m-%d') AS date
+        FROM reviews
+        WHERE id = ?
+      `;
+      const rows = await db.executeQuery(selectQuery, [result.insertId]);
+      return rows[0];
     } catch (error) {
       // Handle duplicate review error
-      if (error.code === '23505') { // Unique violation
+      if (error.code === 'ER_DUP_ENTRY') {
         throw new Error('You have already reviewed this product');
       }
       throw error;
@@ -88,70 +116,80 @@ class ReviewModel {
     const query = `
       UPDATE reviews
       SET 
-        rating = COALESCE($1, rating),
-        title = COALESCE($2, title),
-        comment = COALESCE($3, comment),
+        rating = COALESCE(?, rating),
+        title = COALESCE(?, title),
+        comment = COALESCE(?, comment),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4 AND user_id = $5
-      RETURNING 
+      WHERE id = ? AND user_id = ?
+    `;
+    
+    const result = await db.executeQuery(query, [rating, title, comment, reviewId, userId]);
+    
+    if (result.affectedRows === 0) {
+      return null;
+    }
+    
+    // Fetch the updated review
+    const selectQuery = `
+      SELECT 
         id,
-        product_id AS "productId",
-        user_id AS "userId",
+        product_id AS productId,
+        user_id AS userId,
         rating,
         title,
         comment,
         verified_purchase AS verified,
         helpful_count AS helpful,
-        updated_at AS date
+        DATE_FORMAT(updated_at, '%Y-%m-%d') AS date
+      FROM reviews
+      WHERE id = ?
     `;
-    
-    const result = await db.query(query, [rating, title, comment, reviewId, userId]);
-    return result.rows[0];
+    const rows = await db.executeQuery(selectQuery, [reviewId]);
+    return rows[0];
   }
 
   // Delete a review
   static async delete(reviewId, userId) {
-    const query = 'DELETE FROM reviews WHERE id = $1 AND user_id = $2 RETURNING id';
-    const result = await db.query(query, [reviewId, userId]);
-    return result.rows.length > 0;
+    const query = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
+    const result = await db.executeQuery(query, [reviewId, userId]);
+    return result.affectedRows > 0;
   }
 
   // Mark review as helpful (vote)
   static async markHelpful(reviewId, userId) {
-    const client = await db.getClient();
-    
     try {
-      await client.query('BEGIN');
-      
-      // Try to insert vote (will fail if already voted)
+      // Try to insert vote (will fail if already voted due to unique constraint)
       const voteQuery = `
         INSERT INTO review_helpful_votes (review_id, user_id)
-        VALUES ($1, $2)
-        ON CONFLICT (review_id, user_id) DO NOTHING
-        RETURNING id
+        VALUES (?, ?)
       `;
-      const voteResult = await client.query(voteQuery, [reviewId, userId]);
       
-      // If vote was inserted, increment helpful count
-      if (voteResult.rows.length > 0) {
+      try {
+        await db.executeQuery(voteQuery, [reviewId, userId]);
+        
+        // If vote was inserted, increment helpful count
         const updateQuery = `
           UPDATE reviews
           SET helpful_count = helpful_count + 1
-          WHERE id = $1
-          RETURNING helpful_count AS helpful
+          WHERE id = ?
         `;
-        const updateResult = await client.query(updateQuery, [reviewId]);
-        await client.query('COMMIT');
-        return { success: true, helpful: updateResult.rows[0]?.helpful };
+        await db.executeQuery(updateQuery, [reviewId]);
+        
+        // Get updated count
+        const selectQuery = 'SELECT helpful_count AS helpful FROM reviews WHERE id = ?';
+        const rows = await db.executeQuery(selectQuery, [reviewId]);
+        
+        return { success: true, helpful: rows[0]?.helpful || 0 };
+      } catch (error) {
+        // Duplicate entry (already voted)
+        if (error.code === 'ER_DUP_ENTRY') {
+          return { success: false, message: 'You have already marked this review as helpful' };
+        }
+        throw error;
       }
-      
-      await client.query('COMMIT');
-      return { success: false, message: 'Already voted' };
     } catch (error) {
-      await client.query('ROLLBACK');
+      console.error('Error marking review helpful:', error);
       throw error;
-    } finally {
-      client.release();
     }
   }
 
@@ -159,13 +197,13 @@ class ReviewModel {
   static async getAverageRating(productId) {
     const query = `
       SELECT 
-        ROUND(AVG(rating)::numeric, 1) AS "averageRating",
-        COUNT(*) AS "totalReviews"
+        ROUND(AVG(rating), 1) AS averageRating,
+        COUNT(*) AS totalReviews
       FROM reviews
-      WHERE product_id = $1
+      WHERE product_id = ?
     `;
-    const result = await db.query(query, [productId]);
-    return result.rows[0];
+    const rows = await db.executeQuery(query, [productId]);
+    return rows[0] || { averageRating: 0, totalReviews: 0 };
   }
 
   // Get rating distribution for a product
@@ -175,15 +213,15 @@ class ReviewModel {
         rating,
         COUNT(*) AS count
       FROM reviews
-      WHERE product_id = $1
+      WHERE product_id = ?
       GROUP BY rating
       ORDER BY rating DESC
     `;
-    const result = await db.query(query, [productId]);
+    const rows = await db.executeQuery(query, [productId]);
     
     // Initialize all ratings to 0
     const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    result.rows.forEach(row => {
+    rows.forEach(row => {
       distribution[row.rating] = parseInt(row.count);
     });
     
@@ -197,14 +235,35 @@ class ReviewModel {
         SELECT 1
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.id
-        WHERE o.user_id = $1 
-        AND oi.product_id = $2
+        WHERE o.user_id = ? 
+        AND oi.product_id = ?
         AND o.status IN ('completed', 'shipped', 'delivered')
       ) AS purchased
     `;
-    const result = await db.query(query, [userId, productId]);
-    return result.rows[0]?.purchased || false;
+    const rows = await db.executeQuery(query, [userId, productId]);
+    return rows[0]?.purchased === 1;
+  }
+  
+  // Get user's review for a specific product
+  static async getUserReview(userId, productId) {
+    const query = `
+      SELECT 
+        id,
+        product_id AS productId,
+        user_id AS userId,
+        rating,
+        title,
+        comment,
+        verified_purchase AS verified,
+        helpful_count AS helpful,
+        DATE_FORMAT(created_at, '%Y-%m-%d') AS date
+      FROM reviews
+      WHERE user_id = ? AND product_id = ?
+    `;
+    const rows = await db.executeQuery(query, [userId, productId]);
+    return rows[0] || null;
   }
 }
 
 module.exports = ReviewModel;
+

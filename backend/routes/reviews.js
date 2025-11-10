@@ -9,8 +9,13 @@ const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next
 // GET /api/products/:productId/reviews - Get all reviews for a product
 router.get('/products/:productId/reviews', asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  const { sortBy = 'recent', limit = 50, offset = 0 } = req.query;
   
-  const reviews = await ReviewModel.findByProductId(productId);
+  const reviews = await ReviewModel.findByProductId(productId, { 
+    sortBy, 
+    limit: parseInt(limit), 
+    offset: parseInt(offset) 
+  });
   const stats = await ReviewModel.getAverageRating(productId);
   const distribution = await ReviewModel.getRatingDistribution(productId);
   
@@ -35,8 +40,23 @@ router.post('/products/:productId/reviews', AuthMiddleware.authenticateToken, as
   if (!title || title.trim().length === 0) {
     return res.status(400).json({ error: 'Review title is required' });
   }
+  if (!title || title.trim().length > 200) {
+    return res.status(400).json({ error: 'Review title must be less than 200 characters' });
+  }
   if (!comment || comment.trim().length < 10) {
     return res.status(400).json({ error: 'Review comment must be at least 10 characters' });
+  }
+  if (comment.trim().length > 2000) {
+    return res.status(400).json({ error: 'Review comment must be less than 2000 characters' });
+  }
+  
+  // Check if user already reviewed this product
+  const existingReview = await ReviewModel.getUserReview(userId, productId);
+  if (existingReview) {
+    return res.status(400).json({ 
+      error: 'You have already reviewed this product. Please edit your existing review instead.',
+      reviewId: existingReview.id
+    });
   }
   
   // Check if user has purchased the product (for verified badge)
@@ -58,6 +78,7 @@ router.post('/products/:productId/reviews', AuthMiddleware.authenticateToken, as
     : req.user.username || req.user.email.split('@')[0];
   
   res.status(201).json({ 
+    success: true,
     review: {
       ...review,
       userName,
@@ -78,6 +99,20 @@ router.put('/reviews/:reviewId', AuthMiddleware.authenticateToken, asyncHandler(
   const { rating, title, comment } = req.body;
   const userId = req.user.id;
   
+  // Validate input if provided
+  if (rating && (rating < 1 || rating > 5)) {
+    return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+  }
+  if (title && title.trim().length > 200) {
+    return res.status(400).json({ error: 'Review title must be less than 200 characters' });
+  }
+  if (comment && comment.trim().length < 10) {
+    return res.status(400).json({ error: 'Review comment must be at least 10 characters' });
+  }
+  if (comment && comment.trim().length > 2000) {
+    return res.status(400).json({ error: 'Review comment must be less than 2000 characters' });
+  }
+  
   const review = await ReviewModel.update(reviewId, userId, {
     rating: rating ? parseInt(rating) : undefined,
     title: title?.trim(),
@@ -85,10 +120,10 @@ router.put('/reviews/:reviewId', AuthMiddleware.authenticateToken, asyncHandler(
   });
   
   if (!review) {
-    return res.status(404).json({ error: 'Review not found or unauthorized' });
+    return res.status(404).json({ error: 'Review not found or you are not authorized to edit it' });
   }
   
-  res.json({ review });
+  res.json({ success: true, review });
 }));
 
 // DELETE /api/reviews/:reviewId - Delete a review (requires auth, own review only)
@@ -99,10 +134,10 @@ router.delete('/reviews/:reviewId', AuthMiddleware.authenticateToken, asyncHandl
   const success = await ReviewModel.delete(reviewId, userId);
   
   if (!success) {
-    return res.status(404).json({ error: 'Review not found or unauthorized' });
+    return res.status(404).json({ error: 'Review not found or you are not authorized to delete it' });
   }
   
-  res.json({ message: 'Review deleted successfully' });
+  res.json({ success: true, message: 'Review deleted successfully' });
 }));
 
 // POST /api/reviews/:reviewId/helpful - Mark a review as helpful (requires auth)

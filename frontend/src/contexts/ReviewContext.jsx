@@ -90,14 +90,16 @@ export const ReviewProvider = ({ children }) => {
     }
   }, [state.error]);
 
-  const fetchReviews = async (productId) => {
+  const fetchReviews = async (productId, options = {}) => {
     if (!productId) {
       dispatch({ type: 'SET_ERROR', payload: 'Product ID is required' });
       return;
     }
 
-    // Check cache first
-    if (reviewCache[productId] && Array.isArray(reviewCache[productId])) {
+    const { sortBy = 'recent' } = options;
+
+    // Check cache first (only for 'recent' sort to keep it simple)
+    if (sortBy === 'recent' && reviewCache[productId] && Array.isArray(reviewCache[productId])) {
       dispatch({ type: 'SET_REVIEWS', payload: reviewCache[productId] });
       return;
     }
@@ -105,16 +107,18 @@ export const ReviewProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      // Fetch reviews from backend API
-      const response = await apiFetch(`/api/products/${productId}/reviews`);
+      // Fetch reviews from backend API with sort parameter
+      const response = await apiFetch(`/api/products/${productId}/reviews?sortBy=${sortBy}`);
       const reviews = Array.isArray(response?.reviews) ? response.reviews : [];
 
-      // Cache the results
-      const updatedCache = { 
-        ...reviewCache, 
-        [productId]: reviews 
-      };
-      setReviewCache(updatedCache);
+      // Cache the results (only for 'recent' sort)
+      if (sortBy === 'recent') {
+        const updatedCache = { 
+          ...reviewCache, 
+          [productId]: reviews 
+        };
+        setReviewCache(updatedCache);
+      }
       
       dispatch({ type: 'SET_REVIEWS', payload: reviews });
     } catch (error) {
@@ -282,10 +286,107 @@ export const ReviewProvider = ({ children }) => {
     dispatch({ type: 'SET_REVIEWS', payload: [] });
   };
 
+  const updateReview = async (reviewId, updateData) => {
+    if (!user) {
+      const error = 'Please log in to update a review';
+      dispatch({ type: 'SET_ERROR', payload: error });
+      showInfo('🔐 Please log in to update your review');
+      throw new Error(error);
+    }
+
+    if (!reviewId) {
+      const error = 'Review ID is required';
+      dispatch({ type: 'SET_ERROR', payload: error });
+      throw new Error(error);
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    try {
+      // Update review via backend API
+      const response = await apiFetch(`/api/reviews/${reviewId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updateData)
+      });
+
+      const updatedReview = response.review;
+
+      // Update state
+      dispatch({ type: 'UPDATE_REVIEW', payload: updatedReview });
+      
+      // Update cache
+      const updatedCache = { ...reviewCache };
+      Object.keys(updatedCache).forEach(productId => {
+        if (Array.isArray(updatedCache[productId])) {
+          updatedCache[productId] = updatedCache[productId].map(review =>
+            review.id === reviewId ? updatedReview : review
+          );
+        }
+      });
+      setReviewCache(updatedCache);
+      
+      showSuccess('✏️ Review updated successfully!');
+      return updatedReview;
+    } catch (error) {
+      console.error('Error updating review:', error);
+      const errorMessage = error?.message || 'Failed to update review';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      showError(`❌ ${errorMessage}`);
+      throw error;
+    }
+  };
+
+  const deleteReview = async (reviewId) => {
+    if (!user) {
+      const error = 'Please log in to delete a review';
+      dispatch({ type: 'SET_ERROR', payload: error });
+      showInfo('🔐 Please log in to delete your review');
+      throw new Error(error);
+    }
+
+    if (!reviewId) {
+      const error = 'Review ID is required';
+      dispatch({ type: 'SET_ERROR', payload: error });
+      throw new Error(error);
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    try {
+      // Delete review via backend API
+      await apiFetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE'
+      });
+
+      // Update state
+      dispatch({ type: 'DELETE_REVIEW', payload: reviewId });
+      
+      // Update cache
+      const updatedCache = { ...reviewCache };
+      Object.keys(updatedCache).forEach(productId => {
+        if (Array.isArray(updatedCache[productId])) {
+          updatedCache[productId] = updatedCache[productId].filter(review => review.id !== reviewId);
+        }
+      });
+      setReviewCache(updatedCache);
+      
+      showSuccess('🗑️ Review deleted successfully!');
+      return true;
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      const errorMessage = error?.message || 'Failed to delete review';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      showError(`❌ ${errorMessage}`);
+      throw error;
+    }
+  };
+
   const value = {
     ...state,
     fetchReviews,
     addReview,
+    updateReview,
+    deleteReview,
     markHelpful,
     getAverageRating,
     getRatingDistribution,
