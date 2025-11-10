@@ -110,7 +110,7 @@ router.get('/number/:orderNumber', async (req, res) => {
 });
 
 // Get user's orders (shorthand - requires authentication)
-router.get('/my-orders', AuthMiddleware.requireAuth, async (req, res) => {
+router.get('/my-orders', AuthMiddleware.authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const orders = await OrderModel.findAll({ user_id: userId });
