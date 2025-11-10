@@ -9,6 +9,25 @@ const multer = require('multer');
 const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 
+// Configure Cloudinary if credentials are available
+const cloudinaryConfigured = !!(process.env.CLOUDINARY_URL || 
+  (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET));
+
+if (cloudinaryConfigured) {
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.config({ cloudinary_url: process.env.CLOUDINARY_URL });
+  } else {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+  }
+  console.log('✅ Cloudinary configured for image uploads');
+} else {
+  console.warn('⚠️  Cloudinary not configured - products will work without image uploads');
+}
+
 // Admin check middleware - FIXED
 // Requires a valid authenticated token. Then checks either a role on the token
 // (recommended), or an allowlist of admin emails set in ADMIN_EMAILS env (comma-separated).
@@ -42,27 +61,47 @@ function requireAdmin(req, res, next) {
 router.post('/products', requireAdmin, upload.array('images'), async (req, res) => {
   try {
     let gallery = [];
-    if (req.files && req.files.length) {
+    
+    // Upload images to Cloudinary if configured and files are present
+    if (cloudinaryConfigured && req.files && req.files.length) {
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
-        gallery.push(result.secure_url);
+        try {
+          const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
+          gallery.push(result.secure_url);
+        } catch (uploadErr) {
+          console.error('Cloudinary upload error:', uploadErr.message);
+          // Continue without this image
+        }
       }
     }
+    
+    // Add any pre-existing gallery URLs from the request
     if (req.body.gallery) {
-      gallery = gallery.concat(JSON.parse(req.body.gallery));
+      try {
+        const existingGallery = JSON.parse(req.body.gallery);
+        gallery = gallery.concat(existingGallery);
+      } catch (e) {
+        console.warn('Failed to parse gallery JSON:', e.message);
+      }
     }
+    
     const productData = {
       name: req.body.name,
       slug: req.body.slug,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
-      mainImage: gallery[0] || '',
+      stock: req.body.stock || 0,
+      power_level: req.body.power_level || 0,
+      in_stock: req.body.in_stock === '1' || req.body.in_stock === 'true' || req.body.in_stock === true,
+      mainImage: gallery[0] || req.body.mainImage || '',
       gallery
     };
+    
     const product = await ProductModel.create(productData);
     res.status(201).json({ product });
   } catch (e) {
+    console.error('Product creation error:', e);
     res.status(500).json({ error: e.message });
   }
 });
@@ -71,27 +110,46 @@ router.post('/products', requireAdmin, upload.array('images'), async (req, res) 
 router.put('/products/:id', requireAdmin, upload.array('images'), async (req, res) => {
   try {
     let gallery = [];
-    if (req.files && req.files.length) {
+    
+    // Upload new images to Cloudinary if configured and files are present
+    if (cloudinaryConfigured && req.files && req.files.length) {
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
-        gallery.push(result.secure_url);
+        try {
+          const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
+          gallery.push(result.secure_url);
+        } catch (uploadErr) {
+          console.error('Cloudinary upload error:', uploadErr.message);
+        }
       }
     }
+    
+    // Add any pre-existing gallery URLs from the request
     if (req.body.gallery) {
-      gallery = gallery.concat(JSON.parse(req.body.gallery));
+      try {
+        const existingGallery = JSON.parse(req.body.gallery);
+        gallery = gallery.concat(existingGallery);
+      } catch (e) {
+        console.warn('Failed to parse gallery JSON:', e.message);
+      }
     }
+    
     const productData = {
       name: req.body.name,
       slug: req.body.slug,
       description: req.body.description,
       price: req.body.price,
       category: req.body.category,
+      stock: req.body.stock || 0,
+      power_level: req.body.power_level || 0,
+      in_stock: req.body.in_stock === '1' || req.body.in_stock === 'true' || req.body.in_stock === true,
       mainImage: req.body.mainImage || gallery[0] || '',
       gallery
     };
+    
     const product = await ProductModel.update(req.params.id, productData);
     res.json({ product });
   } catch (e) {
+    console.error('Product update error:', e);
     res.status(500).json({ error: e.message });
   }
 });
@@ -119,16 +177,78 @@ router.delete('/products/:id/image', requireAdmin, async (req, res) => {
 
 // --- User Management ---
 router.get('/users', requireAdmin, async (req, res) => {
-  const users = await UserModel.getActiveUsers();
-  res.json({ users });
+  try {
+    const users = await UserModel.getActiveUsers();
+    
+    // Enrich each user with order statistics
+    const enrichedUsers = await Promise.all(users.map(async (user) => {
+      try {
+        const userOrders = await OrderModel.findAll({ user_id: user.id });
+        const orderCount = userOrders.length;
+        const totalSpent = userOrders.reduce((sum, order) => {
+          return sum + (parseFloat(order.total || order.total_amount) || 0);
+        }, 0);
+        
+        return {
+          id: user.id,
+          name: user.username || user.display_name || user.email?.split('@')[0] || 'Unknown',
+          email: user.email,
+          role: user.role || 'customer',
+          status: user.status || 'active',
+          avatar: user.profile_picture || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.email)}&background=3B4CCA&color=fff`,
+          joinDate: user.created_at || new Date().toISOString(),
+          orders: orderCount,
+          totalSpent: totalSpent
+        };
+      } catch (err) {
+        console.error(`Error enriching user ${user.id}:`, err);
+        return {
+          id: user.id,
+          name: user.username || user.display_name || user.email?.split('@')[0] || 'Unknown',
+          email: user.email,
+          role: user.role || 'customer',
+          status: user.status || 'active',
+          avatar: user.profile_picture || user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.email)}&background=3B4CCA&color=fff`,
+          joinDate: user.created_at || new Date().toISOString(),
+          orders: 0,
+          totalSpent: 0
+        };
+      }
+    }));
+    
+    res.json({ data: enrichedUsers, users: enrichedUsers }); // Support both 'data' and 'users' keys
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users', details: error.message });
+  }
 });
 router.put('/users/:id', requireAdmin, async (req, res) => {
-  const user = await UserModel.updateProfile(req.params.id, req.body);
-  res.json({ user });
+  try {
+    const userId = req.params.id;
+    const updates = {};
+    
+    // Only update fields that are provided
+    if (req.body.role !== undefined) updates.role = req.body.role;
+    if (req.body.status !== undefined) updates.status = req.body.status;
+    if (req.body.username !== undefined) updates.username = req.body.username;
+    if (req.body.display_name !== undefined) updates.display_name = req.body.display_name;
+    if (req.body.email !== undefined) updates.email = req.body.email;
+    
+    const user = await UserModel.updateProfile(userId, updates);
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Failed to update user', details: error.message });
+  }
 });
 router.delete('/users/:id', requireAdmin, async (req, res) => {
-  await UserModel.softDelete(req.params.id);
-  res.json({ ok: true });
+  try {
+    await UserModel.softDelete(req.params.id);
+    res.json({ success: true, ok: true });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user', details: error.message });
+  }
 });
 
 // --- Order Management ---

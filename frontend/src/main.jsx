@@ -5,7 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import './index.css'
-import App from './App.jsx'
+import App from './App'
 import { AuthProvider } from "./contexts/AuthContext"
 import { NotificationProvider } from './contexts/NotificationContext'
 import { CartProvider } from './contexts/CartContext'

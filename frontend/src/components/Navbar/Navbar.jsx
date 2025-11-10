@@ -401,14 +401,22 @@ function Navbar() {
                     aria-haspopup="true" 
                     aria-expanded={activeDropdown==='profile'}
                   >
-                    <img 
-                      src={user.photoURL || '/default-avatar.png'} 
-                      alt="Profile" 
-                      className="w-8 h-8 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.src = '/default-avatar.png';
-                      }}
-                    />
+                    {user.photoURL && user.photoURL.length <= 2 ? (
+                      // Display emoji avatar
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-blue-500 flex items-center justify-center text-lg">
+                        {user.photoURL}
+                      </div>
+                    ) : (
+                      // Display image avatar
+                      <img 
+                        src={user.photoURL || '/default-avatar.png'} 
+                        alt="Profile" 
+                        className="w-8 h-8 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.src = '/default-avatar.png';
+                        }}
+                      />
+                    )}
                     <span className="max-w-32 truncate">{user.displayName || user.name || 'Profile'}</span>
                     <FaCaretDown className="text-sm"/>
                   </button>

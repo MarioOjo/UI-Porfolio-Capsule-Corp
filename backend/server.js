@@ -145,7 +145,8 @@ app.get('/api/me', async (req, res) => {
       username: user.username,
       firstName: user.firstName || null,
       lastName: user.lastName || null,
-      phone: user.phone || null
+      phone: user.phone || null,
+      role: user.role || 'user'
     };
     return res.json({ user: payload });
   } catch (e) {

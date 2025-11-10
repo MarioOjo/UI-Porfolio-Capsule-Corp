@@ -13,17 +13,18 @@ class UserModel {
       password_hash, 
       firstName = null, 
       lastName = null, 
-      google_id = null 
+      google_id = null,
+      avatar = 'goku' 
     } = userData;
     
     // DB uses snake_case column names (first_name, last_name)
     const query = `
-      INSERT INTO ${this.table} (username, email, password_hash, first_name, last_name, google_id, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, NOW())
+      INSERT INTO ${this.table} (username, email, password_hash, first_name, last_name, google_id, avatar, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
     `;
 
-    const result = await this.db.executeQuery(query, [username, email, password_hash, firstName, lastName, google_id]);
-    return { id: result.insertId, username, email, firstName, lastName, google_id };
+    const result = await this.db.executeQuery(query, [username, email, password_hash, firstName, lastName, google_id, avatar]);
+    return { id: result.insertId, username, email, firstName, lastName, google_id, avatar };
   }
 
   async findById(id) {
@@ -108,6 +109,8 @@ class UserModel {
       firstName: row.first_name || row.firstName || null,
       lastName: row.last_name || row.lastName || null,
       google_id: row.google_id || row.googleId || null,
+      avatar: row.avatar || 'goku',
+      role: row.role || 'user', // Include role field (defaults to 'user')
       role_id: row.role_id || row.roleId || null,
       is_active: typeof row.is_active !== 'undefined' ? row.is_active : row.isActive,
       last_login: row.last_login,

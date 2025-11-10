@@ -8,6 +8,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import Price from "../components/Price";
 import { resolveImageSrc } from '../utils/images';
 import { useCurrency } from "../contexts/CurrencyContext";
+import { COUNTRIES, COUNTRIES_BY_REGION, REGIONS } from '../data/countries';
 
 // Enhanced Image Component for Checkout
 const CheckoutImage = ({ item, size = 120, className = "" }) => {
@@ -319,14 +320,12 @@ function Checkout() {
 
   // Get supported countries from currency context
   const supportedCountries = useMemo(() => {
-    const availableCurrencies = getAvailableCurrencies();
-    return availableCurrencies.map(curr => ({
-      value: curr.country,
-      label: curr.country,
-      flag: curr.flag,
-      currency: curr.code
+    // Return all countries grouped by region
+    return REGIONS.map(region => ({
+      region,
+      countries: COUNTRIES_BY_REGION[region]
     }));
-  }, [getAvailableCurrencies]);
+  }, []);
 
   const shippingOptions = [
     {
@@ -461,10 +460,15 @@ function Checkout() {
                           themeClasses.input
                         } ${errors.country ? 'border-red-500 focus:ring-red-200' : ''}`}
                       >
-                        {supportedCountries.map((country) => (
-                          <option key={country.value} value={country.value}>
-                            {country.flag} {country.label}
-                          </option>
+                        <option value="">Select Country...</option>
+                        {supportedCountries.map((regionGroup) => (
+                          <optgroup key={regionGroup.region} label={`━━ ${regionGroup.region} ━━`}>
+                            {regionGroup.countries.map((country) => (
+                              <option key={country.code} value={country.name}>
+                                {country.flag} {country.name}
+                              </option>
+                            ))}
+                          </optgroup>
                         ))}
                       </select>
                       {errors.country && (
@@ -474,7 +478,7 @@ function Checkout() {
                         </p>
                       )}
                       <p className={`text-xs mt-2 ${themeClasses.text.muted}`}>
-                        💡 Shipping to {supportedCountries.length} countries. Currency automatically set to {CURRENCIES[currency]?.name || 'US Dollar'}.
+                        💡 We ship to {COUNTRIES.length}+ countries worldwide. International shipping available!
                       </p>
                     </div>
                   </div>

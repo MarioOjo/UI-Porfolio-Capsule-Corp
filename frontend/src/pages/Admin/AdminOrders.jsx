@@ -58,11 +58,7 @@ function AdminOrders() {
       }
 
       const queryString = new URLSearchParams(filters).toString();
-      const response = await apiFetch(`/api/orders?${queryString}`, {
-        headers: {
-          'x-user-email': user?.email
-        }
-      });
+      const response = await apiFetch(`/api/orders?${queryString}`);
 
       if (response.orders) {
         setOrders(response.orders);
@@ -79,11 +75,7 @@ function AdminOrders() {
   // Fetch statistics
   const fetchStatistics = useCallback(async () => {
     try {
-      const response = await apiFetch('/api/orders/statistics', {
-        headers: {
-          'x-user-email': user?.email
-        }
-      });
+      const response = await apiFetch('/api/orders/statistics');
 
       if (response.statistics) {
         setStatistics(response.statistics);
@@ -149,10 +141,6 @@ function AdminOrders() {
     try {
       await apiFetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
-        headers: {
-          'x-user-email': user?.email,
-          'x-user-id': user?.id
-        },
         body: JSON.stringify({ status: newStatus })
       });
 
@@ -171,11 +159,7 @@ function AdminOrders() {
 
   const handleViewDetails = async (order) => {
     try {
-      const response = await apiFetch(`/api/orders/${order.id}`, {
-        headers: {
-          'x-user-email': user?.email
-        }
-      });
+      const response = await apiFetch(`/api/orders/${order.id}`);
       
       if (response.order) {
         setSelectedOrder(response.order);
@@ -201,9 +185,6 @@ function AdminOrders() {
     try {
       await apiFetch(`/api/orders/${selectedOrder.id}/tracking`, {
         method: 'PATCH',
-        headers: {
-          'x-user-email': user?.email
-        },
         body: JSON.stringify(trackingInfo)
       });
 
@@ -222,9 +203,6 @@ function AdminOrders() {
     try {
       await apiFetch(`/api/orders/${selectedOrder.id}/notes`, {
         method: 'PATCH',
-        headers: {
-          'x-user-email': user?.email
-        },
         body: JSON.stringify({ notes: adminNotes })
       });
 

@@ -240,22 +240,24 @@ class ProductModel {
   static async create(productData) {
     try {
       const pool = dbConnection.getPool();
-      const {
-        name,
-        slug,
-        description,
-        category,
-        price,
-        original_price,
-        power_level,
-        image,
-        gallery = [],
-        in_stock = true,
-        stock = 0,
-        featured = false,
-        tags = [],
-        specifications = {}
-      } = productData;
+      
+      // Extract and validate required fields with defaults
+      const name = productData.name || '';
+      const slug = productData.slug || '';
+      const description = productData.description || '';
+      const category = productData.category || 'Accessories';
+      const price = parseFloat(productData.price) || 0;
+      const original_price = productData.original_price ? parseFloat(productData.original_price) : null;
+      const power_level = parseInt(productData.power_level) || 0;
+      const image = productData.image || productData.mainImage || '';
+      const gallery = Array.isArray(productData.gallery) ? productData.gallery : [];
+      const in_stock = productData.in_stock === false ? 0 : 1;
+      const stock = parseInt(productData.stock) || 0;
+      const featured = productData.featured ? 1 : 0;
+      const tags = Array.isArray(productData.tags) ? productData.tags : [];
+      const specifications = typeof productData.specifications === 'object' && productData.specifications !== null 
+        ? productData.specifications 
+        : {};
 
       const query = `
         INSERT INTO products (
@@ -275,12 +277,19 @@ class ProductModel {
         power_level,
         image,
         JSON.stringify(gallery),
-        in_stock ? 1 : 0,
+        in_stock,
         stock,
-        featured ? 1 : 0,
+        featured,
         JSON.stringify(tags),
         JSON.stringify(specifications)
       ];
+
+      // Validate no undefined values
+      const hasUndefined = values.some(v => v === undefined);
+      if (hasUndefined) {
+        console.error('Product creation has undefined values:', values);
+        throw new Error('Invalid product data: some required fields are undefined');
+      }
 
       const [result] = await pool.execute(query, values);
       return this.findById(result.insertId);
@@ -293,22 +302,38 @@ class ProductModel {
   static async update(id, productData) {
     try {
       const pool = dbConnection.getPool();
-      const {
-        name,
-        slug,
-        description,
-        category,
-        price,
-        original_price,
-        power_level,
-        image,
-        gallery,
-        in_stock,
-        stock,
-        featured,
-        tags,
-        specifications
-      } = productData;
+      
+      // Get existing product first to preserve fields not being updated
+      const existing = await this.findById(id);
+      if (!existing) {
+        throw new Error(`Product with id ${id} not found`);
+      }
+      
+      // Extract and validate fields with fallback to existing values
+      const name = productData.name !== undefined ? productData.name : existing.name;
+      const slug = productData.slug !== undefined ? productData.slug : existing.slug;
+      const description = productData.description !== undefined ? productData.description : existing.description;
+      const category = productData.category !== undefined ? productData.category : existing.category;
+      const price = productData.price !== undefined ? parseFloat(productData.price) : existing.price;
+      const original_price = productData.original_price !== undefined 
+        ? (productData.original_price ? parseFloat(productData.original_price) : null)
+        : existing.original_price;
+      const power_level = productData.power_level !== undefined ? parseInt(productData.power_level) || 0 : existing.power_level;
+      const image = productData.image !== undefined ? productData.image : (productData.mainImage || existing.image);
+      const gallery = productData.gallery !== undefined 
+        ? (Array.isArray(productData.gallery) ? productData.gallery : [])
+        : existing.gallery;
+      const in_stock = productData.in_stock !== undefined 
+        ? (productData.in_stock ? 1 : 0)
+        : (existing.in_stock ? 1 : 0);
+      const stock = productData.stock !== undefined ? parseInt(productData.stock) || 0 : existing.stock;
+      const featured = productData.featured !== undefined ? (productData.featured ? 1 : 0) : (existing.featured ? 1 : 0);
+      const tags = productData.tags !== undefined 
+        ? (Array.isArray(productData.tags) ? productData.tags : [])
+        : existing.tags;
+      const specifications = productData.specifications !== undefined 
+        ? (typeof productData.specifications === 'object' ? productData.specifications : {})
+        : existing.specifications;
 
       const query = `
         UPDATE products SET
@@ -339,14 +364,21 @@ class ProductModel {
         original_price,
         power_level,
         image,
-        JSON.stringify(gallery || []),
-        in_stock ? 1 : 0,
+        JSON.stringify(gallery),
+        in_stock,
         stock,
-        featured ? 1 : 0,
-        JSON.stringify(tags || []),
-        JSON.stringify(specifications || {}),
+        featured,
+        JSON.stringify(tags),
+        JSON.stringify(specifications),
         id
       ];
+
+      // Validate no undefined values
+      const hasUndefined = values.some(v => v === undefined);
+      if (hasUndefined) {
+        console.error('Product update has undefined values:', values);
+        throw new Error('Invalid product data: some fields are undefined');
+      }
 
       await pool.execute(query, values);
       return this.findById(id);
@@ -359,13 +391,18 @@ class ProductModel {
   static async delete(id) {
     try {
       const pool = dbConnection.getPool();
-  const query = 'DELETE FROM products WHERE id = ?';
+      const query = 'DELETE FROM products WHERE id = ?';
       const [result] = await pool.execute(query, [id]);
       return result.affectedRows > 0;
     } catch (error) {
       console.error('Error deleting product:', error);
       throw error;
     }
+  }
+
+  // Alias for delete method
+  static async remove(id) {
+    return this.delete(id);
   }
 
   static async getFeatured() {

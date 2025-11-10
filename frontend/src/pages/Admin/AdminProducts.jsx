@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaArrowLeft, FaBox } from 'react-icons/fa';
 import { apiFetch } from '../../utils/api';
 import Price from '../../components/Price';
 
@@ -16,6 +16,39 @@ function AdminProducts() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { showSuccess, showError } = useNotifications();
+
+  // Fetch products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await apiFetch('/api/products');
+        setProducts(response.products || response.data || []);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        showError('Failed to load products');
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [showError]);
+
+  // Check admin access
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    const isAdmin = user.email?.includes('admin') || user.role === 'admin' || user.email === 'mario@capsulecorp.com';
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+  }, [user, navigate]);
 
   // Create product via API (multipart/form-data when images present)
   const createProduct = async (productData) => {
@@ -49,7 +82,7 @@ function AdminProducts() {
         }
       }
 
-      const body = await apiFetch('/api/products', { method: 'POST', body: fd });
+      const body = await apiFetch('/api/admin/products', { method: 'POST', body: fd });
       if (body?.product) {
         setProducts(prev => [body.product, ...prev]);
         showSuccess('Product created successfully');
@@ -91,7 +124,7 @@ function AdminProducts() {
         }
       }
 
-      const body = await apiFetch(`/api/products/${productData.id}`, { method: 'PUT', body: fd });
+      const body = await apiFetch(`/api/admin/products/${productData.id}`, { method: 'PUT', body: fd });
       if (body?.product) {
         setProducts(prev => prev.map(p => (p.id === body.product.id ? body.product : p)));
         showSuccess('Product updated successfully');
@@ -102,6 +135,22 @@ function AdminProducts() {
       showError(err.message || 'Failed to update product');
       console.error('Update product error', err);
       throw err;
+    }
+  };
+
+  // Delete product
+  const deleteProduct = async (productId) => {
+    if (!window.confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await apiFetch(`/api/admin/products/${productId}`, { method: 'DELETE' });
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      showSuccess('Product deleted successfully');
+    } catch (err) {
+      showError(err.message || 'Failed to delete product');
+      console.error('Delete product error', err);
     }
   };
 
@@ -433,7 +482,7 @@ function AdminProducts() {
       if (!formData.price || isNaN(formData.price) || Number(formData.price) <= 0) newErrors.price = 'Valid price required.';
       if (!formData.stock || isNaN(formData.stock) || Number(formData.stock) < 0) newErrors.stock = 'Valid stock required.';
       if (!formData.category) newErrors.category = 'Category required.';
-      if (imageFiles.length === 0 && imageUrls.length === 0) newErrors.images = 'At least one image is required.';
+      // Images are optional for updates - you can update other fields without changing images
       
       setErrors(newErrors);
       if (Object.keys(newErrors).length > 0) return;
@@ -499,7 +548,173 @@ function AdminProducts() {
               {errors.name && <div className="text-red-600 text-xs mt-1">{errors.name}</div>}
             </div>
 
-            {/* ... other form fields same as AddProductModal ... */}
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-saiyan text-gray-700 mb-2">DESCRIPTION</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+              />
+              {errors.description && <div className="text-red-600 text-xs mt-1">{errors.description}</div>}
+            </div>
+
+            {/* Price and Stock Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-saiyan text-gray-700 mb-2">PRICE ($)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => handleChange('price', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
+                />
+                {errors.price && <div className="text-red-600 text-xs mt-1">{errors.price}</div>}
+              </div>
+              <div>
+                <label className="block text-sm font-saiyan text-gray-700 mb-2">STOCK</label>
+                <input
+                  type="number"
+                  value={formData.stock}
+                  onChange={(e) => handleChange('stock', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
+                />
+                {errors.stock && <div className="text-red-600 text-xs mt-1">{errors.stock}</div>}
+              </div>
+            </div>
+
+            {/* Category and Power Level Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-saiyan text-gray-700 mb-2">CATEGORY</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => handleChange('category', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
+                >
+                  <option value="Battle Gear">Battle Gear</option>
+                  <option value="Training">Training</option>
+                  <option value="Capsules">Capsules</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Weapons">Weapons</option>
+                </select>
+                {errors.category && <div className="text-red-600 text-xs mt-1">{errors.category}</div>}
+              </div>
+              <div>
+                <label className="block text-sm font-saiyan text-gray-700 mb-2">POWER LEVEL</label>
+                <input
+                  type="number"
+                  value={formData.powerLevel}
+                  onChange={(e) => handleChange('powerLevel', e.target.value)}
+                  placeholder="9000"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-saiyan"
+                />
+              </div>
+            </div>
+
+            {/* In Stock Toggle */}
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="inStockEdit"
+                checked={formData.inStock}
+                onChange={(e) => handleChange('inStock', e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="inStockEdit" className="text-sm font-saiyan text-gray-700">
+                IN STOCK
+              </label>
+            </div>
+
+            {/* Image Upload Section */}
+            <div>
+              <label className="block text-sm font-saiyan text-gray-700 mb-2">
+                ADD/UPDATE IMAGES (optional for updates)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setImageFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Add new images or paste URLs below. Existing images will be preserved unless replaced.
+              </p>
+              
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddUrl}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Add URL
+                </button>
+              </div>
+
+              {/* File Previews */}
+              {imageFiles.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-saiyan text-gray-700 mb-2">New Files to Upload:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {imageFiles.map((file, idx) => (
+                      <div key={idx} className="relative">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`preview-${idx}`}
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(idx)}
+                          className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing Gallery URLs */}
+              {imageUrls.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-sm font-saiyan text-gray-700 mb-2">Current Gallery:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {imageUrls.map((url, idx) => (
+                      <div key={idx} className="relative">
+                        <img
+                          src={url}
+                          alt={`gallery-${idx}`}
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveUrl(idx)}
+                          className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {errors.images && <div className="text-red-600 text-xs mt-1">{errors.images}</div>}
 
             {/* Action Buttons */}
             <div className="flex space-x-3 pt-4">
@@ -528,16 +743,131 @@ function AdminProducts() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 font-saiyan">Admin Products</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/admin')}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <FaArrowLeft className="text-2xl" />
+            </button>
+            <h1 className="text-3xl font-bold text-gray-800 font-saiyan">PRODUCT MANAGEMENT</h1>
+          </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600"
+            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:scale-105 transition-all font-saiyan"
           >
-            <FaPlus /> Add Product
+            <FaPlus /> ADD PRODUCT
           </button>
         </div>
 
-        {/* Products table and other content will go here */}
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <div className="relative">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-xl font-saiyan text-gray-600">Loading products...</p>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 font-saiyan mb-2">No products yet</h3>
+            <p className="text-gray-600 mb-4">Create your first product to get started!</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-saiyan hover:scale-105 transition-all"
+            >
+              <FaPlus className="inline mr-2" /> ADD FIRST PRODUCT
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products
+              .filter(product => 
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map(product => (
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+                  {/* Product Image */}
+                  <div className="h-48 bg-gray-200 relative">
+                    {product.mainImage || (product.gallery && product.gallery[0]) ? (
+                      <img 
+                        src={product.mainImage || product.gallery[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <FaBox className="text-4xl text-gray-400" />
+                      </div>
+                    )}
+                    {!product.in_stock && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+                        OUT OF STOCK
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-bold text-gray-800 font-saiyan mb-2 truncate">
+                      {product.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <Price value={product.price} className="text-xl font-bold text-blue-600 font-saiyan" />
+                      <span className="text-sm text-gray-500">
+                        Stock: <span className="font-bold">{product.stock || 0}</span>
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-gray-500 mb-3">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {product.category}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setShowEditModal(true);
+                        }}
+                        className="flex-1 bg-blue-500 text-white py-2 px-3 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 font-saiyan text-sm"
+                      >
+                        <FaEdit /> EDIT
+                      </button>
+                      <button
+                        onClick={() => deleteProduct(product.id)}
+                        className="flex-1 bg-red-500 text-white py-2 px-3 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center gap-2 font-saiyan text-sm"
+                      >
+                        <FaTrash /> DELETE
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
         
         {/* Modals */}
         {showAddModal && (

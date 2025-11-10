@@ -118,14 +118,23 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, rememberMe = true) => {
     try {
       const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
       if (res.user) setUser(res.user);
-      if (res.token) localStorage.setItem('authToken', res.token);
+      if (res.token) {
+        // Store in localStorage if rememberMe is true, sessionStorage otherwise
+        if (rememberMe) {
+          localStorage.setItem('authToken', res.token);
+          sessionStorage.removeItem('authToken'); // Clear sessionStorage to avoid conflicts
+        } else {
+          sessionStorage.setItem('authToken', res.token);
+          localStorage.removeItem('authToken'); // Clear localStorage to avoid conflicts
+        }
+      }
       return res;
     } catch (error) {
       console.error('Login error:', error);

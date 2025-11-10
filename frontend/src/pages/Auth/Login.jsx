@@ -23,8 +23,8 @@ function Login({ onSwitchTab, onForgotPassword }) {
 
   // Quick fill for testing
   const handleQuickFill = () => {
-    setEmail("admin@capsulecorp.com");
-    setPassword("Admin2025!");
+    setEmail("mario@capsulecorp.com");
+    setPassword("Mario2025!");
   };
 
   function validateEmail(email) {
@@ -85,20 +85,23 @@ function Login({ onSwitchTab, onForgotPassword }) {
       </div>
 
       {/* Login Form */}
-      <form className="auth-form" onSubmit={handleLogin}>
+      <form className="auth-form" onSubmit={handleLogin} autoComplete="on">
         {/* Email Field */}
         <div className="form-field">
-          <label className="field-label">
+          <label className="field-label" htmlFor="email-input">
             📡 SCOUTER FREQUENCY
           </label>
           <div className="input-wrapper">
             <FaGlasses className="input-icon" />
             <input
+              id="email-input"
+              name="email"
               type="email"
               placeholder="goku@capsulecorp.com"
               className="form-input"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              autoComplete="username email"
               required
             />
           </div>
@@ -107,7 +110,7 @@ function Login({ onSwitchTab, onForgotPassword }) {
         {/* Password Field */}
         <div className="form-field">
           <div className="field-header">
-            <label className="field-label">
+            <label className="field-label" htmlFor="password-input">
               💪 BATTLE PASSWORD
             </label>
             <button
@@ -119,11 +122,14 @@ function Login({ onSwitchTab, onForgotPassword }) {
           </div>
           <div className="input-wrapper">
             <input
+              id="password-input"
+              name="password"
               type={showPass ? "text" : "password"}
               placeholder="Channel your ki energy..."
               className="form-input"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
             <button
@@ -142,6 +148,7 @@ function Login({ onSwitchTab, onForgotPassword }) {
           <div className="remember-me">
             <input
               type="checkbox"
+              name="remember"
               className="option-checkbox"
               checked={rememberMe}
               onChange={e => setRememberMe(e.target.checked)}

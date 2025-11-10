@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { FaSearch, FaBox, FaClock, FaTruck, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaSearch, FaBox, FaClock, FaTruck, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaEnvelope, FaPhone, FaCalendarAlt, FaCopy, FaExternalLinkAlt } from 'react-icons/fa';
 import { apiFetch } from '../utils/api';
 import Price from '../components/Price';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -10,8 +10,21 @@ const OrderTracking = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const { addNotification } = useNotifications();
+  const { showSuccess, showError } = useNotifications();
   const { isDarkMode } = useTheme();
+
+  // Check URL parameters on mount for direct order tracking links
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderParam = urlParams.get('order');
+    if (orderParam) {
+      setOrderNumber(orderParam);
+      // Auto-search after a brief delay
+      setTimeout(() => {
+        handleSearchDirect(orderParam);
+      }, 100);
+    }
+  }, []);
 
   // Theme classes for consistent theming
   const themeClasses = {
@@ -33,9 +46,12 @@ const OrderTracking = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    
-    if (!orderNumber.trim()) {
-      addNotification('Please enter an order number', 'error');
+    await handleSearchDirect(orderNumber.trim());
+  };
+
+  const handleSearchDirect = async (orderNum) => {
+    if (!orderNum) {
+      showError('Please enter an order number');
       return;
     }
 
@@ -43,18 +59,22 @@ const OrderTracking = () => {
     setSearched(true);
 
     try {
-      const response = await apiFetch(`/api/orders/number/${orderNumber.trim()}`);
+      const response = await apiFetch(`/api/orders/number/${orderNum}`);
       
-      if (response.success) {
+      if (response.success && response.order) {
         setOrder(response.order);
+        showSuccess('Order found successfully!');
+        
+        // Update URL without page reload for sharing
+        window.history.pushState({}, '', `?order=${orderNum}`);
       } else {
         setOrder(null);
-        addNotification('Order not found', 'error');
+        showError('Order not found');
       }
     } catch (error) {
       console.error('Error fetching order:', error);
       setOrder(null);
-      addNotification('Order not found. Please check your order number.', 'error');
+      showError('Order not found. Please check your order number and try again.');
     } finally {
       setLoading(false);
     }
@@ -117,18 +137,71 @@ const OrderTracking = () => {
   };
 
   const getTrackingInfo = (order) => {
-    if (order.metadata) {
+    // Check for tracking info in order fields first
+    const trackingData = {
+      tracking_number: order.tracking_number || null,
+      carrier: order.carrier || null
+    };
+    
+    // Fallback to metadata if not in main fields
+    if (!trackingData.tracking_number && order.metadata) {
       try {
         const metadata = JSON.parse(order.metadata);
-        return {
-          tracking_number: metadata.tracking_number,
-          carrier: metadata.carrier
-        };
+        trackingData.tracking_number = metadata.tracking_number || trackingData.tracking_number;
+        trackingData.carrier = metadata.carrier || trackingData.carrier;
       } catch (e) {
-        return {};
+        console.error('Error parsing metadata:', e);
       }
     }
-    return {};
+    
+    return trackingData;
+  };
+
+  const getEstimatedDelivery = (order) => {
+    if (order.status === 'delivered') {
+      return null; // Already delivered
+    }
+
+    // Calculate estimated delivery based on order date and status
+    const placedDate = new Date(order.created_at || order.placed_at);
+    const today = new Date();
+    const daysSincePlaced = Math.floor((today - placedDate) / (1000 * 60 * 60 * 24));
+
+    let estimatedDays = 0;
+    switch (order.status) {
+      case 'pending':
+        estimatedDays = 7 - daysSincePlaced; // 7 days from order
+        break;
+      case 'processing':
+        estimatedDays = 5 - daysSincePlaced; // 5 days from order
+        break;
+      case 'shipped':
+        estimatedDays = 3 - daysSincePlaced; // 3 days from order
+        break;
+      default:
+        estimatedDays = 7;
+    }
+
+    if (estimatedDays < 0) estimatedDays = 1; // At least 1 day
+    if (estimatedDays > 14) estimatedDays = 14; // Max 2 weeks
+
+    const estimatedDate = new Date(today);
+    estimatedDate.setDate(today.getDate() + estimatedDays);
+
+    return estimatedDate.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const copyTrackingLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}?order=${order.order_number}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showSuccess('Tracking link copied to clipboard!');
+    }).catch(() => {
+      showError('Failed to copy link');
+    });
   };
 
   return (
@@ -174,14 +247,41 @@ const OrderTracking = () => {
               <div className={`rounded-lg shadow-lg overflow-hidden ${themeClasses.card}`}>
                 {/* Order Header */}
                 <div className="bg-gradient-to-r from-orange-500 to-blue-500 text-white p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <h2 className="text-xl sm:text-2xl font-bold mb-2 font-saiyan">Order #{order.order_number}</h2>
-                      <p className="opacity-90 text-sm sm:text-base">Placed on {formatDate(order.placed_at)}</p>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-2 font-saiyan">Order #{order.order_number}</h2>
+                        <p className="opacity-90 text-sm sm:text-base flex items-center gap-2">
+                          <FaClock />
+                          Placed on {formatDate(order.created_at || order.placed_at)}
+                        </p>
+                      </div>
+                      <div className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full border-2 flex items-center gap-2 ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        <span className="font-semibold capitalize text-sm sm:text-base">{order.status}</span>
+                      </div>
                     </div>
-                    <div className={`px-3 sm:px-4 py-1 sm:py-2 rounded-full border-2 flex items-center gap-2 ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span className="font-semibold capitalize text-sm sm:text-base">{order.status}</span>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={copyTrackingLink}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
+                      >
+                        <FaCopy />
+                        <span>Copy Tracking Link</span>
+                      </button>
+                      {getTrackingInfo(order).tracking_number && getTrackingInfo(order).carrier && (
+                        <a
+                          href={`https://www.google.com/search?q=${getTrackingInfo(order).carrier}+tracking+${getTrackingInfo(order).tracking_number}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm transition-colors"
+                        >
+                          <FaExternalLinkAlt />
+                          <span>Track with {getTrackingInfo(order).carrier}</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -227,46 +327,150 @@ const OrderTracking = () => {
                 </div>
 
                 {/* Tracking Info */}
-                {getTrackingInfo(order).tracking_number && (
+                {(getTrackingInfo(order).tracking_number || order.status !== 'pending') && (
                   <div className={`p-4 sm:p-6 border-t ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>
                     <h3 className={`text-lg font-semibold mb-3 flex items-center gap-2 ${themeClasses.text.primary}`}>
                       <FaTruck className="text-purple-500" />
                       Shipping Information
                     </h3>
-                    <div className={`border rounded-lg p-3 sm:p-4 ${
-                      isDarkMode ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200'
-                    }`}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div>
-                          <p className={`text-sm ${themeClasses.text.muted}`}>Tracking Number</p>
-                          <p className="font-mono font-semibold text-sm sm:text-base">{getTrackingInfo(order).tracking_number}</p>
-                        </div>
-                        {getTrackingInfo(order).carrier && (
-                          <div>
-                            <p className={`text-sm ${themeClasses.text.muted}`}>Carrier</p>
-                            <p className="font-semibold text-sm sm:text-base">{getTrackingInfo(order).carrier}</p>
+                    
+                    <div className="space-y-3">
+                      {/* Estimated Delivery */}
+                      {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                        <div className={`border rounded-lg p-3 sm:p-4 ${
+                          isDarkMode ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <FaCalendarAlt className="text-blue-500" />
+                            <p className={`text-sm font-medium ${themeClasses.text.muted}`}>Estimated Delivery</p>
                           </div>
-                        )}
-                      </div>
+                          <p className={`font-bold text-base sm:text-lg ${themeClasses.text.primary}`}>
+                            {getEstimatedDelivery(order)}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Tracking Number */}
+                      {getTrackingInfo(order).tracking_number && (
+                        <div className={`border rounded-lg p-3 sm:p-4 ${
+                          isDarkMode ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200'
+                        }`}>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div>
+                              <p className={`text-sm ${themeClasses.text.muted}`}>Tracking Number</p>
+                              <p className={`font-mono font-semibold text-sm sm:text-base break-all ${themeClasses.text.primary}`}>
+                                {getTrackingInfo(order).tracking_number}
+                              </p>
+                            </div>
+                            {getTrackingInfo(order).carrier && (
+                              <div>
+                                <p className={`text-sm ${themeClasses.text.muted}`}>Carrier</p>
+                                <p className={`font-semibold text-sm sm:text-base ${themeClasses.text.primary}`}>
+                                  {getTrackingInfo(order).carrier}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Shipping Address */}
+                      {(order.shipping_address_line1 || order.shipping_city) && (
+                        <div className={`border rounded-lg p-3 sm:p-4 ${
+                          isDarkMode ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-200'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <FaMapMarkerAlt className="text-green-500" />
+                            <p className={`text-sm font-medium ${themeClasses.text.muted}`}>Delivery Address</p>
+                          </div>
+                          <div className={`text-sm ${themeClasses.text.primary}`}>
+                            {order.customer_name && <p className="font-semibold">{order.customer_name}</p>}
+                            {order.shipping_address_line1 && <p>{order.shipping_address_line1}</p>}
+                            {order.shipping_address_line2 && <p>{order.shipping_address_line2}</p>}
+                            {order.shipping_city && (
+                              <p>
+                                {order.shipping_city}
+                                {order.shipping_state && `, ${order.shipping_state}`}
+                                {order.shipping_zip && ` ${order.shipping_zip}`}
+                              </p>
+                            )}
+                            {order.shipping_country && <p>{order.shipping_country}</p>}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Contact Info */}
+                      {(order.customer_email || order.customer_phone) && (
+                        <div className={`border rounded-lg p-3 sm:p-4 ${
+                          isDarkMode ? 'bg-orange-900/20 border-orange-700' : 'bg-orange-50 border-orange-200'
+                        }`}>
+                          <p className={`text-sm font-medium mb-2 ${themeClasses.text.muted}`}>Contact Information</p>
+                          <div className="space-y-1 text-sm">
+                            {order.customer_email && (
+                              <div className="flex items-center gap-2">
+                                <FaEnvelope className="text-orange-500 text-xs" />
+                                <span className={themeClasses.text.primary}>{order.customer_email}</span>
+                              </div>
+                            )}
+                            {order.customer_phone && (
+                              <div className="flex items-center gap-2">
+                                <FaPhone className="text-orange-500 text-xs" />
+                                <span className={themeClasses.text.primary}>{order.customer_phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Order Items */}
                 <div className={`p-4 sm:p-6 border-t ${isDarkMode ? 'border-slate-700' : 'border-gray-200'}`}>
-                  <h3 className={`text-lg font-semibold mb-3 sm:mb-4 ${themeClasses.text.primary}`}>Order Items</h3>
+                  <h3 className={`text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${themeClasses.text.primary}`}>
+                    <FaBox className="text-blue-500" />
+                    Order Items ({order.items?.length || 0})
+                  </h3>
                   <div className="space-y-2 sm:space-y-3">
                     {order.items?.map((item, index) => (
-                      <div key={index} className={`flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:p-4 rounded-lg ${
+                      <div key={index} className={`flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg ${
                         isDarkMode ? 'bg-slate-700' : 'bg-gray-50'
                       }`}>
-                        <div className="mb-2 sm:mb-0">
-                          <p className={`font-medium text-sm sm:text-base ${themeClasses.text.primary}`}>{item.product_name}</p>
-                          <p className={`text-xs sm:text-sm ${themeClasses.text.muted}`}>Quantity: {item.quantity}</p>
+                        {/* Product Image */}
+                        {item.product_image && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={item.product_image}
+                              alt={item.product_name}
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/80?text=Product';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Product Details */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm sm:text-base mb-1 ${themeClasses.text.primary}`}>
+                            {item.product_name}
+                          </p>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm">
+                            <span className={themeClasses.text.muted}>
+                              Qty: <span className="font-semibold">{item.quantity}</span>
+                            </span>
+                            <span className={themeClasses.text.muted}>
+                              Price: <span className="font-semibold"><Price value={Number(item.price || item.unit_price || 0)} /></span>
+                            </span>
+                          </div>
                         </div>
-                        <p className={`font-semibold text-sm sm:text-base ${themeClasses.text.primary}`}>
-                          <Price value={Number(item.total)} />
-                        </p>
+                        
+                        {/* Item Total */}
+                        <div className="flex-shrink-0 text-right">
+                          <p className={`font-bold text-sm sm:text-base ${themeClasses.text.primary}`}>
+                            <Price value={Number(item.subtotal || item.total || (item.quantity * (item.price || item.unit_price || 0)))} />
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>

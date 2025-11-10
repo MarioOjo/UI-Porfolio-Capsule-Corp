@@ -1,34 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft } from 'react-icons/fa';
+import { FaSearch, FaBan, FaUserShield, FaEye, FaEdit, FaArrowLeft, FaSync } from 'react-icons/fa';
 import Price from '../../components/Price';
 import { CLOUDINARY_BASE } from '../../utils/images';
 import { apiFetch } from '../../utils/api';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 function AdminUsers() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotifications();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch real users from API
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await apiFetch('/api/admin/users');
-        setUsers(response.data || []);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUsers = async (showLoader = true) => {
+    try {
+      if (showLoader) setLoading(true);
+      else setRefreshing(true);
+      
+      const response = await apiFetch('/api/admin/users');
+      setUsers(response.data || response.users || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      showError('Failed to fetch users');
+      setUsers([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -83,9 +91,11 @@ function AdminUsers() {
       setUsers(users.map(u => 
         u.id === userId ? { ...u, status: newStatus } : u
       ));
+      
+      showSuccess(`User status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating user status:', error);
-      alert('Failed to update user status');
+      showError('Failed to update user status');
     }
   };
 
@@ -100,10 +110,17 @@ function AdminUsers() {
       setUsers(users.map(u => 
         u.id === userId ? { ...u, role: newRole } : u
       ));
+      
+      showSuccess(`User role updated to ${newRole}`);
     } catch (error) {
       console.error('Error updating user role:', error);
-      alert('Failed to update user role');
+      showError('Failed to update user role');
     }
+  };
+
+  const handleRefresh = () => {
+    fetchUsers(false);
+    showSuccess('Users refreshed');
   };
 
   const totalUsers = users.length;
@@ -140,15 +157,29 @@ function AdminUsers() {
                 <FaArrowLeft className="text-xl" />
               </button>
               <h1 className="text-2xl font-bold text-white font-saiyan">USER MANAGEMENT</h1>
+              {refreshing && (
+                <FaSync className="text-white animate-spin" />
+              )}
             </div>
             
-            <button
-              onClick={() => {/* TODO: Implement export users */}}
-              className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-saiyan font-bold hover:scale-105 transition-all flex items-center space-x-2"
-            >
-              <FaUserShield />
-              <span>EXPORT USERS</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-saiyan font-bold hover:scale-105 transition-all flex items-center space-x-2 disabled:opacity-50"
+              >
+                <FaSync className={refreshing ? 'animate-spin' : ''} />
+                <span>REFRESH</span>
+              </button>
+              
+              <button
+                onClick={() => {/* TODO: Implement export users */}}
+                className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded-lg font-saiyan font-bold hover:scale-105 transition-all flex items-center space-x-2"
+              >
+                <FaUserShield />
+                <span>EXPORT</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

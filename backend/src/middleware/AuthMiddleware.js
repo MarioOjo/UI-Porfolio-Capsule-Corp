@@ -50,11 +50,26 @@ class AuthMiddleware {
 
       const decoded = authService.verifyToken(token);
       
-      // Check if user has admin role
-      if (!decoded.role || decoded.role !== 'admin') {
+      // Industry Standard: Graceful migration approach
+      // 1. First check if token has role field (new tokens)
+      // 2. If not, fall back to admin email list (old tokens)
+      const adminEmails = (process.env.ADMIN_EMAILS || 'mario@capsulecorp.com,admin@capsulecorp.com')
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean);
+      
+      const isAdminByRole = decoded.role && decoded.role === 'admin';
+      const isAdminByEmail = decoded.email && adminEmails.includes(decoded.email);
+      
+      if (!isAdminByRole && !isAdminByEmail) {
         return res.status(403).json({ 
           error: 'Access denied. Admin privileges required.' 
         });
+      }
+      
+      // Ensure role is set for downstream middleware (backwards compatibility)
+      if (!decoded.role && isAdminByEmail) {
+        decoded.role = 'admin';
       }
       
       req.user = decoded;

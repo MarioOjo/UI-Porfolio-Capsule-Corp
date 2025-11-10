@@ -86,7 +86,7 @@ router.post('/signup',
   signupValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
-  const { email, password, username, firstName, lastName } = req.body;
+  const { email, password, username, firstName, lastName, avatar } = req.body;
   const existing = await UserModel.findByEmail(email);
   if (existing) return res.status(409).json({ error: 'Email already exists' });
   const password_hash = await bcrypt.hash(password, 10);
@@ -97,21 +97,42 @@ router.post('/signup',
   const newUser = await UserModel.create({ 
     username: generatedUsername, 
     email, 
-    password_hash 
+    password_hash,
+    firstName,
+    lastName,
+    avatar: avatar || 'goku'
   });
+  // Fetch full user to get role
+  const fullUser = await UserModel.findById(newUser.id);
   // Generate JWT token for new user
   const authService = require('../src/services/AuthService');
-  const token = authService.signUserToken(newUser);
+  const token = authService.signUserToken(fullUser);
+  
+  // Create avatar URL from selected avatar
+  const avatarMap = {
+    'goku': '🐉',
+    'vegeta': '👑',
+    'gohan': '📚',
+    'piccolo': '👽',
+    'bulma': '🔬',
+    'krillin': '💪',
+    'frieza': '😈',
+    'trunks': '⚔️'
+  };
+  const avatarEmoji = avatarMap[fullUser.avatar] || '🐉';
+  
   // Return user and token for frontend compatibility
   res.status(201).json({ 
     user: { 
-      id: newUser.id, 
-      email: newUser.email, 
-      username: newUser.username,
-      firstName: newUser.firstName || '',
-      lastName: newUser.lastName || '',
-      displayName: newUser.firstName && newUser.lastName ? `${newUser.firstName} ${newUser.lastName}` : newUser.username,
-      photoURL: newUser.photoURL || '',
+      id: fullUser.id, 
+      email: fullUser.email, 
+      username: fullUser.username,
+      firstName: fullUser.firstName || '',
+      lastName: fullUser.lastName || '',
+      displayName: fullUser.firstName && fullUser.lastName ? `${fullUser.firstName} ${fullUser.lastName}` : fullUser.username,
+      photoURL: avatarEmoji,
+      avatar: fullUser.avatar,
+      role: fullUser.role || 'user'
     },
     token
   });
@@ -127,9 +148,23 @@ router.post('/login',
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   const match = await bcrypt.compare(password, user.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-  // Generate JWT token for user
+  // Generate JWT token for user (includes role)
   const authService = require('../src/services/AuthService');
   const token = authService.signUserToken(user);
+  
+  // Create avatar URL from selected avatar
+  const avatarMap = {
+    'goku': '🐉',
+    'vegeta': '👑',
+    'gohan': '📚',
+    'piccolo': '👽',
+    'bulma': '🔬',
+    'krillin': '💪',
+    'frieza': '😈',
+    'trunks': '⚔️'
+  };
+  const avatarEmoji = avatarMap[user.avatar] || '🐉';
+  
   // Return user and token for frontend compatibility
   res.json({ 
     user: { 
@@ -139,7 +174,9 @@ router.post('/login',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       displayName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.username,
-      photoURL: user.photoURL || '',
+      photoURL: avatarEmoji,
+      avatar: user.avatar,
+      role: user.role || 'user'
     },
     token
   });
@@ -165,6 +202,20 @@ router.get('/me', asyncHandler(async (req, res) => {
     const decoded = authService.verifyToken(token);
     const user = await UserModel.findById(decoded.id);
     if (!user) return res.json({ user: null });
+    
+    // Create avatar URL from selected avatar
+    const avatarMap = {
+      'goku': '🐉',
+      'vegeta': '👑',
+      'gohan': '📚',
+      'piccolo': '👽',
+      'bulma': '🔬',
+      'krillin': '💪',
+      'frieza': '😈',
+      'trunks': '⚔️'
+    };
+    const avatarEmoji = avatarMap[user.avatar] || '🐉';
+    
     // Normalize user shape returned to frontend
     const payload = {
       id: user.id,
@@ -172,7 +223,10 @@ router.get('/me', asyncHandler(async (req, res) => {
       username: user.username,
       firstName: user.firstName || null,
       lastName: user.lastName || null,
-      phone: user.phone || null
+      phone: user.phone || null,
+      photoURL: avatarEmoji,
+      avatar: user.avatar,
+      role: user.role || 'user'
     };
     return res.json({ user: payload });
   } catch (e) {
@@ -215,7 +269,17 @@ router.post('/firebase-sync', asyncHandler(async (req, res) => {
 
   // Generate our backend JWT so frontend can call protected endpoints
   const token = authService.signUserToken(user);
-  res.json({ user: { id: user.id, email: user.email, username: user.username, firstName: user.firstName, lastName: user.lastName }, token });
+  res.json({ 
+    user: { 
+      id: user.id, 
+      email: user.email, 
+      username: user.username, 
+      firstName: user.firstName, 
+      lastName: user.lastName,
+      role: user.role || 'user'
+    }, 
+    token 
+  });
 }));
 
 module.exports = router;
