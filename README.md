@@ -42,6 +42,44 @@ This project supports a runtime `env.json` file served from the frontend root (u
 Security note: Do not commit secrets (private keys) to the repository. The template contains only placeholders for public client keys (Firebase client config) and the public `VITE_API_BASE` URL.
 
 
+## 🚀 Database Sync to Production (NEW!)
+
+**No more manual SQL scripts!** We now have automated database sync.
+
+### Quick Sync
+```powershell
+# From repo root
+.\scripts\sync-to-production.ps1
+```
+
+This automatically:
+1. ✅ Backs up production database
+2. ✅ Exports your local schema
+3. ✅ Generates sync script
+4. ✅ Applies changes to Railway production
+
+### Preview Changes (Dry Run)
+```powershell
+.\scripts\sync-to-production.ps1 -DryRun
+```
+
+### Load Helper Commands
+```powershell
+# Get shortcuts: sync, dbtest, dbbackup
+. .\scripts\sync-helpers.ps1
+
+# Then use shortcuts
+sync              # Full sync
+sync -DryRun      # Preview only
+sync -Fast        # Quick (skip backup)
+dbtest            # Check local DB health
+dbbackup          # Manual backup
+```
+
+**📖 Full documentation:** See [scripts/SYNC_README.md](scripts/SYNC_README.md)
+
+---
+
 ## Bootstrapping dependencies (recommended)
 
 This repo keeps frontend and backend projects separate. To make local setup reliable and avoid accidentally committing `node_modules`, follow the steps below.
