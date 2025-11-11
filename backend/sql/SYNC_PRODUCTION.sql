@@ -140,6 +140,19 @@ ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
 ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS category VARCHAR(100);
 
+-- Add address fields to user_addresses (NOW IN LOCAL!)
+ALTER TABLE user_addresses 
+ADD COLUMN IF NOT EXISTS full_name VARCHAR(255) DEFAULT '';
+
+ALTER TABLE user_addresses 
+ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '';
+
+ALTER TABLE user_addresses 
+ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'home';
+
+ALTER TABLE user_addresses 
+ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT 0;
+
 -- ============================================================================
 -- 3. SEED ESSENTIAL DATA
 -- ============================================================================
@@ -192,6 +205,7 @@ CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
 
 -- User addresses indexes
 CREATE INDEX IF NOT EXISTS idx_user_addresses_user_id ON user_addresses(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_addresses_default ON user_addresses(user_id, is_default);
 
 -- Cart items indexes
 CREATE INDEX IF NOT EXISTS idx_cart_items_user_id ON cart_items(user_id);
@@ -208,6 +222,16 @@ CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(c
 UPDATE users 
 SET role = 'user' 
 WHERE role IS NULL OR role = '';
+
+-- Ensure all addresses have type
+UPDATE user_addresses 
+SET type = 'home' 
+WHERE type IS NULL OR type = '';
+
+-- Ensure all addresses have defaults
+UPDATE user_addresses 
+SET full_name = '', phone = '' 
+WHERE full_name IS NULL OR phone IS NULL;
 
 -- ============================================================================
 -- 7. VERIFICATION QUERIES
