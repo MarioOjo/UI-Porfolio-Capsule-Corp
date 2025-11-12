@@ -108,7 +108,7 @@ const ReviewForm = ({ productId, onClose, existingReview = null }) => {
           <div>
             <label className="block text-sm font-medium mb-2 dark:text-gray-200">Rating *</label>
             <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map(star => (
+              {[1,2,3,4,5,6,7].map(star => (
                 <button
                   key={star}
                   type="button"
@@ -122,7 +122,7 @@ const ReviewForm = ({ productId, onClose, existingReview = null }) => {
                 </button>
               ))}
               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400 self-center">
-                {formData.rating}/5
+                {formData.rating}/7
               </span>
             </div>
           </div>

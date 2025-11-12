@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import AdminReviews from '../pages/Admin/AdminReviews';
 
 // Lazy-load PageTransition (and thus framer-motion) so the motion runtime
 // is only fetched when the transition component is rendered.
@@ -225,16 +226,21 @@ const AnimatedRoutes = () => {
                 <AdminProducts />
               </RouteWrapper>
             } />
-            
             <Route path="/admin/orders" element={
               <RouteWrapper routeType="admin">
                 <AdminOrders />
               </RouteWrapper>
             } />
-            
             <Route path="/admin/users" element={
               <RouteWrapper routeType="admin">
                 <AdminUsers />
+              </RouteWrapper>
+            } />
+            <Route path="/admin/reviews" element={
+              <RouteWrapper routeType="admin">
+                <Suspense fallback={loadingComponent}>
+                  <AdminReviews />
+                </Suspense>
               </RouteWrapper>
             } />
             

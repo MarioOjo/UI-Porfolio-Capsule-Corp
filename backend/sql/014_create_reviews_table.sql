@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   id INT AUTO_INCREMENT PRIMARY KEY,
   product_id INT NOT NULL,
   user_id INT NOT NULL,
-  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 7),
   title VARCHAR(200) NOT NULL,
   comment TEXT NOT NULL,
   verified_purchase BOOLEAN DEFAULT FALSE,

@@ -183,6 +183,12 @@ function AdminDashboard() {
               >
                 MANAGE USERS
               </button>
+              <button 
+                onClick={() => navigate('/admin/reviews')}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg font-saiyan font-bold hover:scale-105 transition-all"
+              >
+                MANAGE REVIEWS
+              </button>
             </div>
           </div>
 

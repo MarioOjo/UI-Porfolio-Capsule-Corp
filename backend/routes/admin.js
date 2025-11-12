@@ -1,5 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const ReviewModel = require('../src/models/ReviewModel');
+
+// Get all reviews
+router.get('/reviews', async (req, res) => {
+  try {
+    const reviews = await ReviewModel.getAll();
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete review
+router.delete('/reviews/:id', async (req, res) => {
+  try {
+    const deleted = await ReviewModel.delete(Number(req.params.id));
+    res.json({ success: deleted });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 const UserModel = require('../src/models/UserModel');
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 const OrderModel = require('../src/models/OrderModel');

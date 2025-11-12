@@ -125,21 +125,22 @@ class OrderModel {
       params.push(searchTerm, searchTerm, searchTerm);
     }
 
-    if (filters.date_from) {
-      conditions.push('o.placed_at >= ?');
-      params.push(filters.date_from);
-    }
 
-    if (filters.date_to) {
-      conditions.push('o.placed_at <= ?');
-      params.push(filters.date_to);
-    }
+      if (filters.date_from) {
+        conditions.push('o.created_at >= ?');
+        params.push(filters.date_from);
+      }
+
+      if (filters.date_to) {
+        conditions.push('o.created_at <= ?');
+        params.push(filters.date_to);
+      }
 
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' GROUP BY o.id ORDER BY o.placed_at DESC';
+      query += ' GROUP BY o.id ORDER BY o.created_at DESC';
 
     if (filters.limit) {
       query += ' LIMIT ?';
@@ -149,14 +150,13 @@ class OrderModel {
     const rows = await db.executeQuery(query, params);
     
     // Map placed_at to created_at for frontend compatibility and ensure customer fields exist
-    return rows.map(row => {
-      row.created_at = row.placed_at;
-      // customer_name and customer_email are already in the row from the database columns
-      // If they're null for any reason, provide defaults
-      row.customer_name = row.customer_name || 'N/A';
-      row.customer_email = row.customer_email || 'N/A';
-      return row;
-    });
+      return rows.map(row => {
+        // customer_name and customer_email are already in the row from the database columns
+        // If they're null for any reason, provide defaults
+        row.customer_name = row.customer_name || 'N/A';
+        row.customer_email = row.customer_email || 'N/A';
+        return row;
+      });
   }
 
   // Get order by ID with items
@@ -277,7 +277,7 @@ class OrderModel {
     const params = [];
 
     if (dateFrom && dateTo) {
-      dateCondition = 'WHERE placed_at BETWEEN ? AND ?';
+      dateCondition = 'WHERE created_at BETWEEN ? AND ?';
       params.push(dateFrom, dateTo);
     }
 

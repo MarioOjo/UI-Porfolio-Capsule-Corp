@@ -8,6 +8,9 @@ const ReviewModel = require('../src/models/ReviewModel');
 async function testReviewSystem() {
   console.log('\n🧪 TESTING REVIEW SYSTEM\n');
   console.log('='.repeat(50));
+  const db = require('../src/config/database');
+  await db.initialize();
+  console.log('Active DB:', db.getResolvedConfig());
   
   const results = {
     passed: 0,
@@ -15,8 +18,11 @@ async function testReviewSystem() {
     tests: []
   };
   
-  const testProductId = 1;
-  const testUserId = 1;
+  // Pick an existing product and user from the database to avoid FK issues
+  const productRow = await db.executeQuery('SELECT id FROM products LIMIT 1');
+  const userRow = await db.executeQuery('SELECT id FROM users LIMIT 1');
+  const testProductId = productRow[0]?.id || 1;
+  const testUserId = userRow[0]?.id || 1;
   let createdReviewId = null;
   
   // Test 1: Fetch reviews for a product
