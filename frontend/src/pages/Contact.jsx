@@ -27,6 +27,7 @@ function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState({});
+  const [errors, setErrors] = useState({});
 
   // Pre-fill user data if authenticated
   useEffect(() => {
@@ -39,11 +40,40 @@ function Contact() {
     }
   }, [user]);
 
+  // Validation rules
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'Name is required';
+        if (value.length < 2 || value.length > 100) return 'Name must be 2-100 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(value)) return 'Name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      case 'email':
+        if (!value.trim()) return 'Email is required';
+        if (!/^\S+@\S+\.\S+$/.test(value)) return 'Email must be valid';
+        return '';
+      case 'subject':
+        if (!value.trim()) return 'Subject is required';
+        if (value.length < 3 || value.length > 200) return 'Subject must be 3-200 characters';
+        return '';
+      case 'message':
+        if (!value.trim()) return 'Message is required';
+        if (value.length < 10 || value.length > 5000) return 'Message must be 10-5000 characters';
+        return '';
+      default:
+        return '';
+    }
+  };
+
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+    setErrors(prev => ({
+      ...prev,
+      [name]: validateField(name, value)
     }));
   }, []);
 
@@ -53,12 +83,26 @@ function Contact() {
       ...prev,
       [name]: true
     }));
-  }, []);
+    setErrors(prev => ({
+      ...prev,
+      [name]: validateField(name, formData[name])
+    }));
+  }, [formData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Validate all fields before submit
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      newErrors[key] = validateField(key, formData[key]);
+    });
+    setErrors(newErrors);
+    setTouched({ name: true, email: true, subject: true, message: true });
+    if (Object.values(newErrors).some((err) => err)) {
+      showError('❌ Please fix the errors in the form before submitting.');
+      return;
+    }
     setIsSubmitting(true);
-
     try {
       const response = await apiFetch('/api/contact', {
         method: 'POST',
@@ -68,8 +112,16 @@ function Contact() {
           timestamp: new Date().toISOString()
         })
       });
-
-      // Backend returns { message: '...', data: {...} } on success (201 status)
+      if (response.errors && Array.isArray(response.errors)) {
+        // Backend validation errors
+        const backendErrors = {};
+        response.errors.forEach(err => {
+          if (err.param) backendErrors[err.param] = err.msg;
+        });
+        setErrors(prev => ({ ...prev, ...backendErrors }));
+        showError('❌ Please fix the errors in the form before submitting.');
+        return;
+      }
       if (response.message || response.data) {
         showSuccess('✅ Message sent successfully! Our Z-Fighter support team will respond within 24 hours.', {
           duration: 5000,
@@ -82,6 +134,7 @@ function Contact() {
           message: '' 
         });
         setTouched({});
+        setErrors({});
         
         // Track contact form submission
         if (window.gtag) {
@@ -251,10 +304,13 @@ function Contact() {
                     required
                     className={`w-full pl-12 pr-4 py-3 lg:py-4 rounded-xl border-2 transition-all text-base lg:text-lg ${
                       themeClasses.input
-                    } ${touched.name && !formData.name ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
+                    } ${touched.name && errors.name ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
                     placeholder="Enter your name"
                     aria-required="true"
                   />
+                  {touched.name && errors.name && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.name}</span>
+                  )}
                 </div>
               </div>
 
@@ -275,10 +331,13 @@ function Contact() {
                     required
                     className={`w-full pl-12 pr-4 py-3 lg:py-4 rounded-xl border-2 transition-all text-base lg:text-lg ${
                       themeClasses.input
-                    } ${touched.email && !formData.email ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
+                    } ${touched.email && errors.email ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
                     placeholder="Enter your email"
                     aria-required="true"
                   />
+                  {touched.email && errors.email && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.email}</span>
+                  )}
                 </div>
               </div>
 
@@ -295,10 +354,13 @@ function Contact() {
                   required
                   className={`w-full px-4 py-3 lg:py-4 rounded-xl border-2 transition-all text-base lg:text-lg ${
                     themeClasses.input
-                  } ${touched.subject && !formData.subject ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
+                  } ${touched.subject && errors.subject ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
                   placeholder="What can we help you with?"
                   aria-required="true"
                 />
+                {touched.subject && errors.subject && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.subject}</span>
+                )}
               </div>
 
               <div>
@@ -314,10 +376,13 @@ function Contact() {
                   rows="6"
                   className={`w-full px-4 py-3 lg:py-4 rounded-xl border-2 transition-all resize-none text-base lg:text-lg ${
                     themeClasses.input
-                  } ${touched.message && !formData.message ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
+                  } ${touched.message && errors.message ? 'border-red-500' : 'border-transparent'} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20`}
                   placeholder="Tell us about your inquiry, project, or how we can assist you..."
                   aria-required="true"
                 />
+                {touched.message && errors.message && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.message}</span>
+                )}
               </div>
 
               <button
@@ -393,7 +458,17 @@ function Contact() {
               title="Capsule Corp Headquarters Location"
               aria-label="Interactive map showing Capsule Corp headquarters location in Silicon Valley"
               className="filter saturate-110 contrast-110"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                const fallback = document.getElementById('map-fallback');
+                if (fallback) fallback.style.display = 'flex';
+              }}
             />
+            <div id="map-fallback" style={{display: 'none'}} className="flex flex-col items-center justify-center h-full w-full bg-gray-100 dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-700">
+              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-2">Map Unavailable</div>
+              <div className="text-base text-gray-700 dark:text-gray-300 mb-4 text-center">Google Maps could not be loaded. This may be due to a browser extension or network restriction.</div>
+              <a href="https://goo.gl/maps/2QwQvQwQwQwQwQwQ8" target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">View Capsule Corp on Google Maps</a>
+            </div>
           </div>
         </div>
 

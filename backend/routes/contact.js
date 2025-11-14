@@ -11,25 +11,37 @@ const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next
 // POST /api/contact - Submit contact form
 router.post('/', contactFormValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
   const { name, email, subject, message, user_id } = req.body;
+  let contactMessage;
+  try {
+    // Save to database
+    contactMessage = await ContactModel.create({
+      name,
+      email,
+      subject,
+      message,
+      user_id: user_id || null
+    });
+  } catch (dbError) {
+    console.error('Contact DB error:', dbError);
+    return res.status(500).json({ error: 'Failed to save contact message. Please try again later.' });
+  }
 
-  // Save to database
-  const contactMessage = await ContactModel.create({
-    name,
-    email,
-    subject,
-    message,
-    user_id: user_id || null
-  });
+  // Send email notifications (wait for admin, fire-and-forget for user)
+  let adminEmailSent = false;
+  try {
+    await emailService.sendContactNotification({ name, email, subject, message });
+    adminEmailSent = true;
+  } catch (emailError) {
+    console.error('Admin email send error:', emailError);
+  }
+  // Customer confirmation is non-blocking
+  emailService.sendCustomerConfirmation({ name, email, subject, message })
+    .catch(err => console.error('Customer email send error:', err));
 
-  // Send email notifications (non-blocking)
-  Promise.all([
-    emailService.sendContactNotification({ name, email, subject, message }),
-    emailService.sendCustomerConfirmation({ name, email, subject, message })
-  ]).catch(err => console.error('Email sending error:', err));
-
-  res.status(201).json({ 
+  res.status(201).json({
     message: 'Contact message submitted successfully',
-    data: contactMessage 
+    data: contactMessage,
+    adminEmailSent
   });
 }));
 
