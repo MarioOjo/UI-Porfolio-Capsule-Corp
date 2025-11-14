@@ -19,7 +19,7 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, subject, html, reply_to }) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error('Resend API key not configured');
   }
@@ -28,6 +28,7 @@ async function sendEmail({ to, subject, html }) {
     to,
     subject,
     html,
+    reply_to
   });
 }
 
@@ -48,6 +49,7 @@ async function sendContactNotification(contactData) {
     to: process.env.EMAIL_TO || process.env.EMAIL_USER,
     subject: `[Capsule Corp Contact] ${subject}`,
     html,
+    reply_to: email
   });
 }
 

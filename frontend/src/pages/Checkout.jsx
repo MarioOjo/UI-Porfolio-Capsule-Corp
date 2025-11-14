@@ -241,36 +241,36 @@ function Checkout() {
 
     if (step === 1) {
       // Validate shipping information
-      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-      if (!formData.email.trim()) newErrors.email = 'Email is required';
+      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required *';
+      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required *';
+      if (!formData.email.trim()) newErrors.email = 'Email is required *';
       else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-      if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-      if (!formData.address.trim()) newErrors.address = 'Address is required';
-      if (!formData.city.trim()) newErrors.city = 'City is required';
-      if (!formData.state.trim()) newErrors.state = 'State/Province is required';
-      if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP/Postal code is required';
-      if (!formData.country) newErrors.country = 'Country is required';
+      if (!formData.phone.trim()) newErrors.phone = 'Phone number is required *';
+      if (!formData.address.trim()) newErrors.address = 'Address is required *';
+      if (!formData.city.trim()) newErrors.city = 'City is required *';
+      if (!formData.state.trim()) newErrors.state = 'State/Province is required *';
+      if (!formData.zipCode.trim()) newErrors.zipCode = 'ZIP/Postal code is required *';
+      if (!formData.country) newErrors.country = 'Country is required *';
     }
 
     if (step === 2) {
       // Validate payment information
       const cleanCardNumber = formData.cardNumber.replace(/\s/g, '');
-      if (!cleanCardNumber) newErrors.cardNumber = 'Card number is required';
+      if (!cleanCardNumber) newErrors.cardNumber = 'Card number is required *';
       else if (cleanCardNumber.length !== 16) newErrors.cardNumber = 'Card number must be 16 digits';
       else if (!/^\d+$/.test(cleanCardNumber)) newErrors.cardNumber = 'Card number must contain only digits';
       
-      if (!formData.expiryMonth) newErrors.expiryMonth = 'Expiry month is required';
-      if (!formData.expiryYear) newErrors.expiryYear = 'Expiry year is required';
+      if (!formData.expiryMonth) newErrors.expiryMonth = 'Expiry month is required *';
+      if (!formData.expiryYear) newErrors.expiryYear = 'Expiry year is required *';
       
-      if (!formData.cvv) newErrors.cvv = 'CVV is required';
+      if (!formData.cvv) newErrors.cvv = 'CVV is required *';
       else if (!/^\d{3,4}$/.test(formData.cvv)) newErrors.cvv = 'CVV must be 3 or 4 digits';
       
-      if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required';
+      if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required *';
     }
 
     if (step === 3) {
-      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms and conditions *';
     }
 
     setErrors(newErrors);
@@ -387,10 +387,23 @@ function Checkout() {
       }
     } catch (error) {
       console.error('Order submission error:', error);
-      showError(error.message || 'Failed to place order. Please try again.', {
-        title: 'ORDER FAILED',
-        duration: 4000
-      });
+      // If backend returns field-specific errors, show them inline
+      if (error && error.details && Array.isArray(error.details)) {
+        const backendErrors = {};
+        error.details.forEach(e => {
+          if (e.field) backendErrors[e.field] = e.message;
+        });
+        setErrors(prev => ({ ...prev, ...backendErrors }));
+        showError('Please fix the highlighted errors and try again.', {
+          title: 'ORDER FAILED',
+          duration: 4000
+        });
+      } else {
+        showError(error.message || 'Failed to place order. Please try again.', {
+          title: 'ORDER FAILED',
+          duration: 4000
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -1009,6 +1022,11 @@ function Checkout() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Demo Disclaimer */}
+        <div className="mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-900 border border-yellow-300 text-center">
+          <strong>Demo Notice:</strong> This checkout is for portfolio/demo purposes only. No real payments are processed and credit card info is not stored or sent to any payment gateway.
         </div>
       </div>
     </div>

@@ -16,9 +16,7 @@ const {
 router.post('/', createOrderValidation, ValidationMiddleware.handleValidationErrors, async (req, res) => {
   try {
     const orderData = req.body;
-
     const result = await OrderModel.create(orderData);
-    
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
@@ -26,6 +24,13 @@ router.post('/', createOrderValidation, ValidationMiddleware.handleValidationErr
       order_number: result.order_number
     });
   } catch (error) {
+    // If error is a validation error, return field-specific details
+    if (error && error.errors && Array.isArray(error.errors)) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.errors.map(e => ({ field: e.param || e.path, message: e.msg, value: e.value }))
+      });
+    }
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Failed to create order', details: error.message });
   }
