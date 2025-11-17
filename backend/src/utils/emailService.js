@@ -45,12 +45,22 @@ async function sendContactNotification(contactData) {
       <small>Received at ${new Date().toLocaleString()}</small>
     </div>
   `;
-  return sendEmail({
-    to: process.env.EMAIL_TO || process.env.EMAIL_USER,
+  // Send to Gmail
+  const gmailPromise = sendEmail({
+    to: 'capsulecorp.8999@gmail.com',
     subject: `[Capsule Corp Contact] ${subject}`,
     html,
     reply_to: email
   });
+  // Send to Resend dashboard
+  const resendPromise = sendEmail({
+    to: 'contact@ookronejoi.resend.app',
+    subject: `[Capsule Corp Contact] ${subject}`,
+    html,
+    reply_to: email
+  });
+  // Wait for both to complete
+  return Promise.all([gmailPromise, resendPromise]);
 }
 
 async function sendCustomerConfirmation(contactData) {
