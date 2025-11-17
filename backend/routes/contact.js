@@ -65,6 +65,40 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({ message });
 }));
 
+// POST /api/contact/:id/resend - Manually resend contact message email (admin only)
+router.post('/:id/resend', asyncHandler(async (req, res) => {
+  // Fetch contact message by ID
+  const message = await ContactModel.findById(req.params.id);
+  if (!message) return res.status(404).json({ error: 'Contact message not found' });
+
+  // Re-send email notifications
+  let adminEmailSent = false;
+  try {
+    await emailService.sendContactNotification({
+      name: message.name,
+      email: message.email,
+      subject: message.subject,
+      message: message.message
+    });
+    adminEmailSent = true;
+  } catch (emailError) {
+    console.error('Admin email resend error:', emailError);
+  }
+  // Customer confirmation is non-blocking
+  emailService.sendCustomerConfirmation({
+    name: message.name,
+    email: message.email,
+    subject: message.subject,
+    message: message.message
+  }).catch(err => console.error('Customer email resend error:', err));
+
+  res.json({
+    message: 'Contact message resent',
+    data: message,
+    adminEmailSent
+  });
+}));
+
 // PUT /api/contact/:id - Update contact message status (admin only)
 router.put('/:id', asyncHandler(async (req, res) => {
   const { status, admin_notes } = req.body;

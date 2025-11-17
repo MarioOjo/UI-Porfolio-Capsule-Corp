@@ -243,6 +243,14 @@ const AnimatedRoutes = () => {
                 </Suspense>
               </RouteWrapper>
             } />
+
+              <Route path="/admin/contact-messages" element={
+                <RouteWrapper routeType="admin">
+                  <Suspense fallback={loadingComponent}>
+                    {React.createElement(lazy(() => import('../pages/AdminContactMessages')))}
+                  </Suspense>
+                </RouteWrapper>
+              } />
             
             {/* 404 Route */}
             <Route path="*" element={
