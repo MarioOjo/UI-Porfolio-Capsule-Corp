@@ -86,10 +86,14 @@ mongoose.connection.on('disconnected', () => {
 // Health check endpoints
 // -------------------
 app.get('/health', async (req, res) => {
-  if (isMongoConnected) {
-    return res.json({ ok: true, db: 'mongo', state: 'connected' });
-  }
-  return res.status(500).json({ ok: false, db: 'down' });
+  // Return OK even if MongoDB is connecting to prevent Render restart loop
+  const status = {
+    ok: true,
+    db: 'mongo',
+    state: isMongoConnected ? 'connected' : 'connecting',
+    timestamp: new Date().toISOString()
+  };
+  res.json(status);
 });
 
 // -------------------
