@@ -1,22 +1,18 @@
-const database = require('../config/database');
+const Address = require('../../models/Address');
 
 class AddressModel {
   async setDefault(addressId, userId) {
-    // Set is_default = 1 for addressId, unset for others
-    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 0 WHERE user_id = ?`, [userId]);
-    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 1 WHERE id = ? AND user_id = ?`, [addressId, userId]);
+    // Unset all for user
+    await Address.updateMany({ user_id: userId }, { is_default: false });
+    // Set specific one
+    await Address.findByIdAndUpdate(addressId, { is_default: true });
   }
 
   async unsetDefault(userId) {
-    await this.db.executeQuery(`UPDATE ${this.table} SET is_default = 0 WHERE user_id = ?`, [userId]);
-  }
-  constructor() {
-    this.table = 'user_addresses';
-    this.db = database;
+    await Address.updateMany({ user_id: userId }, { is_default: false });
   }
 
   async create(userId, address) {
-    // Support both old format (line1, line2, label) and new format (street, fullName, type, name, phone)
     const line1 = address.street || address.line1 || '';
     const line2 = address.line2 || null;
     const city = address.city || null;
@@ -27,15 +23,22 @@ class AddressModel {
     const fullName = address.fullName || '';
     const phone = address.phone || '';
     
-    const query = `
-      INSERT INTO ${this.table} (user_id, line1, line2, city, state, zip, country, label, full_name, phone, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    `;
-    const result = await this.db.executeQuery(query, [userId, line1, line2, city, state, zip, country, label, fullName, phone]);
+    const newAddress = await Address.create({
+      user_id: userId,
+      line1,
+      line2,
+      city,
+      state,
+      zip,
+      country,
+      label,
+      full_name: fullName,
+      phone,
+      is_default: false
+    });
     
-    // Return in frontend format
     return { 
-      id: result.insertId, 
+      id: newAddress._id, 
       user_id: userId, 
       street: line1,
       line1,
@@ -54,12 +57,10 @@ class AddressModel {
   }
 
   async listByUser(userId) {
-    const query = `SELECT * FROM ${this.table} WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC`;
-    const rows = await this.db.executeQuery(query, [userId]);
+    const addresses = await Address.find({ user_id: userId, deleted_at: null }).sort({ created_at: -1 });
     
-    // Map database columns to frontend format
-    return rows.map(row => ({
-      id: row.id,
+    return addresses.map(row => ({
+      id: row._id,
       user_id: row.user_id,
       street: row.line1,
       line1: row.line1,
@@ -70,25 +71,22 @@ class AddressModel {
       country: row.country,
       name: row.label,
       label: row.label,
-      type: row.type || 'home',
+      type: 'home', // default or derive from label
       fullName: row.full_name || '',
       phone: row.phone || '',
-      isDefault: Boolean(row.is_default),
+      isDefault: row.is_default,
       created_at: row.created_at,
       updated_at: row.updated_at
     }));
   }
 
   async findById(id) {
-    const query = `SELECT * FROM ${this.table} WHERE id = ? AND deleted_at IS NULL`;
-    const rows = await this.db.executeQuery(query, [id]);
-    const row = rows[0] || null;
+    const row = await Address.findOne({ _id: id, deleted_at: null });
     
     if (!row) return null;
     
-    // Map to frontend format
     return {
-      id: row.id,
+      id: row._id,
       user_id: row.user_id,
       street: row.line1,
       line1: row.line1,
@@ -99,53 +97,43 @@ class AddressModel {
       country: row.country,
       name: row.label,
       label: row.label,
-      type: row.type || 'home',
+      type: 'home',
       fullName: row.full_name || '',
       phone: row.phone || '',
-      isDefault: Boolean(row.is_default),
+      isDefault: row.is_default,
       created_at: row.created_at,
       updated_at: row.updated_at
     };
   }
+  
+  async update(id, userId, data) {
+    const update = { updated_at: new Date() };
+    if (data.street || data.line1) update.line1 = data.street || data.line1;
+    if (data.line2 !== undefined) update.line2 = data.line2;
+    if (data.city) update.city = data.city;
+    if (data.state) update.state = data.state;
+    if (data.zip) update.zip = data.zip;
+    if (data.country) update.country = data.country;
+    if (data.name || data.label) update.label = data.name || data.label;
+    if (data.fullName) update.full_name = data.fullName;
+    if (data.phone) update.phone = data.phone;
 
-  async update(id, address) {
-    const fields = [];
-    const values = [];
+    const updated = await Address.findOneAndUpdate(
+      { _id: id, user_id: userId, deleted_at: null },
+      update,
+      { new: true }
+    );
     
-    // Map frontend fields to database columns
-    const fieldMap = {
-      street: 'line1',
-      line1: 'line1',
-      line2: 'line2',
-      city: 'city',
-      state: 'state',
-      zip: 'zip',
-      country: 'country',
-      name: 'label',
-      label: 'label',
-      fullName: 'full_name',
-      phone: 'phone',
-      type: 'type'
-    };
-    
-    for (const [frontendKey, dbColumn] of Object.entries(fieldMap)) {
-      if (frontendKey in address) {
-        fields.push(`${dbColumn} = ?`);
-        values.push(address[frontendKey]);
-      }
-    }
-    
-    if (fields.length === 0) return await this.findById(id);
-    
-    const query = `UPDATE ${this.table} SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`;
-    values.push(id);
-    await this.db.executeQuery(query, values);
-    return await this.findById(id);
+    if (!updated) return null;
+    return this.findById(id);
   }
 
-  async remove(id) {
-    const query = `UPDATE ${this.table} SET deleted_at = NOW() WHERE id = ?`;
-    await this.db.executeQuery(query, [id]);
+  async delete(id, userId) {
+    const result = await Address.findOneAndUpdate(
+      { _id: id, user_id: userId },
+      { deleted_at: new Date() }
+    );
+    return !!result;
   }
 }
 

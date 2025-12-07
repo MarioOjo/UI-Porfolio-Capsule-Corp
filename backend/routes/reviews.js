@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const ReviewModel = require('../src/models/ReviewModel');
+let reviewReader;
+try { reviewReader = require('../adapters/reviewReader'); } catch (e) { }
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 
 // Utility async wrapper
@@ -10,14 +12,25 @@ const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next
 router.get('/products/:productId/reviews', asyncHandler(async (req, res) => {
   const { productId } = req.params;
   const { sortBy = 'recent', limit = 50, offset = 0 } = req.query;
-  
-  const reviews = await ReviewModel.findByProductId(productId, { 
-    sortBy, 
-    limit: parseInt(limit), 
-    offset: parseInt(offset) 
-  });
-  const stats = await ReviewModel.getAverageRating(productId);
-  const distribution = await ReviewModel.getRatingDistribution(productId);
+  const useMongo = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_FOR_REVIEWS || '').trim());
+  let reviews;
+  let stats;
+  let distribution;
+  if (useMongo && reviewReader) {
+    try {
+      reviews = await reviewReader.findByProductId(productId, { sortBy, limit: parseInt(limit), offset: parseInt(offset) });
+      stats = await reviewReader.getAverageRating(productId);
+      distribution = await reviewReader.getRatingDistribution(productId);
+    } catch (err) {
+      console.warn('reviewReader (Mongo) error, falling back to SQL:', err && err.message ? err.message : err);
+    }
+  }
+  if (!reviews) {
+    const r = await ReviewModel.findByProductId(productId, { sortBy, limit: parseInt(limit), offset: parseInt(offset) });
+    reviews = r;
+    stats = await ReviewModel.getAverageRating(productId);
+    distribution = await ReviewModel.getRatingDistribution(productId);
+  }
   
   res.json({ 
     reviews,
@@ -89,7 +102,12 @@ router.post('/products/:productId/reviews', AuthMiddleware.authenticateToken, as
 
 // GET /api/users/me/reviews - Get current user's reviews (requires auth)
 router.get('/users/me/reviews', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
-  const reviews = await ReviewModel.findByUserId(req.user.id);
+  const useMongo = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_FOR_REVIEWS || '').trim());
+  let reviews;
+  if (useMongo && reviewReader) {
+    try { reviews = await reviewReader.findByUserId(req.user.id); } catch (e) { console.warn('reviewReader error:', e && e.message ? e.message : e); }
+  }
+  if (!reviews) reviews = await ReviewModel.findByUserId(req.user.id);
   res.json({ reviews });
 }));
 

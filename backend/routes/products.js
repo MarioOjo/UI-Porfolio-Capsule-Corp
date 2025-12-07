@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const ProductModel = require('../src/models/ProductModel');
+let productReader;
+try {
+  productReader = require('../adapters/productReader');
+} catch (e) {
+  // Adapter optional; if missing we'll just use SQL model
+}
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
@@ -30,20 +35,19 @@ router.get('/',
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
   const { category, search, featured } = req.query;
-  let products;
-  
-  if (featured === 'true') {
-    products = await ProductModel.getFeatured();
-  } else if (category) {
-    products = await ProductModel.findByCategory(category);
-  } else if (search) {
-    products = await ProductModel.search(search);
-  } else {
-    products = await ProductModel.findAll();
-  }
-  
-  res.json({ products });
-}));
+    if (!productReader) return res.status(501).json({ error: 'Mongo product reader not available' });
+    try {
+      let products;
+      if (featured === 'true') products = await productReader.getFeatured();
+      else if (category) products = await productReader.findByCategory(category);
+      else if (search) products = await productReader.search(search);
+      else products = await productReader.findAll();
+      return res.json({ products });
+    } catch (err) {
+      console.error('ProductReader (Mongo) list error:', err && err.message ? err.message : err);
+      return res.status(500).json({ error: 'Failed to list products' });
+    }
+  }));
 
 // GET /api/products/slug/:slug
 // Specific routes MUST come before parameterized routes
@@ -51,9 +55,15 @@ router.get('/slug/:slug',
   productSlugValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
-  const product = await ProductModel.findBySlug(req.params.slug);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-  res.json({ product });
+  if (!productReader || !productReader.findBySlug) return res.status(501).json({ error: 'Mongo product reader not available' });
+  try {
+    const p = await productReader.findBySlug(req.params.slug);
+    if (!p) return res.status(404).json({ error: 'Product not found' });
+    return res.json({ product: p });
+  } catch (err) {
+    console.error('ProductReader (Mongo) slug error:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Failed to retrieve product' });
+  }
 }));
 
 // GET /api/products/:id
@@ -61,9 +71,15 @@ router.get('/:id',
   productIdValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
-  const product = await ProductModel.findById(req.params.id);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-  res.json({ product });
+  if (!productReader || !productReader.findById) return res.status(501).json({ error: 'Mongo product reader not available' });
+  try {
+    const p = await productReader.findById(req.params.id);
+    if (!p) return res.status(404).json({ error: 'Product not found' });
+    return res.json({ product: p });
+  } catch (err) {
+    console.error('ProductReader (Mongo) error:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Failed to retrieve product' });
+  }
 }));
 
 // POST /api/products - Create new product (admin only)
@@ -109,13 +125,36 @@ router.post('/', upload.array('images'), createProductValidation, ValidationMidd
       specifications: req.body.specifications ? JSON.parse(req.body.specifications) : {}
     };
 
-    const product = await ProductModel.create(productData);
-    return res.status(201).json({ product });
+    const useMongoWrite = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_WRITE_FOR_PRODUCTS || '').trim());
+      // Always prefer Mongo writer
+      let writer;
+      try { writer = require('../adapters/productWriter'); } catch (e) { writer = null; }
+      if (writer && writer.create) {
+        const product = await writer.create(productData);
+        return res.status(201).json({ product });
+      }
+      return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
   }
 
   // Non-multipart JSON
-  const product = await ProductModel.create(req.body);
-  res.status(201).json({ product });
+  const useMongoWrite = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_WRITE_FOR_PRODUCTS || '').trim());
+  if (useMongoWrite) {
+    let writer;
+    try { writer = require('../adapters/productWriter'); } catch (e) { writer = null; }
+    if (writer && writer.create) {
+      const product = await writer.create(req.body);
+      return res.status(201).json({ product });
+    }
+    return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
+  }
+  // Fallback: try to use Mongo writer if present
+  let writerFallback;
+  try { writerFallback = require('../adapters/productWriter'); } catch (e) { writerFallback = null; }
+  if (writerFallback && writerFallback.create) {
+    const product = await writerFallback.create(req.body);
+    return res.status(201).json({ product });
+  }
+  return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
 }));
 
 // PUT /api/products/:id - Update product (admin only)
@@ -158,22 +197,37 @@ router.put('/:id', upload.array('images'), updateProductValidation, ValidationMi
       specifications: req.body.specifications ? JSON.parse(req.body.specifications) : {}
     };
 
-    const product = await ProductModel.update(req.params.id, productData);
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    return res.json({ product });
+    let writer;
+    try { writer = require('../adapters/productWriter'); } catch (e) { writer = null; }
+    if (writer && writer.update) {
+      const product = await writer.update(req.params.id, productData);
+      if (!product) return res.status(404).json({ error: 'Product not found' });
+      return res.json({ product });
+    }
+    return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
   }
 
   // JSON body
-  const product = await ProductModel.update(req.params.id, req.body);
-  if (!product) return res.status(404).json({ error: 'Product not found' });
-  res.json({ product });
+  let writer;
+  try { writer = require('../adapters/productWriter'); } catch (e) { writer = null; }
+  if (writer && writer.update) {
+    const product = await writer.update(req.params.id, req.body);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    return res.json({ product });
+  }
+  return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
 }));
 
 // DELETE /api/products/:id - Delete product (admin only)
 router.delete('/:id', productIdValidation, ValidationMiddleware.handleValidationErrors, asyncHandler(async (req, res) => {
-  const success = await ProductModel.delete(req.params.id);
-  if (!success) return res.status(404).json({ error: 'Product not found' });
-  res.json({ message: 'Product deleted successfully' });
+  let writer;
+  try { writer = require('../adapters/productWriter'); } catch (e) { writer = null; }
+  if (writer && writer.remove) {
+    const success = await writer.remove(req.params.id);
+    if (!success) return res.status(404).json({ error: 'Product not found' });
+    return res.json({ message: 'Product deleted successfully' });
+  }
+  return res.status(501).json({ error: 'Product write path not available (no Mongo writer)'});
 }));
 
 module.exports = router;

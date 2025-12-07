@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const OrderModel = require('../src/models/OrderModel');
-const db = require('../src/config/database');
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 const ValidationMiddleware = require('../src/middleware/ValidationMiddleware');
 const { 
@@ -136,39 +135,10 @@ router.get('/my-orders', AuthMiddleware.authenticateToken, async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const orders = await OrderModel.findAll({ user_id: req.params.userId });
-    
-    // Fetch items for each order with product images
-    const ordersWithItems = await Promise.all(
-      orders.map(async (order) => {
-        const items = await db.executeQuery(
-          `SELECT 
-            oi.*,
-            p.image as product_image,
-            p.name as full_product_name
-          FROM order_items oi
-          LEFT JOIN products p ON p.id = oi.variant_id OR p.slug = oi.sku
-          WHERE oi.order_id = ?`,
-          [order.id]
-        );
-        
-        // Map order_items columns to what frontend expects
-        const mappedItems = items.map(item => ({
-          id: item.id,
-          name: item.product_name || item.full_product_name || 'Product',
-          image: item.product_image || '/placeholder.jpg',
-          price: parseFloat(item.unit_price || item.price || 0),
-          quantity: parseInt(item.quantity || 1),
-          subtotal: parseFloat(item.total || item.subtotal || 0)
-        }));
-        
-        return { ...order, items: mappedItems };
-      })
-    );
-    
     res.json({
       success: true,
-      orders: ordersWithItems,
-      count: ordersWithItems.length
+      orders: orders,
+      count: orders.length
     });
   } catch (error) {
     console.error('Error fetching user orders:', error);

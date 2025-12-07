@@ -1,3 +1,4 @@
+import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { useTheme } from '../contexts/ThemeContext';

@@ -26,7 +26,7 @@ app.get('/env.json', (req, res) => {
 });
 
 // For SPA routing, serve index.html for any unknown path
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

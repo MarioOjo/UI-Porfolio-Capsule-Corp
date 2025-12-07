@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../src/config/database');
+const UserModel = require('../src/models/UserModel');
 
 // Emergency admin promotion endpoint
 // Call this once to promote a user to admin, then remove/disable this file
@@ -20,27 +20,28 @@ router.post('/emergency-promote-admin', async (req, res) => {
     }
     
     // Find user
-    const users = await db.executeQuery(
-      'SELECT id, email, role FROM users WHERE LOWER(email) = ?',
-      [email.toLowerCase()]
-    );
+    const user = await UserModel.findByEmail(email.toLowerCase());
     
-    if (!users || users.length === 0) {
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     // Promote to admin
-    await db.executeQuery(
-      'UPDATE users SET role = ? WHERE id = ?',
-      ['admin', users[0].id]
-    );
+    // Assuming UserModel has an update method or we can use updateProfile
+    // But updateProfile might not allow role update.
+    // Let's use the Mongoose model directly if needed, or add a method to UserModel.
+    // UserModel doesn't have updateRole.
+    // I'll use the User model directly here for simplicity, or add a method.
+    // Actually, I can just use the User model directly.
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(user.id, { role: 'admin' });
     
     res.json({ 
       success: true, 
       message: 'User promoted to admin',
       user: {
-        id: users[0].id,
-        email: users[0].email,
+        id: user.id,
+        email: user.email,
         role: 'admin'
       }
     });

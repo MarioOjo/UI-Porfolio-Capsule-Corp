@@ -1,325 +1,159 @@
-const db = require('../config/database');
+const Order = require('../../models/Order');
 
 class OrderModel {
   // Create new order
   static async create(orderData) {
-    const connection = await db.getConnection();
     try {
-      await connection.beginTransaction();
-
       // Generate order number
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-      // Insert order
-      const [orderResult] = await connection.execute(
-        `INSERT INTO orders (
-          order_number, user_id, customer_name, customer_email, customer_phone,
-          shipping_address_line1, shipping_address_line2, shipping_city, shipping_state, shipping_zip, shipping_country,
-          billing_address_line1, billing_address_line2, billing_city, billing_state, billing_zip, billing_country,
-          subtotal, shipping_cost, tax, total,
-          payment_method, payment_status, transaction_id,
-          status, customer_notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          orderNumber,
-          orderData.user_id || null,
-          orderData.customer_name,
-          orderData.customer_email,
-          orderData.customer_phone || null,
-          orderData.shipping_address.street || orderData.shipping_address.line1,
-          orderData.shipping_address.line2 || null,
-          orderData.shipping_address.city,
-          orderData.shipping_address.state,
-          orderData.shipping_address.postal_code || orderData.shipping_address.zip,
-          orderData.shipping_address.country || 'USA',
-          orderData.billing_address?.street || orderData.billing_address?.line1 || orderData.shipping_address.street || orderData.shipping_address.line1,
-          orderData.billing_address?.line2 || orderData.shipping_address.line2 || null,
-          orderData.billing_address?.city || orderData.shipping_address.city,
-          orderData.billing_address?.state || orderData.shipping_address.state,
-          orderData.billing_address?.postal_code || orderData.billing_address?.zip || orderData.shipping_address.postal_code || orderData.shipping_address.zip,
-          orderData.billing_address?.country || orderData.shipping_address.country || 'USA',
-          orderData.subtotal,
-          orderData.shipping_cost || 0,
-          orderData.tax || 0,
-          orderData.total,
-          orderData.payment_method,
-          orderData.payment_status || 'pending',
-          orderData.transaction_id || null,
-          'pending',
-          orderData.customer_notes || null
-        ]
-      );
+      const order = await Order.create({
+        order_number: orderNumber,
+        user_id: orderData.user_id || null,
+        customer_name: orderData.customer_name,
+        customer_email: orderData.customer_email,
+        customer_phone: orderData.customer_phone || null,
+        
+        shipping_address: {
+          line1: orderData.shipping_address.street || orderData.shipping_address.line1,
+          line2: orderData.shipping_address.line2 || null,
+          city: orderData.shipping_address.city,
+          state: orderData.shipping_address.state,
+          zip: orderData.shipping_address.postal_code || orderData.shipping_address.zip,
+          country: orderData.shipping_address.country || 'USA'
+        },
+        
+        billing_address: {
+          line1: orderData.billing_address?.street || orderData.billing_address?.line1 || orderData.shipping_address.street || orderData.shipping_address.line1,
+          line2: orderData.billing_address?.line2 || orderData.shipping_address.line2 || null,
+          city: orderData.billing_address?.city || orderData.shipping_address.city,
+          state: orderData.billing_address?.state || orderData.shipping_address.state,
+          zip: orderData.billing_address?.postal_code || orderData.billing_address?.zip || orderData.shipping_address.postal_code || orderData.shipping_address.zip,
+          country: orderData.billing_address?.country || orderData.shipping_address.country || 'USA'
+        },
 
-      const orderId = orderResult.insertId;
-
-      // Insert order items
-      for (const item of orderData.items) {
-        await connection.execute(
-          `INSERT INTO order_items (
-            order_id, product_id, product_name, product_slug, product_image, category, power_level,
-            quantity, price, subtotal
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            orderId,
-            item.product_id || item.id,
-            item.name,
-            item.slug || null,
-            item.image || null,
-            item.category || null,
-            item.power_level || item.powerLevel || 0,
-            item.quantity,
-            item.price,
-            item.quantity * item.price
-          ]
-        );
-      }
-
-      // Record status history
-      await connection.execute(
-        `INSERT INTO order_status_history (order_id, new_status, notes) VALUES (?, ?, ?)`,
-        [orderId, 'pending', 'Order created']
-      );
-
-      await connection.commit();
+        subtotal: orderData.subtotal,
+        shipping_cost: orderData.shipping_cost || 0,
+        tax: orderData.tax || 0,
+        total: orderData.total,
+        
+        payment_method: orderData.payment_method,
+        payment_status: orderData.payment_status || 'pending',
+        transaction_id: orderData.transaction_id || null,
+        
+        status: 'pending',
+        customer_notes: orderData.customer_notes || null,
+        
+        items: orderData.items.map(item => ({
+          product_id: item.product_id || item.id,
+          product_name: item.name,
+          product_slug: item.slug || null,
+          product_image: item.image || null,
+          category: item.category || null,
+          power_level: item.power_level || item.powerLevel || 0,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.quantity * item.price
+        })),
+        
+        status_history: [{
+          status: 'pending',
+          notes: 'Order created'
+        }]
+      });
       
       return {
-        order_id: orderId,
+        order_id: order._id,
         order_number: orderNumber
       };
     } catch (error) {
-      await connection.rollback();
+      console.error('Error creating order:', error);
       throw error;
-    } finally {
-      connection.release();
     }
   }
 
   // Get all orders with filters
   static async findAll(filters = {}) {
-    let query = `
-      SELECT 
-        o.*,
-        COUNT(oi.id) as item_count,
-        GROUP_CONCAT(DISTINCT oi.product_name SEPARATOR ', ') as product_names
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-    `;
+    try {
+      const query = {};
+      if (filters.status) query.status = filters.status;
+      if (filters.user_id) query.user_id = filters.user_id;
 
-    const conditions = [];
-    const params = [];
-
-    if (filters.status) {
-      conditions.push('o.status = ?');
-      params.push(filters.status);
+      const orders = await Order.find(query).sort({ created_at: -1 });
+      return orders.map(this._mapOrder);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
     }
-
-    if (filters.user_id) {
-      conditions.push('o.user_id = ?');
-      params.push(filters.user_id);
-    }
-
-    if (filters.search) {
-      // Search in order_number, customer_name, and customer_email columns
-      conditions.push('(o.order_number LIKE ? OR o.customer_name LIKE ? OR o.customer_email LIKE ?)');
-      const searchTerm = `%${filters.search}%`;
-      params.push(searchTerm, searchTerm, searchTerm);
-    }
-
-
-      if (filters.date_from) {
-        conditions.push('o.created_at >= ?');
-        params.push(filters.date_from);
-      }
-
-      if (filters.date_to) {
-        conditions.push('o.created_at <= ?');
-        params.push(filters.date_to);
-      }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
-      query += ' GROUP BY o.id ORDER BY o.created_at DESC';
-
-    if (filters.limit) {
-      query += ' LIMIT ?';
-      params.push(parseInt(filters.limit));
-    }
-
-    const rows = await db.executeQuery(query, params);
-    
-    // Map placed_at to created_at for frontend compatibility and ensure customer fields exist
-      return rows.map(row => {
-        // customer_name and customer_email are already in the row from the database columns
-        // If they're null for any reason, provide defaults
-        row.customer_name = row.customer_name || 'N/A';
-        row.customer_email = row.customer_email || 'N/A';
-        return row;
-      });
   }
 
-  // Get order by ID with items
-  static async findById(orderId) {
-    const orders = await db.executeQuery(
-      `SELECT * FROM orders WHERE id = ?`,
-      [orderId]
-    );
-
-    if (orders.length === 0) {
-      return null;
+  static async findById(id) {
+    try {
+      const order = await Order.findById(id);
+      if (!order) return null;
+      return this._mapOrder(order);
+    } catch (error) {
+      console.error('Error fetching order by ID:', error);
+      throw error;
     }
-
-    const order = orders[0];
-
-    // Get order items
-    const items = await db.executeQuery(
-      `SELECT * FROM order_items WHERE order_id = ?`,
-      [orderId]
-    );
-
-    order.items = items;
-
-    // Get status history
-    const history = await db.executeQuery(
-      `SELECT * FROM order_status_history WHERE order_id = ? ORDER BY created_at DESC`,
-      [orderId]
-    );
-
-    order.status_history = history;
-
-    return order;
   }
-
-  // Get order by order number
+  
   static async findByOrderNumber(orderNumber) {
-    const orders = await db.executeQuery(
-      `SELECT * FROM orders WHERE order_number = ?`,
-      [orderNumber]
-    );
-
-    if (orders.length === 0) {
-      return null;
-    }
-
-    const order = orders[0];
-
-    // Get order items
-    const items = await db.executeQuery(
-      `SELECT * FROM order_items WHERE order_id = ?`,
-      [order.id]
-    );
-
-    order.items = items;
-
-    return order;
-  }
-
-  // Update order status
-  static async updateStatus(orderId, newStatus, userId = null, notes = null) {
-    // Update order status
-    const result = await db.executeQuery(
-      'UPDATE orders SET status = ? WHERE id = ?',
-      [newStatus, orderId]
-    );
-
-    if (result.affectedRows === 0) {
-      throw new Error('Order not found');
-    }
-
-    // Record status change in history if table exists
     try {
-      await db.executeQuery(
-        `INSERT INTO order_status_history (order_id, new_status, notes) VALUES (?, ?, ?)`,
-        [orderId, newStatus, notes || `Status changed to ${newStatus}`]
-      );
+      const order = await Order.findOne({ order_number: orderNumber });
+      if (!order) return null;
+      return this._mapOrder(order);
     } catch (error) {
-      // If status history table doesn't exist or fails, continue anyway
-      console.log('Status history update skipped:', error.message);
+      console.error('Error fetching order by number:', error);
+      throw error;
     }
-
-    return true;
   }
 
-  // Update tracking information
-  static async updateTracking(orderId, trackingNumber, carrier) {
-    // Check if tracking columns exist, if not update metadata
+  static async updateStatus(id, status, notes = null) {
     try {
-      const result = await db.executeQuery(
-        `UPDATE orders SET metadata = JSON_SET(COALESCE(metadata, '{}'), '$.tracking_number', ?, '$.carrier', ?) WHERE id = ?`,
-        [trackingNumber, carrier, orderId]
-      );
-      return result.affectedRows > 0;
+      const order = await Order.findById(id);
+      if (!order) return null;
+      
+      order.status = status;
+      order.status_history.push({
+        status,
+        notes: notes || `Status updated to ${status}`,
+        timestamp: new Date()
+      });
+      order.updated_at = new Date();
+      
+      await order.save();
+      return this._mapOrder(order);
     } catch (error) {
-      console.log('Tracking update error:', error.message);
-      return false;
+      console.error('Error updating order status:', error);
+      throw error;
     }
   }
 
-  // Update admin notes
-  static async updateAdminNotes(orderId, notes) {
-    // Store notes in metadata since admin_notes column might not exist
-    try {
-      const result = await db.executeQuery(
-        `UPDATE orders SET metadata = JSON_SET(COALESCE(metadata, '{}'), '$.admin_notes', ?) WHERE id = ?`,
-        [notes, orderId]
-      );
-      return result.affectedRows > 0;
-    } catch (error) {
-      console.log('Admin notes update error:', error.message);
-      return false;
-    }
-  }
-
-  // Get order statistics
-  static async getStatistics(dateFrom = null, dateTo = null) {
-    let dateCondition = '';
-    const params = [];
-
-    if (dateFrom && dateTo) {
-      dateCondition = 'WHERE created_at BETWEEN ? AND ?';
-      params.push(dateFrom, dateTo);
-    }
-
-    const stats = await db.executeQuery(
-      `SELECT 
-        COUNT(*) as total_orders,
-        SUM(total) as total_revenue,
-        AVG(total) as average_order_value,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders,
-        COUNT(CASE WHEN status = 'processing' THEN 1 END) as processing_orders,
-        COUNT(CASE WHEN status = 'shipped' THEN 1 END) as shipped_orders,
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders
-      FROM orders ${dateCondition}`,
-      params
-    );
-
-    return stats[0];
-  }
-
-  // Get statistics for a single user
-  static async getUserStatistics(userId) {
-    if (!userId) return { total_orders: 0, total_spent: 0, average_order_value: 0 };
-    const rows = await db.executeQuery(
-      `SELECT
-        COUNT(*) as total_orders,
-        COALESCE(SUM(total), 0) as total_spent,
-        COALESCE(AVG(total), 0) as average_order_value
-      FROM orders WHERE user_id = ?`,
-      [userId]
-    );
-    return rows[0] || { total_orders: 0, total_spent: 0, average_order_value: 0 };
-  }
-
-  // Delete order (admin only)
-  static async delete(orderId) {
-    const result = await db.executeQuery(
-      'DELETE FROM orders WHERE id = ?',
-      [orderId]
-    );
-
-    return result.affectedRows > 0;
+  static _mapOrder(order) {
+    return {
+      id: order._id,
+      order_number: order.order_number,
+      user_id: order.user_id,
+      customer_name: order.customer_name,
+      customer_email: order.customer_email,
+      customer_phone: order.customer_phone,
+      shipping_address: order.shipping_address,
+      billing_address: order.billing_address,
+      subtotal: order.subtotal,
+      shipping_cost: order.shipping_cost,
+      tax: order.tax,
+      total: order.total,
+      payment_method: order.payment_method,
+      payment_status: order.payment_status,
+      transaction_id: order.transaction_id,
+      status: order.status,
+      customer_notes: order.customer_notes,
+      items: order.items,
+      status_history: order.status_history,
+      created_at: order.created_at,
+      updated_at: order.updated_at
+    };
   }
 }
 

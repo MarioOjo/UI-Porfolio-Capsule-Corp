@@ -1,0 +1,56 @@
+# Render Blueprint for Capsule Corp
+# This file defines both frontend and backend services for automatic deployment
+
+services:
+  # Backend API Service
+  - type: web
+    name: capsule-corp-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false  # Set in Render dashboard (from MongoDB Atlas)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://capsule-corp-frontend.onrender.com
+
+  # Frontend Static Site
+  - type: web
+    name: capsule-corp-frontend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    rootDir: frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: VITE_API_BASE
+        value: https://capsule-corp-backend.onrender.com
