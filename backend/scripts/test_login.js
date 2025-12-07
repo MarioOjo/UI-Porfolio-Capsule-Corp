@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 async function testLogin() {
-  const API_URL = 'https://invigorating-mercy-production-27ab.up.railway.app';
+  const API_URL = 'http://localhost:5000';
   
   console.log('🧪 Testing Login API\n');
   console.log('URL:', `${API_URL}/api/auth/login`);

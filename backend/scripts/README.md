@@ -8,7 +8,7 @@ Utility and maintenance scripts for the Capsule Corp backend.
 - **`print_capsules.js`** - Display capsule products from database
 - **`reset_admin_password.js`** - Reset admin user password
 - **`seed_admin_roles.js`** - Initialize admin roles in database
-- **`migrate_returns.js`** - Create returns and return_items tables (Railway-compatible)
+- **`migrate_returns.js`** - Create returns and return_items tables
 - **`debug_db.js`** - Database inspection and debugging tool
 
 ## Legacy/Recovery Scripts

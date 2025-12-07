@@ -25,5 +25,5 @@ Local testing
 - Visit http://localhost:5173/env.json to confirm the runtime config is served.
 
 Deployment
-- If using Railway/Netlify/Vercel: either set the VITE_* variables in the project settings (build-time) or ensure your deploy process copies a secure `env.json` to the static root after build.
+- If using Render/Netlify/Vercel: either set the VITE_* variables in the project settings (build-time) or ensure your deploy process copies a secure `env.json` to the static root after build.
 - If using a Docker-based build: pass VITE_* as build args or set them as ENV before running `npm run build` in the Dockerfile.

@@ -171,17 +171,6 @@ Render automatically deploys when you push to the `main` branch. To disable:
 2. Toggle "Auto-Deploy" off
 3. Deploy manually via dashboard
 
-## Comparison with Railway
-
-| Feature | Railway | Render |
-|---------|---------|--------|
-| MongoDB Support | ✅ | ✅ |
-| Free Tier | ❌ (credit-based) | ✅ 750hrs/mo |
-| Auto-sleep | ✅ | ✅ |
-| Custom Domains | ✅ | ✅ |
-| Build Time | Faster | Slower (free tier) |
-| Ease of Use | Excellent | Good |
-
 ## Next Steps
 
 1. [ ] Push code to GitHub
@@ -190,4 +179,3 @@ Render automatically deploys when you push to the `main` branch. To disable:
 4. [ ] Deploy frontend service
 5. [ ] Test production site
 6. [ ] Set up custom domain (optional)
-7. [ ] Delete Railway services (after confirming Render works)

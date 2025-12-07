@@ -1,6 +1,6 @@
 # Capsule Corp — UI Portfolio
 
-This repository contains a full-stack demo: a Vite + React frontend and a Node.js/Express backend with a MySQL database. It’s configured for easy deployment to Render (frontend + backend) and can use Railway for MySQL hosting.
+This repository contains a full-stack demo: a Vite + React frontend and a Node.js/Express backend with MongoDB. It's configured for easy deployment to Render (frontend + backend).
 
 Quick links
 
@@ -23,7 +23,7 @@ This repository contains a full-stack demo: a Vite + React frontend and a Node.j
 Render quick checklist
 - Create a Web Service in Render → Root Directory `backend` → Start Command `npm start`.
 - Set backend env vars on Render:
-  - `MYSQL_URL` (paste literal Railway connection string if using Railway MySQL)
+  - `MONGO_URI` (MongoDB Atlas connection string)
   - `FRONTEND_ORIGINS` (comma-separated URLs with scheme)
   - `NODE_ENV=production`
   - `CLOUDINARY_URL` (optional)
@@ -52,16 +52,7 @@ Security note: Do not commit secrets (private keys) to the repository. The templ
 .\scripts\sync-to-production.ps1
 ```
 
-This automatically:
-1. ✅ Backs up production database
-2. ✅ Exports your local schema
-3. ✅ Generates sync script
-4. ✅ Applies changes to Railway production
 
-### Preview Changes (Dry Run)
-```powershell
-.\scripts\sync-to-production.ps1 -DryRun
-```
 
 ### Load Helper Commands
 ```powershell
@@ -140,11 +131,11 @@ If your deployed frontend is returning index.html for `/api/*` requests, point t
 
 ```json
 {
-  "VITE_API_BASE": "https://invigorating-mercy-production-9989.up.railway.app"
+  "VITE_API_BASE": "https://your-backend-app.onrender.com"
 }
 ```
 
-This tells the client to call the backend at the correct Railway hostname. The frontend is already configured to fetch `/env.json` at startup and will use `VITE_API_BASE` from that file.
+This tells the client to call the backend at the correct hostname. The frontend is already configured to fetch `/env.json` at startup and will use `VITE_API_BASE` from that file.
 
 Quick CI/PowerShell snippet (generate env.json during deploy)
 

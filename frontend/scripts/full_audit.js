@@ -149,7 +149,7 @@ function checkAPIEndpoints() {
         }
         
         // Look for hardcoded production URLs
-        if (content.match(/['"]https?:\/\/(?!localhost)[^'"]+\.(?:railway|render|vercel|netlify)/)) {
+        if (content.match(/['"]https?:\/\/(?!localhost)[^'"]+\.(?:render|vercel|netlify)/)) {
           const relativePath = path.relative(srcDir, fullPath);
           logWarning('API', `${relativePath} contains hardcoded production URL`);
         }
