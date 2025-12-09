@@ -23,7 +23,9 @@ function AdminProducts() {
       try {
         setLoading(true);
         const response = await apiFetch('/api/products');
-        setProducts(response.products || response.data || []);
+        // Handle paginated { products: [...], pagination: {...} }, { products: [...] }, or direct array
+        const productsList = Array.isArray(response) ? response : (response.products || response.data || []);
+        setProducts(productsList);
       } catch (error) {
         console.error('Error fetching products:', error);
         showError('Failed to load products');

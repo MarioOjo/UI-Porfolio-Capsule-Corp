@@ -34,15 +34,29 @@ router.get('/',
   productQueryValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
-  const { category, search, featured } = req.query;
+  const { category, search, featured, page, limit, sortBy, sortOrder } = req.query;
     if (!productReader) return res.status(501).json({ error: 'Mongo product reader not available' });
     try {
-      let products;
-      if (featured === 'true') products = await productReader.getFeatured();
-      else if (category) products = await productReader.findByCategory(category);
-      else if (search) products = await productReader.search(search);
-      else products = await productReader.findAll();
-      return res.json({ products });
+      const options = {
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+        sortBy: sortBy || 'created_at',
+        sortOrder: sortOrder === 'asc' ? 1 : -1
+      };
+      
+      let result;
+      if (featured === 'true') {
+        const products = await productReader.getFeatured();
+        result = { products };
+      } else if (category) {
+        result = await productReader.findByCategory(category, options);
+      } else if (search) {
+        result = await productReader.search(search, options);
+      } else {
+        result = await productReader.findAll(options);
+      }
+      
+      return res.json(result);
     } catch (err) {
       console.error('ProductReader (Mongo) list error:', err && err.message ? err.message : err);
       return res.status(500).json({ error: 'Failed to list products' });

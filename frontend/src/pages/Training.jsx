@@ -17,7 +17,9 @@ function Training() {
         setLoading(true);
         setError(null);
         const response = await apiFetch('/api/products?category=Training');
-        setTrainingProducts(response.products || []);
+        // Handle both { products: [...] } and direct array responses
+        const productsList = Array.isArray(response) ? response : (response.products || []);
+        setTrainingProducts(productsList);
       } catch (err) {
         console.error('Error fetching Training products:', err);
         setError('Failed to load Training products');

@@ -25,9 +25,12 @@ const UserModel = require('../src/models/UserModel');
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
 const OrderModel = require('../src/models/OrderModel');
 const ProductModel = require('../src/models/ProductModel');
+const ImageOptimizer = require('../src/utils/ImageOptimizer');
+const CacheManager = require('../src/utils/CacheManager');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const os = require('os');
+const fs = require('fs').promises;
 const upload = multer({ dest: os.tmpdir() });
 
 // Configure Cloudinary if credentials are available
@@ -87,8 +90,19 @@ router.post('/products', requireAdmin, upload.array('images'), async (req, res) 
     if (cloudinaryConfigured && req.files && req.files.length) {
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
+          // Optimize image before upload
+          const imageBuffer = await fs.readFile(file.path);
+          const optimizedBuffer = await ImageOptimizer.optimizeProductImage(imageBuffer);
+          
+          // Upload optimized image to Cloudinary
+          const result = await cloudinary.uploader.upload(`data:image/jpeg;base64,${optimizedBuffer.toString('base64')}`, { 
+            folder: 'capsule_products',
+            resource_type: 'image'
+          });
           gallery.push(result.secure_url);
+          
+          // Clean up temp file
+          await fs.unlink(file.path).catch(() => {});
         } catch (uploadErr) {
           console.error('Cloudinary upload error:', uploadErr.message);
           // Continue without this image
@@ -120,10 +134,14 @@ router.post('/products', requireAdmin, upload.array('images'), async (req, res) 
     };
     
     const product = await ProductModel.create(productData);
-    res.status(201).json({ product });
+    
+    // Invalidate product caches
+    CacheManager.invalidate(/^\/api\/products/);
+    
+    res.status(201).json({ success: true, product });
   } catch (e) {
     console.error('Product creation error:', e);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
@@ -136,8 +154,19 @@ router.put('/products/:id', requireAdmin, upload.array('images'), async (req, re
     if (cloudinaryConfigured && req.files && req.files.length) {
       for (const file of req.files) {
         try {
-          const result = await cloudinary.uploader.upload(file.path, { folder: 'capsule_products' });
+          // Optimize image before upload
+          const imageBuffer = await fs.readFile(file.path);
+          const optimizedBuffer = await ImageOptimizer.optimizeProductImage(imageBuffer);
+          
+          // Upload optimized image to Cloudinary
+          const result = await cloudinary.uploader.upload(`data:image/jpeg;base64,${optimizedBuffer.toString('base64')}`, { 
+            folder: 'capsule_products',
+            resource_type: 'image'
+          });
           gallery.push(result.secure_url);
+          
+          // Clean up temp file
+          await fs.unlink(file.path).catch(() => {});
         } catch (uploadErr) {
           console.error('Cloudinary upload error:', uploadErr.message);
         }
@@ -168,7 +197,11 @@ router.put('/products/:id', requireAdmin, upload.array('images'), async (req, re
     };
     
     const product = await ProductModel.update(req.params.id, productData);
-    res.json({ product });
+    
+    // Invalidate product caches
+    CacheManager.invalidate(/^\/api\/products/);
+    
+    res.json({ success: true, product });
   } catch (e) {
     console.error('Product update error:', e);
     res.status(500).json({ error: e.message });
@@ -179,9 +212,13 @@ router.put('/products/:id', requireAdmin, upload.array('images'), async (req, re
 router.delete('/products/:id', requireAdmin, async (req, res) => {
   try {
     await ProductModel.remove(req.params.id);
-    res.json({ ok: true });
+    
+    // Invalidate product caches
+    CacheManager.invalidate(/^\/api\/products/);
+    
+    res.json({ success: true, ok: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
@@ -190,9 +227,13 @@ router.delete('/products/:id/image', requireAdmin, async (req, res) => {
   try {
     const { imageUrl } = req.body;
     await ProductModel.removeImage(req.params.id, imageUrl);
-    res.json({ ok: true });
+    
+    // Invalidate product caches
+    CacheManager.invalidate(/^\/api\/products/);
+    
+    res.json({ success: true, ok: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 

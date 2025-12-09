@@ -32,7 +32,9 @@ function Capsules() {
       setLoading(true);
       setError(null);
       const response = await apiFetch('/api/products?category=Capsules');
-      setCapsuleProducts(response.products || []);
+      // Handle both { products: [...] } and direct array responses
+      const productsList = Array.isArray(response) ? response : (response.products || []);
+      setCapsuleProducts(productsList);
     } catch (err) {
       console.error('Error fetching Capsule products:', err);
       setError('Failed to load Capsule products');

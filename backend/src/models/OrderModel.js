@@ -72,15 +72,33 @@ class OrderModel {
     }
   }
 
-  // Get all orders with filters
-  static async findAll(filters = {}) {
+  // Get all orders with filters and pagination
+  static async findAll(filters = {}, options = {}) {
     try {
+      const { page = 1, limit = 20, sortBy = 'created_at', sortOrder = -1 } = options;
+      const skip = (page - 1) * limit;
+      
       const query = {};
       if (filters.status) query.status = filters.status;
       if (filters.user_id) query.user_id = filters.user_id;
 
-      const orders = await Order.find(query).sort({ created_at: -1 });
-      return orders.map(this._mapOrder);
+      const [orders, total] = await Promise.all([
+        Order.find(query)
+          .sort({ [sortBy]: sortOrder })
+          .skip(skip)
+          .limit(limit),
+        Order.countDocuments(query)
+      ]);
+      
+      return {
+        orders: orders.map(this._mapOrder),
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      };
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw error;

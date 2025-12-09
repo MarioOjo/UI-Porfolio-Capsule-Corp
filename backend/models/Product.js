@@ -4,7 +4,7 @@ const { Schema } = require('mongoose');
 const ProductSchema = new Schema({
   legacyId: { type: Number, index: true },
   name: { type: String, required: true },
-  slug: { type: String, index: true },
+  slug: { type: String },
   description: { type: String },
   category: { type: String },
   price: { type: Number },
@@ -20,6 +20,11 @@ const ProductSchema = new Schema({
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });
+
+// Indexes for better query performance
+ProductSchema.index({ category: 1, featured: 1 });
+ProductSchema.index({ name: 'text', description: 'text' });
+ProductSchema.index({ slug: 1 }, { unique: true, sparse: true });
 
 // Use collection name 'products' to mirror SQL table for easier mapping
 module.exports = mongoose && mongoose.models && mongoose.models.Product

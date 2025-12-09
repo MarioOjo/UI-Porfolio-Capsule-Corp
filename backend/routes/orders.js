@@ -43,16 +43,21 @@ router.get('/', AuthMiddleware.requireAdmin, async (req, res) => {
       payment_status: req.query.payment_status,
       search: req.query.search,
       date_from: req.query.date_from,
-      date_to: req.query.date_to,
-      limit: req.query.limit
+      date_to: req.query.date_to
+    };
+    
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      sortBy: req.query.sortBy || 'created_at',
+      sortOrder: req.query.sortOrder === 'asc' ? 1 : -1
     };
 
-    const orders = await OrderModel.findAll(filters);
+    const result = await OrderModel.findAll(filters, options);
     
     res.json({
       success: true,
-      orders: orders,
-      count: orders.length
+      ...result
     });
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -118,12 +123,18 @@ router.get('/number/:orderNumber', async (req, res) => {
 router.get('/my-orders', AuthMiddleware.authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const orders = await OrderModel.findAll({ user_id: userId });
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      sortBy: req.query.sortBy || 'created_at',
+      sortOrder: req.query.sortOrder === 'asc' ? 1 : -1
+    };
+    
+    const result = await OrderModel.findAll({ user_id: userId }, options);
     
     res.json({
       success: true,
-      orders: orders,
-      count: orders.length
+      ...result
     });
   } catch (error) {
     console.error('Error fetching my orders:', error);
@@ -134,11 +145,18 @@ router.get('/my-orders', AuthMiddleware.authenticateToken, async (req, res) => {
 // Get user's orders (by userId)
 router.get('/user/:userId', async (req, res) => {
   try {
-    const orders = await OrderModel.findAll({ user_id: req.params.userId });
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      sortBy: req.query.sortBy || 'created_at',
+      sortOrder: req.query.sortOrder === 'asc' ? 1 : -1
+    };
+    
+    const result = await OrderModel.findAll({ user_id: req.params.userId }, options);
+    
     res.json({
       success: true,
-      orders: orders,
-      count: orders.length
+      ...result
     });
   } catch (error) {
     console.error('Error fetching user orders:', error);

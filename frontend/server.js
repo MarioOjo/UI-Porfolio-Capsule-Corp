@@ -1,11 +1,33 @@
 const express = require('express');
 const path = require('path');
+const compression = require('compression');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
+// Enable gzip compression
+app.use(compression());
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve static files from the dist directory with cache headers
+app.use(express.static(path.join(__dirname, 'dist'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
+  etag: true,
+  lastModified: true
+}));
 
 // Serve dynamic env.json with environment variables
 app.get('/env.json', (req, res) => {

@@ -2,7 +2,7 @@ const { mongoose } = require('../db/mongo');
 const { Schema } = require('mongoose');
 
 const OrderItemSchema = new Schema({
-  product_id: { type: Number },
+  product_id: { type: Schema.Types.ObjectId, ref: 'Product' },
   product_name: { type: String },
   product_slug: { type: String },
   product_image: { type: String },
@@ -16,7 +16,7 @@ const OrderItemSchema = new Schema({
 const OrderSchema = new Schema({
   legacyId: { type: Number, index: true },
   order_number: { type: String, required: true, unique: true },
-  user_id: { type: Schema.Types.Mixed, index: true },
+  user_id: { type: Schema.Types.ObjectId, ref: 'User', index: true },
   customer_name: { type: String },
   customer_email: { type: String },
   customer_phone: { type: String },
@@ -61,6 +61,10 @@ const OrderSchema = new Schema({
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
 });
+
+// Indexes for query optimization
+OrderSchema.index({ user_id: 1, created_at: -1 });
+OrderSchema.index({ status: 1, created_at: -1 });
 
 module.exports = mongoose && mongoose.models && mongoose.models.Order
   ? mongoose.models.Order

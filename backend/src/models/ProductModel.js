@@ -1,9 +1,28 @@
 const Product = require('../../models/Product');
 
 class ProductModel {
-  static async findAll() {
-    const products = await Product.find().sort({ created_at: -1 });
-    return products.map(this._normalize);
+  static async findAll(options = {}) {
+    const { page = 1, limit = 20, sortBy = 'created_at', sortOrder = -1 } = options;
+    const skip = (page - 1) * limit;
+    
+    const [products, total] = await Promise.all([
+      Product.find()
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments()
+    ]);
+    
+    return {
+      products: products.map(this._normalize),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
 
   static async findById(id) {
@@ -27,23 +46,63 @@ class ProductModel {
     return product ? this._normalize(product) : null;
   }
 
-  static async findByCategory(category) {
-    const products = await Product.find({ category }).sort({ created_at: -1 });
-    return products.map(this._normalize);
+  static async findByCategory(category, options = {}) {
+    const { page = 1, limit = 20, sortBy = 'created_at', sortOrder = -1 } = options;
+    const skip = (page - 1) * limit;
+    
+    const filter = { category };
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .sort({ [sortBy]: sortOrder })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments(filter)
+    ]);
+    
+    return {
+      products: products.map(this._normalize),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
 
-  static async search(searchTerm) {
+  static async search(searchTerm, options = {}) {
+    const { page = 1, limit = 20 } = options;
+    const skip = (page - 1) * limit;
+    
     const regex = new RegExp(searchTerm, 'i');
-    const products = await Product.find({
+    const filter = {
       $or: [
         { name: regex },
         { description: regex },
         { category: regex },
         { tags: regex }
       ]
-    }).sort({ created_at: -1 });
+    };
     
-    return products.map(this._normalize);
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .sort({ created_at: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments(filter)
+    ]);
+    
+    return {
+      products: products.map(this._normalize),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
 
   static async create(productData) {

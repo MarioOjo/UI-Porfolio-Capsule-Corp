@@ -3,9 +3,18 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
+// Validate environment variables before starting
+const EnvValidator = require('./src/utils/EnvValidator');
+EnvValidator.validate();
+
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const { configureCloudinary } = require('./src/config/cloudinary');
+const { connectMongoWithRetry, isMongoConnected } = require('./src/config/mongodb');
+const SecurityMiddleware = require('./src/middleware/SecurityMiddleware');
+const HealthCheck = require('./src/utils/HealthCheck');
+const ResponseFormatter = require('./src/utils/ResponseFormatter');
+const CacheManager = require('./src/utils/CacheManager');
 
 // Internal modules
 const emailService = require('./src/utils/emailService');
@@ -28,15 +37,27 @@ const app = express();
 // CORS: Allow localhost and production origins
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:5173', // Vite dev server
   'https://capsulecorps.dev',
-  process.env.FRONTEND_ORIGIN,
-  process.env.FRONTEND_URL
+  'https://www.capsulecorps.dev',
+  ...(process.env.FRONTEND_ORIGIN ? process.env.FRONTEND_ORIGIN.split(',').map(o => o.trim()) : []),
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [])
 ].filter(Boolean);
+
+console.log('🔐 CORS allowed origins:', allowedOrigins);
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    callback(null, false);
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Log rejected origins for debugging
+    console.warn('⚠️  CORS blocked origin:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Request-ID', 'x-user-email', 'x-user-id'],
@@ -46,54 +67,34 @@ app.use(cors({
 
 app.use(express.json());
 
+// Apply rate limiting to all routes
+app.use(SecurityMiddleware.strictRateLimit);
+
+// Add response formatter to all routes
+app.use(ResponseFormatter.middleware());
+
 // -------------------
-// MongoDB Connection with retry
+// Cloudinary Configuration
 // -------------------
-const MONGO_URI = process.env.MONGO_URI || '';
-const MONGO_RETRY_INTERVAL_MS = Number(process.env.MONGO_RETRY_INTERVAL_MS || 5000);
-
-let isMongoConnected = false;
-
-async function connectMongoWithRetry() {
-  if (!MONGO_URI) {
-    console.warn('⚠️ MONGO_URI is not set. Skipping MongoDB connection.');
-    return;
-  }
-
-  try {
-    await mongoose.connect(MONGO_URI, {
-      // Modern options (no useNewUrlParser / useUnifiedTopology needed)
-      serverSelectionTimeoutMS: 5000,
-    });
-    isMongoConnected = true;
-    console.log('✅ MongoDB connected successfully.');
-  } catch (err) {
-    isMongoConnected = false;
-    console.error('❌ MongoDB connection failed:', err.message);
-    console.log(`⏱ Retrying MongoDB connection in ${MONGO_RETRY_INTERVAL_MS / 1000}s...`);
-    setTimeout(connectMongoWithRetry, MONGO_RETRY_INTERVAL_MS);
-  }
+const isCloudinaryConfigured = configureCloudinary();
+if (isCloudinaryConfigured) {
+  console.log('✅ Cloudinary configured for image uploads');
+} else {
+  console.warn('⚠️  Cloudinary not configured - products will work without image uploads');
 }
-
-// Listen for disconnections and automatically retry
-mongoose.connection.on('disconnected', () => {
-  console.warn('⚠️ MongoDB disconnected. Attempting to reconnect...');
-  isMongoConnected = false;
-  setTimeout(connectMongoWithRetry, MONGO_RETRY_INTERVAL_MS);
-});
 
 // -------------------
 // Health check endpoints
 // -------------------
 app.get('/health', async (req, res) => {
-  // Return OK even if MongoDB is connecting to prevent Render restart loop
-  const status = {
-    ok: true,
-    db: 'mongo',
-    state: isMongoConnected ? 'connected' : 'connecting',
-    timestamp: new Date().toISOString()
-  };
-  res.json(status);
+  const health = await HealthCheck.getStatus();
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  res.status(statusCode).json(health);
+});
+
+app.get('/health/detailed', async (req, res) => {
+  const health = await HealthCheck.getDetailedHealth();
+  res.json(health);
 });
 
 // -------------------
@@ -111,8 +112,8 @@ app.get('/env.json', (req, res) => {
 // -------------------
 // API Routes
 // -------------------
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
+app.use('/api/auth', SecurityMiddleware.authRateLimit, authRoutes);
+app.use('/api/products', CacheManager.middleware(300), productRoutes); // Cache products for 5 minutes
 app.use('/api/contact', contactRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
@@ -123,34 +124,7 @@ app.use('/api', reviewRoutes);
 app.use('/api/returns', returnsRoutes);
 app.use('/api', emergencyRoutes);
 
-// /api/me route
-app.get('/api/me', async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return res.json({ user: null });
-
-  const token = authHeader.substring(7);
-  try {
-    const authService = require('./src/services/AuthService');
-    const UserModel = require('./src/models/UserModel');
-    const decoded = authService.verifyToken(token);
-    const user = await UserModel.findById(decoded.id);
-    if (!user) return res.json({ user: null });
-
-    return res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        firstName: user.firstName || null,
-        lastName: user.lastName || null,
-        phone: user.phone || null,
-        role: user.role || 'user'
-      }
-    });
-  } catch {
-    return res.json({ user: null });
-  }
-});
+// Note: /api/me is handled in auth routes
 
 // -------------------
 // Error handler
@@ -169,7 +143,7 @@ async function start() {
     await connectMongoWithRetry();
 
     const PORT = process.env.PORT || 5000;
-    const HOST = '0.0.0.0'; // Listen on all interfaces for Render
+    const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1'; // Use localhost for dev, 0.0.0.0 for production
     const server = app.listen(PORT, HOST, () => {
       console.log(`✅ Server listening on ${HOST}:${PORT}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);

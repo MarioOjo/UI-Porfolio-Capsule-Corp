@@ -2,7 +2,7 @@ const { mongoose } = require('../db/mongo');
 const { Schema } = require('mongoose');
 
 const ReturnItemSchema = new Schema({
-  product_id: { type: Number },
+  product_id: { type: Schema.Types.ObjectId, ref: 'Product' },
   product_name: { type: String },
   product_image: { type: String },
   quantity: { type: Number },
@@ -14,8 +14,8 @@ const ReturnItemSchema = new Schema({
 const ReturnSchema = new Schema({
   legacyId: { type: Number, index: true },
   return_number: { type: String, required: true, unique: true },
-  user_id: { type: Schema.Types.Mixed, required: true, index: true },
-  order_id: { type: Number, required: true },
+  user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  order_id: { type: Schema.Types.ObjectId, ref: 'Order', required: true },
   order_number: { type: String, required: true },
   reason: { type: String, required: true },
   refund_amount: { type: Number, required: true },

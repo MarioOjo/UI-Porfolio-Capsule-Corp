@@ -7,7 +7,7 @@ const ContactSchema = new Schema({
   email: { type: String, required: true },
   subject: { type: String, required: true },
   message: { type: String, required: true },
-  user_id: { type: Schema.Types.Mixed, index: true }, // Mixed to support legacy Number and new ObjectId
+  user_id: { type: Schema.Types.ObjectId, ref: 'User', index: true },
   status: { type: String, default: 'new', enum: ['new', 'read', 'replied', 'archived'] },
   admin_notes: { type: String },
   created_at: { type: Date, default: Date.now },

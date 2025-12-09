@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 
 const AddressSchema = new Schema({
   legacyId: { type: Number, index: true },
-  user_id: { type: Schema.Types.Mixed, required: true, index: true },
+  user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   line1: { type: String, required: true },
   line2: { type: String },
   city: { type: String, required: true },

@@ -33,6 +33,18 @@ function Products() {
 
   const { data: fetchedProducts = [], isLoading, isError, error } = useProducts(filters);
 
+  // Defensive check: ensure fetchedProducts is always an array
+  const safeProducts = useMemo(() => {
+    if (!fetchedProducts) return [];
+    if (Array.isArray(fetchedProducts)) return fetchedProducts;
+    // Handle case where API returns { products: [...] }
+    if (fetchedProducts.products && Array.isArray(fetchedProducts.products)) {
+      return fetchedProducts.products;
+    }
+    console.warn('Unexpected fetchedProducts format:', fetchedProducts);
+    return [];
+  }, [fetchedProducts]);
+
   const categories = useMemo(() => {
     // Base / preferred ordering for categories with friendly labels
     const base = [
@@ -55,7 +67,7 @@ function Products() {
     // Collect unique categories from fetched products and append any that are
     // not already covered by the base list so the filter reflects actual data.
     try {
-      const productCats = new Set((fetchedProducts || []).map(p => p.category).filter(Boolean));
+      const productCats = new Set((safeProducts || []).map(p => p.category).filter(Boolean));
       productCats.forEach((cat) => {
         if (!base.some(b => b.value === cat)) {
           const emoji = emojiMap[cat] ? `${emojiMap[cat]} ` : "";
@@ -63,11 +75,11 @@ function Products() {
         }
       });
     } catch (e) {
-      // silent fallback if fetchedProducts isn't iterable yet
+      // silent fallback if safeProducts isn't iterable yet
     }
 
     return base;
-  }, [fetchedProducts]);
+  }, [safeProducts]);
 
   const sortOptions = [
     { value: "featured", label: "Featured First" },
@@ -80,9 +92,9 @@ function Products() {
 
   // Sort products client-side
   const products = useMemo(() => {
-    if (!Array.isArray(fetchedProducts) || fetchedProducts.length === 0) return [];
+    if (!Array.isArray(safeProducts) || safeProducts.length === 0) return [];
     
-    const sorted = [...fetchedProducts].sort((a, b) => {
+    const sorted = [...safeProducts].sort((a, b) => {
       // Defensive: ensure we have valid objects with required fields
       if (!a || !b) return 0;
       
@@ -108,7 +120,7 @@ function Products() {
       }
     });
     return sorted;
-  }, [fetchedProducts, sortBy]);
+  }, [safeProducts, sortBy]);
 
   const featuredProducts = Array.isArray(products) ? products.filter(product => product?.featured || product?.is_featured) : [];
   const regularProducts = Array.isArray(products) ? products.filter(product => !(product?.featured || product?.is_featured)) : [];

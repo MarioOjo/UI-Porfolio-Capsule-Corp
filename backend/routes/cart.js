@@ -9,54 +9,25 @@ const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next
 router.get('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res, next) => {
   const userId = req.user && req.user.id;
   if (!userId) {
-    console.error('[cart GET] No user ID in request:', req.user);
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  console.log(`[cart GET] Fetching cart for user ${userId}`);
-  try {
-    const cart = await CartModel.getCart(userId);
-    console.log(`[cart GET] Successfully fetched ${cart.length} items for user ${userId}`);
-    res.json({ cart });
-  } catch (err) {
-    console.error('[cart GET] Error:', {
-      userId,
-      error: err.message,
-      code: err.code,
-      stack: err.stack
-    });
-    throw err; // let asyncHandler / error handler process other errors
-  }
+  const cart = await CartModel.getCart(userId);
+  res.json({ cart });
 }));
 
 // POST /api/cart - add/update items in cart
 router.post('/', AuthMiddleware.authenticateToken, asyncHandler(async (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) {
-    console.error('[cart POST] No user ID in request:', req.user);
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const { productId, quantity } = req.body;
-  console.log(`[cart POST] Adding to cart - user: ${userId}, product: ${productId}, quantity: ${quantity}`);
   if (!productId || !quantity) {
-    console.error('[cart POST] Missing required fields:', { productId, quantity });
     return res.status(400).json({ error: 'Product and quantity required' });
   }
-  try {
-    await CartModel.addOrUpdateItem(userId, productId, quantity);
-    const cart = await CartModel.getCart(userId);
-    console.log(`[cart POST] Successfully added item. Cart now has ${cart.length} items`);
-    res.json({ cart });
-  } catch (err) {
-    console.error('[cart POST] Error:', {
-      userId,
-      productId,
-      quantity,
-      error: err.message,
-      code: err.code,
-      stack: err.stack
-    });
-    throw err;
-  }
+  await CartModel.addOrUpdateItem(userId, productId, quantity);
+  const cart = await CartModel.getCart(userId);
+  res.json({ cart });
 }));
 
 // PUT /api/cart/:productId - update item quantity by product ID
@@ -66,13 +37,9 @@ router.put('/:productId', AuthMiddleware.authenticateToken, asyncHandler(async (
   const { quantity } = req.body;
   const productId = req.params.productId;
   if (!quantity) return res.status(400).json({ error: 'Quantity required' });
-  try {
-    await CartModel.updateQuantityByProduct(userId, productId, quantity);
-    const cart = await CartModel.getCart(userId);
-    res.json({ cart });
-  } catch (err) {
-    throw err;
-  }
+  await CartModel.updateQuantityByProduct(userId, productId, quantity);
+  const cart = await CartModel.getCart(userId);
+  res.json({ cart });
 }));
 
 // DELETE /api/cart/:productId - remove item from cart by product ID

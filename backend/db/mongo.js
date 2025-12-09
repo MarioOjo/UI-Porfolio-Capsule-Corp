@@ -6,14 +6,8 @@ async function connectMongo(uri) {
     return null;
   }
 
-  // Use modern connection options
-  const opts = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  };
-
   try {
-    await mongoose.connect(uri, opts);
+    await mongoose.connect(uri);
     console.log('✅ MongoDB (Mongoose) connected');
     mongoose.connection.on('error', (err) => console.error('MongoDB connection error:', err));
     mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));

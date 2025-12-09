@@ -32,7 +32,9 @@ function BattleGear() {
       setLoading(true);
       setError(null);
       const response = await apiFetch('/api/products?category=Battle Gear');
-      setBattleGearProducts(response.products || []);
+      // Handle both { products: [...] } and direct array responses
+      const productsList = Array.isArray(response) ? response : (response.products || []);
+      setBattleGearProducts(productsList);
     } catch (err) {
       console.error('Error fetching Battle Gear products:', err);
       setError('Failed to load Battle Gear products');

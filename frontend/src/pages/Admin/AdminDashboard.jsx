@@ -27,7 +27,8 @@ function AdminDashboard() {
           apiFetch('/api/admin/orders/stats').catch(() => ({ data: { total_orders: 0, total_revenue: 0 } }))
         ]);
 
-        const products = productsRes.data || [];
+        // Handle paginated { products: [...], pagination: {...} }, { products: [...] }, or direct array
+        const products = Array.isArray(productsRes) ? productsRes : (productsRes.products || productsRes.data || []);
         const orderStats = ordersRes.data || {};
 
         setStats({

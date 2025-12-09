@@ -20,9 +20,16 @@ async function fetchProducts(filters = {}) {
   if (filters.category) params.append('category', filters.category);
   if (filters.search) params.append('search', filters.search);
   if (filters.limit) params.append('limit', String(filters.limit));
+  if (filters.page) params.append('page', String(filters.page));
   const qs = params.toString();
   const path = `/api/products${qs ? `?${qs}` : ''}`;
   const body = await apiFetch(path);
+  
+  // Handle both paginated { products: [...], pagination: {...} } and non-paginated { products: [...] } responses
+  if (Array.isArray(body)) {
+    // Old format: direct array
+    return body;
+  }
   return body?.products || [];
 }
 
