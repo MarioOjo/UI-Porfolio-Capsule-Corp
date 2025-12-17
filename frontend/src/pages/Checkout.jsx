@@ -97,7 +97,6 @@ function Checkout() {
     apartment: '',
     city: '',
     state: '',
-    zip: '',
     zipCode: '',
     country: location?.country || 'United States',
     
@@ -170,7 +169,7 @@ function Checkout() {
               apartment: defaultAddr.line2 || defaultAddr.address_line2 || prev.apartment,
               city: defaultAddr.city || prev.city,
               state: defaultAddr.state || prev.state,
-              zip: defaultAddr.postal_code || defaultAddr.zip || prev.zip,
+              zipCode: defaultAddr.postal_code || defaultAddr.zip || prev.zipCode,
               country: defaultAddr.country || prev.country
             }));
           }
