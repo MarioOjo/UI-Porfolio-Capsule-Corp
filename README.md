@@ -14,7 +14,6 @@ Quick start (dev)
 
 
   Backend image uploads
-This repository contains a full-stack demo: a Vite + React frontend and a Node.js/Express backend with a MySQL database.
   - The backend accepts multipart/form-data for product images (field name `image`).
   - If `CLOUDINARY_URL` is set (e.g. `cloudinary://API_KEY:API_SECRET@CLOUD_NAME`), uploads are forwarded to Cloudinary and the returned secure URL is stored in the product `image` field.
   - If `CLOUDINARY_URL` is not set, you can provide an `imageUrl` in the request body and the server will store that URL.
@@ -40,34 +39,6 @@ Generated on 2025-10-16
 This project supports a runtime `env.json` file served from the frontend root (useful for static hosts where build-time VITE_* vars aren't available). Place a file at `frontend/public/env.json` (or generate it during deployment) with the same shape as `frontend/public/env.template.json`.
 
 Security note: Do not commit secrets (private keys) to the repository. The template contains only placeholders for public client keys (Firebase client config) and the public `VITE_API_BASE` URL.
-
-
-## 🚀 Database Sync to Production (NEW!)
-
-**No more manual SQL scripts!** We now have automated database sync.
-
-### Quick Sync
-```powershell
-# From repo root
-.\scripts\sync-to-production.ps1
-```
-
-
-
-### Load Helper Commands
-```powershell
-# Get shortcuts: sync, dbtest, dbbackup
-. .\scripts\sync-helpers.ps1
-
-# Then use shortcuts
-sync              # Full sync
-sync -DryRun      # Preview only
-sync -Fast        # Quick (skip backup)
-dbtest            # Check local DB health
-dbbackup          # Manual backup
-```
-
-**📖 Full documentation:** See [scripts/SYNC_README.md](scripts/SYNC_README.md)
 
 ---
 

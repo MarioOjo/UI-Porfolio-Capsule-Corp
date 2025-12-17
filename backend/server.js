@@ -11,6 +11,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const morgan = require('morgan');
+const compression = require('compression');
 const { configureCloudinary } = require('./src/config/cloudinary');
 const { connectMongoWithRetry, isMongoConnected } = require('./src/config/mongodb');
 const SecurityMiddleware = require('./src/middleware/SecurityMiddleware');
@@ -38,6 +40,10 @@ const app = express();
 
 // Security headers
 app.use(helmet());
+
+// Logging and Compression
+app.use(morgan('dev'));
+app.use(compression());
 
 // CORS: Allow localhost and production origins
 const allowedOrigins = [
