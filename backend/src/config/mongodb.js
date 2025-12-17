@@ -13,7 +13,9 @@ async function connectMongoWithRetry() {
 
   try {
     await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000, // Increased to 30s for cloud environments
+      socketTimeoutMS: 45000, // Keep connections alive longer
+      family: 4 // Force IPv4 to avoid potential IPv6 resolution issues
     });
     isMongoConnected = true;
     console.log('✅ MongoDB connected successfully.');
