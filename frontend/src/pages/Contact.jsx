@@ -451,7 +451,7 @@ function Contact() {
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3172.3325395304414!2d-122.01479868467422!3d37.33233377983394!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808fb596e9cc9af7%3A0x3b0d8391510688!2s10600%20N%20De%20Anza%20Blvd%2C%20Cupertino%2C%20CA%2095014!5e0!3m2!1sen!2sus!4v1632847293257!5m2!1sen!2sus"
               width="100%"
               height="100%"
-              style={{ border: 0, display: 'block' }}
+              style={{ border: 0, display: 'block', height: '100%' }}
               allowFullScreen=""
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
