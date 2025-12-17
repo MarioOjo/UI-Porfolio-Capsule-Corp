@@ -78,6 +78,18 @@ app.use(cors({
 
 app.use(express.json());
 
+// Workaround for express-mongo-sanitize compatibility with Express 5
+// See: https://github.com/fiznool/express-mongo-sanitize/issues/202
+app.use((req, res, next) => {
+  Object.defineProperty(req, 'query', {
+    value: req.query,
+    writable: true,
+    enumerable: true,
+    configurable: true
+  });
+  next();
+});
+
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
