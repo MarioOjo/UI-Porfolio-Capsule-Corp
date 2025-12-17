@@ -68,6 +68,24 @@ function Checkout() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [connectingPayment, setConnectingPayment] = useState(false);
+
+  // Reset verification when payment method changes
+  useEffect(() => {
+    setPaymentVerified(false);
+  }, [formData.paymentMethod]);
+
+  const handleConnectPayment = async () => {
+    setConnectingPayment(true);
+    // Simulate API handshake
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setPaymentVerified(true);
+    setConnectingPayment(false);
+    // Clear any previous errors
+    setErrors(prev => ({ ...prev, paymentAuth: '' }));
+  };
+
   const [formData, setFormData] = useState({
     // Shipping Information
     fullName: '',
@@ -268,6 +286,11 @@ function Checkout() {
         else if (!/^\d{3,4}$/.test(formData.cvv)) newErrors.cvv = 'CVV must be 3 or 4 digits';
         
         if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required *';
+      } else {
+        // PayPal or Google Pay
+        if (!paymentVerified) {
+          newErrors.paymentAuth = `Please connect your ${formData.paymentMethod === 'paypal' ? 'PayPal' : 'Google Pay'} account to continue`;
+        }
       }
     }
 
@@ -796,12 +819,39 @@ function Checkout() {
                         <div className="text-center">
                           <h3 className={`font-bold text-lg ${themeClasses.text.primary}`}>Pay with PayPal</h3>
                           <p className={`text-sm ${themeClasses.text.muted}`}>
-                            You will be redirected to PayPal to complete your purchase securely.
+                            {paymentVerified 
+                              ? 'Your PayPal account has been successfully connected.' 
+                              : 'Connect your PayPal account to complete your purchase securely.'}
                           </p>
                         </div>
-                        <button className="px-6 py-2 bg-[#003087] text-white rounded-full font-bold hover:bg-[#001c64] transition-colors">
-                          Connect PayPal Account
-                        </button>
+                        
+                        {paymentVerified ? (
+                          <div className="flex items-center text-green-500 font-bold text-lg animate-bounce-in">
+                            <FaCheck className="mr-2" /> Account Connected
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={handleConnectPayment}
+                            disabled={connectingPayment}
+                            className="px-6 py-2 bg-[#003087] text-white rounded-full font-bold hover:bg-[#001c64] transition-colors disabled:opacity-50 flex items-center"
+                          >
+                            {connectingPayment ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Connecting...
+                              </>
+                            ) : (
+                              'Connect PayPal Account'
+                            )}
+                          </button>
+                        )}
+                        
+                        {errors.paymentAuth && (
+                          <p className="text-red-500 text-sm mt-2 flex items-center animate-shake">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors.paymentAuth}
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -814,12 +864,41 @@ function Checkout() {
                         <div className="text-center">
                           <h3 className={`font-bold text-lg ${themeClasses.text.primary}`}>Pay with Google Pay</h3>
                           <p className={`text-sm ${themeClasses.text.muted}`}>
-                            Complete your purchase using your saved Google Pay methods.
+                            {paymentVerified 
+                              ? 'Your Google Pay account has been successfully connected.' 
+                              : 'Complete your purchase using your saved Google Pay methods.'}
                           </p>
                         </div>
-                        <button className="px-6 py-2 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-colors flex items-center">
-                          <FaGoogle className="mr-2" /> Pay
-                        </button>
+                        
+                        {paymentVerified ? (
+                          <div className="flex items-center text-green-500 font-bold text-lg animate-bounce-in">
+                            <FaCheck className="mr-2" /> Account Connected
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={handleConnectPayment}
+                            disabled={connectingPayment}
+                            className="px-6 py-2 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-colors flex items-center disabled:opacity-50"
+                          >
+                            {connectingPayment ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Connecting...
+                              </>
+                            ) : (
+                              <>
+                                <FaGoogle className="mr-2" /> Pay
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        {errors.paymentAuth && (
+                          <p className="text-red-500 text-sm mt-2 flex items-center animate-shake">
+                            <FaExclamationTriangle className="mr-1" />
+                            {errors.paymentAuth}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
