@@ -17,3 +17,7 @@ dist/
 frontend/node_modules/
 backend/node_modules/
 "CAPSULE CORP"/node_modules/
+
+# Logs
+*.log
+*.err
