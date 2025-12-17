@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../src/models/UserModel');
-let userReader;
-try { userReader = require('../adapters/userReader'); } catch (e) { }
 let bcrypt;
 try { bcrypt = require('bcrypt'); } catch (e) { bcrypt = require('bcryptjs'); }
 const AuthMiddleware = require('../src/middleware/AuthMiddleware');
@@ -24,12 +22,7 @@ router.post('/request-password-reset',
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const useMongo = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_FOR_USERS || '').trim());
-  let user = null;
-  if (useMongo && userReader && userReader.findByEmail) {
-    try { user = await userReader.findByEmail(email); } catch (e) { console.warn('userReader error:', e && e.message ? e.message : e); }
-  }
-  if (!user) user = await UserModel.findByEmail(email);
+  const user = await UserModel.findByEmail(email);
   if (!user) return res.status(404).json({ error: 'User not found' });
   // Generate reset token (JWT, short expiry)
   const authService = require('../src/services/AuthService');
@@ -54,12 +47,7 @@ router.post('/reset-password',
   } catch (e) {
     return res.status(400).json({ error: 'Invalid or expired token' });
   }
-  const useMongo = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_FOR_USERS || '').trim());
-  let user = null;
-  if (useMongo && userReader && userReader.findById) {
-    try { user = await userReader.findById(decoded.id); } catch (e) { console.warn('userReader error:', e && e.message ? e.message : e); }
-  }
-  if (!user) user = await UserModel.findById(decoded.id);
+  const user = await UserModel.findById(decoded.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const password_hash = await authService.hashPassword(newPassword);
   await UserModel.updatePassword(user.id, password_hash);
@@ -99,12 +87,7 @@ router.post('/signup',
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
   const { email, password, username, firstName, lastName, avatar } = req.body;
-  const useMongo2 = ['1','true','TRUE','yes','on'].includes(String(process.env.USE_MONGO_FOR_USERS || '').trim());
-  let existing = null;
-  if (useMongo2 && userReader && userReader.findByEmail) {
-    try { existing = await userReader.findByEmail(email); } catch (e) { console.warn('userReader error:', e && e.message ? e.message : e); }
-  }
-  if (!existing) existing = await UserModel.findByEmail(email);
+  const existing = await UserModel.findByEmail(email);
   if (existing) return res.status(409).json({ error: 'Email already exists' });
   const password_hash = await bcrypt.hash(password, 10);
   // Create username from firstName + lastName or email
