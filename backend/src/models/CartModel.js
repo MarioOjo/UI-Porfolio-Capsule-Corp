@@ -15,23 +15,18 @@ class CartModel {
       let cart = await Cart.findOne({ user_id: userId });
       if (!cart) return [];
 
-      // Populate product details manually or via populate if ref setup
-      // Since we store product_id as Number (legacy), we need to find products by legacyId or just id if migrated
-      // Assuming Product model uses legacyId or we query by it.
-      // Let's assume Product model has `legacyId` matching `product_id` in cart items.
-      
       const productIds = cart.items.map(i => i.product_id);
-      const products = await Product.find({ legacyId: { $in: productIds } });
-      const productMap = new Map(products.map(p => [p.legacyId, p]));
+      const products = await Product.find({ _id: { $in: productIds } });
+      const productMap = new Map(products.map(p => [p._id.toString(), p]));
 
       return cart.items.map(item => {
-        const p = productMap.get(item.product_id);
+        const p = productMap.get(item.product_id.toString());
         if (!p) return null; // Product might be deleted
 
         return {
           id: item._id, // cart item id
           cartItemId: item._id,
-          productId: p.legacyId, // or p._id if we want to switch
+          productId: p._id,
           name: p.name,
           description: p.description,
           price: parseFloat(p.price) || 0,
@@ -72,7 +67,7 @@ class CartModel {
       const safeQuantity = Math.max(1, Math.min(999, parseInt(quantity) || 1));
 
       // Check product exists and is in stock
-      const product = await Product.findOne({ legacyId: productId });
+      const product = await Product.findById(productId);
       if (!product) {
         throw new AppError('Product not found', 404);
       }
@@ -86,7 +81,7 @@ class CartModel {
         cart = await Cart.create({ user_id: userId, items: [] });
       }
 
-      const existingItemIndex = cart.items.findIndex(i => i.product_id === parseInt(productId));
+      const existingItemIndex = cart.items.findIndex(i => i.product_id.toString() === productId.toString());
 
       if (existingItemIndex > -1) {
         // Update existing
@@ -120,7 +115,7 @@ class CartModel {
     try {
       const cart = await Cart.findOne({ user_id: userId });
       if (cart) {
-        cart.items = cart.items.filter(i => i.product_id !== parseInt(productId));
+        cart.items = cart.items.filter(i => i.product_id.toString() !== productId.toString());
         await cart.save();
       }
       return this.getCart(userId);

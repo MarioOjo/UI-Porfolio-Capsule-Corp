@@ -29,8 +29,10 @@ const createOrderValidation = [
     .withMessage('Order must contain at least one item'),
   
   body('items.*.product_id')
-    .isInt({ min: 1 })
-    .withMessage('Invalid product ID'),
+    .notEmpty()
+    .withMessage('Product ID is required')
+    .isString()
+    .withMessage('Product ID must be a string'),
   
   body('items.*.quantity')
     .isInt({ min: 1, max: 999 })
@@ -72,7 +74,7 @@ const createOrderValidation = [
     .trim()
     .notEmpty()
     .withMessage('Payment method is required')
-    .isIn(['credit_card', 'debit_card', 'paypal', 'stripe', 'cash_on_delivery'])
+    .isIn(['credit_card', 'debit_card', 'paypal', 'stripe', 'cash_on_delivery', 'google_pay'])
     .withMessage('Invalid payment method'),
   
   body('subtotal')
@@ -96,7 +98,7 @@ const createOrderValidation = [
 
 const orderIdValidation = [
   param('id')
-    .isInt({ min: 1 })
+    .isMongoId()
     .withMessage('Invalid order ID')
 ];
 

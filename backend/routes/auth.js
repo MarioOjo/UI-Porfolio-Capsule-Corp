@@ -163,6 +163,12 @@ router.post('/login',
   const { email, password } = req.body;
   const user = await UserModel.findByEmail(email);
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  
+  if (!user.password_hash) {
+    console.error(`Login failed: User ${email} has no password hash`);
+    return res.status(401).json({ error: 'Invalid credentials (no password set)' });
+  }
+
   const match = await bcrypt.compare(password, user.password_hash);
   if (!match) return res.status(401).json({ error: 'Invalid credentials' });
   // Generate JWT token for user (includes role)

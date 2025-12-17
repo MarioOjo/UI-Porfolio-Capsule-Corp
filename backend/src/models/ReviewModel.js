@@ -32,11 +32,11 @@ class ReviewModel {
 
     // Populate user details manually
     const userIds = [...new Set(reviews.map(r => r.userId))];
-    const users = await User.find({ legacyId: { $in: userIds } });
-    const userMap = new Map(users.map(u => [u.legacyId, u]));
+    const users = await User.find({ _id: { $in: userIds } });
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
 
     return reviews.map(r => {
-      const u = userMap.get(r.userId);
+      const u = userMap.get(r.userId.toString());
       return {
         id: r._id,
         productId: r.productId,
@@ -58,11 +58,11 @@ class ReviewModel {
     
     // Populate product details
     const productIds = [...new Set(reviews.map(r => r.productId))];
-    const products = await Product.find({ legacyId: { $in: productIds } });
-    const productMap = new Map(products.map(p => [p.legacyId, p]));
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map(p => [p._id.toString(), p]));
 
     return reviews.map(r => {
-      const p = productMap.get(r.productId);
+      const p = productMap.get(r.productId.toString());
       return {
         id: r._id,
         productId: r.productId,
@@ -95,7 +95,7 @@ class ReviewModel {
       is_approved: verifiedPurchase
     });
 
-    const u = await User.findOne({ legacyId: userId });
+    const u = await User.findById(userId);
 
     return {
       id: review._id,
