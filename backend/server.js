@@ -9,6 +9,8 @@ EnvValidator.validate();
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 const { configureCloudinary } = require('./src/config/cloudinary');
 const { connectMongoWithRetry, isMongoConnected } = require('./src/config/mongodb');
 const SecurityMiddleware = require('./src/middleware/SecurityMiddleware');
@@ -33,6 +35,9 @@ const cartRoutes = require('./routes/cart');
 const emergencyRoutes = require('./routes/emergency');
 
 const app = express();
+
+// Security headers
+app.use(helmet());
 
 // CORS: Allow localhost and production origins
 const allowedOrigins = [
@@ -66,6 +71,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
 
 // Apply rate limiting to all routes
 app.use(SecurityMiddleware.strictRateLimit);
