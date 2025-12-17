@@ -4,10 +4,7 @@ import { Suspense, lazy } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import AdminReviews from '../pages/Admin/AdminReviews';
-
-// Lazy-load PageTransition (and thus framer-motion) so the motion runtime
-// is only fetched when the transition component is rendered.
-const PageTransition = lazy(() => import('./PageTransition'));
+import PageTransition from './PageTransition';
 
 // Enhanced loading component
 const LoadingSpinner = lazy(() => import('./LoadingSpinner'));
@@ -21,6 +18,7 @@ const Capsules = lazy(() => import('../pages/Capsules'));
 const Training = lazy(() => import('../pages/Training'));
 const Cart = lazy(() => import('../pages/Cart'));
 const AuthPage = lazy(() => import('../pages/Auth/AuthPage'));
+const ResetPassword = lazy(() => import('../pages/Auth/ResetPassword'));
 const Wishlist = lazy(() => import('../pages/Wishlist'));
 const Checkout = lazy(() => import('../pages/Checkout'));
 const Contact = lazy(() => import('../pages/Contact'));
@@ -72,9 +70,8 @@ const AnimatedRoutes = () => {
 
   return (
     <div className="w-full min-h-screen">
-      {/* PageTransition is lazy-loaded. Suspense fallback will show while it loads. */}
-      <Suspense fallback={loadingComponent}>
-        <PageTransition key={location.pathname}>
+      <PageTransition>
+        <Suspense fallback={loadingComponent}>
           <Routes location={location}>
             {/* Public Routes */}
             <Route path="/" element={
@@ -146,6 +143,12 @@ const AnimatedRoutes = () => {
             <Route path="/auth" element={
               <RouteWrapper routeType="auth">
                 <AuthPage />
+              </RouteWrapper>
+            } />
+
+            <Route path="/reset-password" element={
+              <RouteWrapper routeType="auth">
+                <ResetPassword />
               </RouteWrapper>
             } />
 
@@ -260,8 +263,8 @@ const AnimatedRoutes = () => {
               </RouteWrapper>
             } />
           </Routes>
-        </PageTransition>
-      </Suspense>
+        </Suspense>
+      </PageTransition>
     </div>
   );
 };
