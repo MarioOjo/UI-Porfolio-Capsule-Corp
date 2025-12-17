@@ -113,12 +113,6 @@ function Login({ onSwitchTab, onForgotPassword }) {
             <label className="field-label" htmlFor="password-input">
               💪 BATTLE PASSWORD
             </label>
-            <button
-              type="button"
-              className="forgot-password-btn"
-            >
-              🐉 Forgot Ki Energy?
-            </button>
           </div>
           <div className="input-wrapper">
             <input
