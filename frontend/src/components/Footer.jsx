@@ -100,6 +100,9 @@ function Footer({ className = "" }) {
           <p className="text-neutral-400 text-[11px]">
             © Age 762 Capsule Corporation. All rights reserved.
           </p>
+          <p className="text-neutral-500 text-[10px] mt-1">
+            Portfolio Project Designed & Developed by Mario Ojo
+          </p>
         </div>
       </div>
     </footer>
