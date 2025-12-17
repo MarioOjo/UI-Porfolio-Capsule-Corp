@@ -81,24 +81,7 @@ router.get('/statistics', AuthMiddleware.requireAdmin, async (req, res) => {
   }
 });
 
-// Get single order by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const order = await OrderModel.findById(req.params.id);
-    
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
 
-    res.json({
-      success: true,
-      order: order
-    });
-  } catch (error) {
-    console.error('Error fetching order:', error);
-    res.status(500).json({ error: 'Failed to fetch order', details: error.message });
-  }
-});
 
 // Get order by order number
 router.get('/number/:orderNumber', async (req, res) => {
@@ -173,6 +156,25 @@ router.get('/user/:userId/stats', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user order stats:', error);
     res.status(500).json({ error: 'Failed to fetch user statistics', details: error.message });
+  }
+});
+
+// Get single order by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const order = await OrderModel.findById(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json({
+      success: true,
+      order: order
+    });
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: 'Failed to fetch order', details: error.message });
   }
 });
 
