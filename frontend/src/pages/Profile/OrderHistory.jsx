@@ -230,7 +230,7 @@ const OrderHistory = () => {
                         {order.items && order.items.map((item) => (
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
-                              src={item.image}
+                              src={item.product_image || item.image}
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
                               onError={(e) => {
@@ -342,6 +342,7 @@ const OrderHistory = () => {
                         <img
                           src={resolveImageSrc(item, 80)}
                           alt={item.name}
+                          loading="lazy"
                           className="w-12 h-12 object-cover rounded-lg"
                           onError={(e) => {
                             e.target.src = '/placeholder-image.jpg';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle, FaImage } from "react-icons/fa";
+import { FaLock, FaShieldAlt, FaCreditCard, FaUser, FaTruck, FaCheck, FaExclamationTriangle, FaImage, FaPaypal, FaGoogle } from "react-icons/fa";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -255,18 +255,20 @@ function Checkout() {
 
     if (step === 2) {
       // Validate payment information
-      const cleanCardNumber = formData.cardNumber.replace(/\s/g, '');
-      if (!cleanCardNumber) newErrors.cardNumber = 'Card number is required *';
-      else if (cleanCardNumber.length !== 16) newErrors.cardNumber = 'Card number must be 16 digits';
-      else if (!/^\d+$/.test(cleanCardNumber)) newErrors.cardNumber = 'Card number must contain only digits';
-      
-      if (!formData.expiryMonth) newErrors.expiryMonth = 'Expiry month is required *';
-      if (!formData.expiryYear) newErrors.expiryYear = 'Expiry year is required *';
-      
-      if (!formData.cvv) newErrors.cvv = 'CVV is required *';
-      else if (!/^\d{3,4}$/.test(formData.cvv)) newErrors.cvv = 'CVV must be 3 or 4 digits';
-      
-      if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required *';
+      if (formData.paymentMethod === 'credit-card') {
+        const cleanCardNumber = formData.cardNumber.replace(/\s/g, '');
+        if (!cleanCardNumber) newErrors.cardNumber = 'Card number is required *';
+        else if (cleanCardNumber.length !== 16) newErrors.cardNumber = 'Card number must be 16 digits';
+        else if (!/^\d+$/.test(cleanCardNumber)) newErrors.cardNumber = 'Card number must contain only digits';
+        
+        if (!formData.expiryMonth) newErrors.expiryMonth = 'Expiry month is required *';
+        if (!formData.expiryYear) newErrors.expiryYear = 'Expiry year is required *';
+        
+        if (!formData.cvv) newErrors.cvv = 'CVV is required *';
+        else if (!/^\d{3,4}$/.test(formData.cvv)) newErrors.cvv = 'CVV must be 3 or 4 digits';
+        
+        if (!formData.nameOnCard.trim()) newErrors.nameOnCard = 'Name on card is required *';
+      }
     }
 
     if (step === 3) {
@@ -334,7 +336,7 @@ function Checkout() {
         shipping_cost: shipping,
         tax: tax,
         total: total,
-        payment_method: formData.paymentMethod,
+        payment_method: formData.paymentMethod === 'credit-card' ? 'credit_card' : formData.paymentMethod,
         payment_status: 'pending',
         customer_notes: formData.orderNotes || null
       };
@@ -630,127 +632,196 @@ function Checkout() {
                     PAYMENT INFORMATION
                   </h2>
 
-                  <div className="space-y-4 sm:space-y-6">
-                    {[
-                      { 
-                        name: 'cardNumber', 
-                        label: 'Card Number *', 
-                        type: 'text', 
-                        placeholder: '1234 5678 9012 3456',
-                        onChange: handleCardNumberChange
-                      },
-                      { 
-                        name: 'nameOnCard', 
-                        label: 'Name on Card *', 
-                        type: 'text', 
-                        placeholder: 'John Doe' 
-                      },
-                    ].map((field) => (
-                      <div key={field.name}>
-                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
-                          {field.label}
-                        </label>
-                        <input
-                          type={field.type}
-                          name={field.name}
-                          value={formData[field.name]}
-                          onChange={field.onChange || handleInputChange}
-                          onBlur={handleBlur}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
-                            themeClasses.input
-                          } ${errors[field.name] ? 'border-red-500 focus:ring-red-200' : ''}`}
-                          placeholder={field.placeholder}
-                        />
-                        {errors[field.name] && (
-                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
-                            <FaExclamationTriangle className="mr-1" />
-                            {errors[field.name]}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-
-                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                      <div>
-                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
-                          Month *
-                        </label>
-                        <select
-                          name="expiryMonth"
-                          value={formData.expiryMonth}
-                          onChange={handleInputChange}
-                          onBlur={handleBlur}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
-                            themeClasses.input
-                          } ${errors.expiryMonth ? 'border-red-500 focus:ring-red-200' : ''}`}
+                  <div className="space-y-6">
+                    {/* Payment Method Selection */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                      {[
+                        { id: 'credit-card', label: 'Credit Card', icon: FaCreditCard },
+                        { id: 'paypal', label: 'PayPal', icon: FaPaypal },
+                        { id: 'google_pay', label: 'Google Pay', icon: FaGoogle },
+                      ].map((method) => (
+                        <div
+                          key={method.id}
+                          onClick={() => setFormData({ ...formData, paymentMethod: method.id })}
+                          className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center space-y-2 ${
+                            formData.paymentMethod === method.id
+                              ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                              : `${isDarkMode ? 'border-slate-600 hover:border-slate-500' : 'border-gray-200 hover:border-gray-300'}`
+                          }`}
                         >
-                          <option value="">MM</option>
-                          {Array.from({ length: 12 }, (_, i) => (
-                            <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                              {String(i + 1).padStart(2, '0')}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.expiryMonth && (
-                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
-                            <FaExclamationTriangle className="mr-1" />
-                            {errors.expiryMonth}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
-                          Year *
-                        </label>
-                        <select
-                          name="expiryYear"
-                          value={formData.expiryYear}
-                          onChange={handleInputChange}
-                          onBlur={handleBlur}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
-                            themeClasses.input
-                          } ${errors.expiryYear ? 'border-red-500 focus:ring-red-200' : ''}`}
-                        >
-                          <option value="">YYYY</option>
-                          {Array.from({ length: 10 }, (_, i) => (
-                            <option key={i} value={new Date().getFullYear() + i}>
-                              {new Date().getFullYear() + i}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.expiryYear && (
-                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
-                            <FaExclamationTriangle className="mr-1" />
-                            {errors.expiryYear}
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
-                          CVV *
-                        </label>
-                        <input
-                          type="text"
-                          name="cvv"
-                          value={formData.cvv}
-                          onChange={handleInputChange}
-                          onBlur={handleBlur}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
-                            themeClasses.input
-                          } ${errors.cvv ? 'border-red-500 focus:ring-red-200' : ''}`}
-                          placeholder="123"
-                          maxLength="4"
-                        />
-                        {errors.cvv && (
-                          <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
-                            <FaExclamationTriangle className="mr-1" />
-                            {errors.cvv}
-                          </p>
-                        )}
-                      </div>
+                          <method.icon className={`text-2xl ${
+                            formData.paymentMethod === method.id ? 'text-orange-500' : 'text-gray-400'
+                          }`} />
+                          <span className={`font-medium ${
+                            formData.paymentMethod === method.id ? 'text-orange-600' : themeClasses.text.secondary
+                          }`}>
+                            {method.label}
+                          </span>
+                        </div>
+                      ))}
                     </div>
+
+                    {/* Credit Card Form */}
+                    {formData.paymentMethod === 'credit-card' && (
+                      <div className="space-y-4 sm:space-y-6 animate-fadeIn">
+                        {[
+                          { 
+                            name: 'cardNumber', 
+                            label: 'Card Number *', 
+                            type: 'text', 
+                            placeholder: '1234 5678 9012 3456',
+                            onChange: handleCardNumberChange
+                          },
+                          { 
+                            name: 'nameOnCard', 
+                            label: 'Name on Card *', 
+                            type: 'text', 
+                            placeholder: 'John Doe' 
+                          },
+                        ].map((field) => (
+                          <div key={field.name}>
+                            <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                              {field.label}
+                            </label>
+                            <input
+                              type={field.type}
+                              name={field.name}
+                              value={formData[field.name]}
+                              onChange={field.onChange || handleInputChange}
+                              onBlur={handleBlur}
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                                themeClasses.input
+                              } ${errors[field.name] ? 'border-red-500 focus:ring-red-200' : ''}`}
+                              placeholder={field.placeholder}
+                            />
+                            {errors[field.name] && (
+                              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                                <FaExclamationTriangle className="mr-1" />
+                                {errors[field.name]}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                          <div>
+                            <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                              Month *
+                            </label>
+                            <select
+                              name="expiryMonth"
+                              value={formData.expiryMonth}
+                              onChange={handleInputChange}
+                              onBlur={handleBlur}
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                                themeClasses.input
+                              } ${errors.expiryMonth ? 'border-red-500 focus:ring-red-200' : ''}`}
+                            >
+                              <option value="">MM</option>
+                              {Array.from({ length: 12 }, (_, i) => (
+                                <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                                  {String(i + 1).padStart(2, '0')}
+                                </option>
+                              ))}
+                            </select>
+                            {errors.expiryMonth && (
+                              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                                <FaExclamationTriangle className="mr-1" />
+                                {errors.expiryMonth}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                              Year *
+                            </label>
+                            <select
+                              name="expiryYear"
+                              value={formData.expiryYear}
+                              onChange={handleInputChange}
+                              onBlur={handleBlur}
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                                themeClasses.input
+                              } ${errors.expiryYear ? 'border-red-500 focus:ring-red-200' : ''}`}
+                            >
+                              <option value="">YYYY</option>
+                              {Array.from({ length: 10 }, (_, i) => (
+                                <option key={i} value={new Date().getFullYear() + i}>
+                                  {new Date().getFullYear() + i}
+                                </option>
+                              ))}
+                            </select>
+                            {errors.expiryYear && (
+                              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                                <FaExclamationTriangle className="mr-1" />
+                                {errors.expiryYear}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <label className={`block text-xs sm:text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>
+                              CVV *
+                            </label>
+                            <input
+                              type="text"
+                              name="cvv"
+                              value={formData.cvv}
+                              onChange={handleInputChange}
+                              onBlur={handleBlur}
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all text-sm sm:text-base ${
+                                themeClasses.input
+                              } ${errors.cvv ? 'border-red-500 focus:ring-red-200' : ''}`}
+                              placeholder="123"
+                              maxLength="4"
+                            />
+                            {errors.cvv && (
+                              <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
+                                <FaExclamationTriangle className="mr-1" />
+                                {errors.cvv}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PayPal Mock UI */}
+                    {formData.paymentMethod === 'paypal' && (
+                      <div className={`p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center space-y-4 animate-fadeIn ${
+                        isDarkMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-300 bg-gray-50'
+                      }`}>
+                        <FaPaypal className="text-5xl text-[#003087]" />
+                        <div className="text-center">
+                          <h3 className={`font-bold text-lg ${themeClasses.text.primary}`}>Pay with PayPal</h3>
+                          <p className={`text-sm ${themeClasses.text.muted}`}>
+                            You will be redirected to PayPal to complete your purchase securely.
+                          </p>
+                        </div>
+                        <button className="px-6 py-2 bg-[#003087] text-white rounded-full font-bold hover:bg-[#001c64] transition-colors">
+                          Connect PayPal Account
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Google Pay Mock UI */}
+                    {formData.paymentMethod === 'google_pay' && (
+                      <div className={`p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center space-y-4 animate-fadeIn ${
+                        isDarkMode ? 'border-slate-600 bg-slate-800/50' : 'border-gray-300 bg-gray-50'
+                      }`}>
+                        <FaGoogle className="text-5xl text-red-500" />
+                        <div className="text-center">
+                          <h3 className={`font-bold text-lg ${themeClasses.text.primary}`}>Pay with Google Pay</h3>
+                          <p className={`text-sm ${themeClasses.text.muted}`}>
+                            Complete your purchase using your saved Google Pay methods.
+                          </p>
+                        </div>
+                        <button className="px-6 py-2 bg-black text-white rounded-full font-bold hover:bg-gray-800 transition-colors flex items-center">
+                          <FaGoogle className="mr-2" /> Pay
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

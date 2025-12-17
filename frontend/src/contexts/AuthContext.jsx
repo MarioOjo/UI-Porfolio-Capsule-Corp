@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
       // If Firebase auth is not configured, fall back to backend session check.
       if (!auth) {
         try {
-          const res = await apiFetch('/api/me');
+          const res = await apiFetch('/api/auth/me');
           if (mounted && res.user) {
             setUser(res.user);
           } else {
@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
         } else {
           // User is signed out - check backend session as fallback
           try {
-            const res = await apiFetch('/api/me');
+            const res = await apiFetch('/api/auth/me');
             if (mounted && res.user) {
               setUser(res.user);
             } else {
