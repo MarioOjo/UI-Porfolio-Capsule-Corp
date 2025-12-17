@@ -13,6 +13,31 @@ const OrderTracking = () => {
   const { showSuccess, showError } = useNotifications();
   const { isDarkMode } = useTheme();
 
+  // Auto-refresh order status if an order is loaded
+  useEffect(() => {
+    if (!order || !order.order_number) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await apiFetch(`/api/orders/number/${order.order_number}`);
+        if (response.success && response.order) {
+          // Only update if status changed to avoid re-renders
+          setOrder(prev => {
+            if (prev.status !== response.order.status) {
+              showSuccess(`Order status updated: ${response.order.status}`);
+              return response.order;
+            }
+            return prev;
+          });
+        }
+      } catch (error) {
+        console.error('Error polling order status:', error);
+      }
+    }, 15000); // Poll every 15 seconds
+
+    return () => clearInterval(interval);
+  }, [order, showSuccess]);
+
   // Check URL parameters on mount for direct order tracking links
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
