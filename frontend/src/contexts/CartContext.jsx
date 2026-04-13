@@ -88,15 +88,27 @@ export function CartProvider({ children }) {
   // Enhanced save cart function
   const saveCartToStorage = useCallback(async (items) => {
     const cartToSave = Array.isArray(items) ? items : [];
+    const syncItems = cartToSave
+      .map((item) => {
+        const productId = item?.productId || item?.id;
+        const requestedQty = Math.max(0, parseInt(item?.quantity, 10) || 0);
+        const stockLimit = Number.isFinite(parseInt(item?.stock, 10)) ? Math.max(0, parseInt(item.stock, 10)) : null;
+        const quantity = stockLimit === null ? requestedQty : Math.min(requestedQty, stockLimit);
+
+        if (!productId || quantity <= 0) return null;
+        return { productId, quantity };
+      })
+      .filter(Boolean);
     
     try {
       if (user && user.id) {
         // Sync to backend for authenticated users
         try {
-          console.log('[CartContext] Syncing cart to backend:', cartToSave.length, 'items');
+          console.log('[CartContext] Syncing cart to backend:', syncItems.length, 'items');
           await apiFetch('/api/cart/sync', {
             method: 'POST',
-            body: JSON.stringify({ items: cartToSave })
+            maxRetries: 0,
+            body: JSON.stringify({ items: syncItems })
           });
           console.log('[CartContext] Cart synced successfully');
         } catch (apiError) {

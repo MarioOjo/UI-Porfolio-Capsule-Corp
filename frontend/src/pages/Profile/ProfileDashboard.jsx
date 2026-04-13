@@ -24,12 +24,19 @@ const ProfileDashboard = () => {
     let mounted = true;
     (async () => {
       try {
-        if (user?.id) {
+        const session = await apiFetch('/api/auth/me');
+        const currentUserId = session?.user?.id || user?.id;
+
+        if (currentUserId) {
           // Use compact stats endpoint added on the backend to avoid fetching full order lists
-          const stats = await apiFetch(`/api/orders/user/${user.id}/stats`);
-          if (mounted && stats) {
-            setOrdersCount(parseInt(stats.total_orders || 0, 10));
-            setTotalSpent(parseFloat(stats.total_spent || 0));
+          const response = await apiFetch(`/api/orders/user/${currentUserId}/stats`);
+          const stats = response?.stats || response || {};
+
+          if (mounted) {
+            const orderCount = stats.total_orders ?? stats.totalOrders ?? 0;
+            const spent = stats.total_spent ?? stats.totalSpent ?? stats.total_revenue ?? stats.totalRevenue ?? 0;
+            setOrdersCount(parseInt(orderCount, 10));
+            setTotalSpent(parseFloat(spent));
           }
         }
       } catch (e) {

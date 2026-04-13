@@ -1,4 +1,5 @@
 const Order = require('../../models/Order');
+const { mongoose } = require('../../db/mongo');
 
 class OrderModel {
   // Create new order
@@ -123,6 +124,73 @@ class OrderModel {
       return this._mapOrder(order);
     } catch (error) {
       console.error('Error fetching order by number:', error);
+      throw error;
+    }
+  }
+
+  static async getUserStatistics(userId) {
+    try {
+      const userObjectId = mongoose.Types.ObjectId.isValid(String(userId))
+        ? new mongoose.Types.ObjectId(String(userId))
+        : userId;
+
+      const [stats] = await Order.aggregate([
+        { $match: { user_id: userObjectId } },
+        {
+          $group: {
+            _id: '$user_id',
+            totalOrders: { $sum: 1 },
+            totalSpent: { $sum: { $ifNull: ['$total', 0] } },
+            averageOrderValue: { $avg: { $ifNull: ['$total', 0] } }
+          }
+        }
+      ]);
+
+      return {
+        totalOrders: stats?.totalOrders || 0,
+        totalSpent: stats?.totalSpent || 0,
+        averageOrderValue: stats?.averageOrderValue || 0,
+        total_orders: stats?.totalOrders || 0,
+        total_spent: stats?.totalSpent || 0,
+        average_order_value: stats?.averageOrderValue || 0
+      };
+    } catch (error) {
+      console.error('Error fetching user statistics:', error);
+      throw error;
+    }
+  }
+
+  static async getStatistics(dateFrom = null, dateTo = null) {
+    try {
+      const match = {};
+      if (dateFrom || dateTo) {
+        match.created_at = {};
+        if (dateFrom) match.created_at.$gte = new Date(dateFrom);
+        if (dateTo) match.created_at.$lte = new Date(dateTo);
+      }
+
+      const [stats] = await Order.aggregate([
+        { $match: match },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalRevenue: { $sum: { $ifNull: ['$total', 0] } },
+            averageOrderValue: { $avg: { $ifNull: ['$total', 0] } }
+          }
+        }
+      ]);
+
+      return {
+        totalOrders: stats?.totalOrders || 0,
+        totalRevenue: stats?.totalRevenue || 0,
+        averageOrderValue: stats?.averageOrderValue || 0,
+        total_orders: stats?.totalOrders || 0,
+        total_revenue: stats?.totalRevenue || 0,
+        average_order_value: stats?.averageOrderValue || 0
+      };
+    } catch (error) {
+      console.error('Error fetching order statistics:', error);
       throw error;
     }
   }
