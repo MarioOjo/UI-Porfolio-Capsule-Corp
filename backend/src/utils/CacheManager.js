@@ -97,7 +97,7 @@ class CacheManager {
       const cached = this.get(key);
 
       if (cached) {
-        return res.json(cached);
+        return res.status(cached.statusCode).json(cached.body);
       }
 
       // Store original json method
@@ -105,7 +105,9 @@ class CacheManager {
 
       // Override json method to cache response
       res.json = (data) => {
-        this.set(key, data, ttl);
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          this.set(key, { statusCode: res.statusCode, body: data }, ttl);
+        }
         return originalJson(data);
       };
 

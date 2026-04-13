@@ -4,6 +4,12 @@ const { body, param, query } = require('express-validator');
  * Validation rules for product routes
  */
 
+const isLegacyOrMongoId = (value) => {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  return /^[1-9]\d*$/.test(trimmed) || /^[a-fA-F0-9]{24}$/.test(trimmed);
+};
+
 const createProductValidation = [
   body('name')
     .trim()
@@ -134,7 +140,7 @@ const createProductValidation = [
 
 const updateProductValidation = [
   param('id')
-    .isInt({ min: 1 })
+    .custom(isLegacyOrMongoId)
     .withMessage('Invalid product ID'),
   
   body('name')
@@ -179,7 +185,7 @@ const updateProductValidation = [
 
 const productIdValidation = [
   param('id')
-    .isInt({ min: 1 })
+    .custom(isLegacyOrMongoId)
     .withMessage('Invalid product ID')
 ];
 

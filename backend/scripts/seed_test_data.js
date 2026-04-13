@@ -125,6 +125,14 @@ const testProducts = [
   }
 ];
 
+function slugify(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
+}
+
 async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...\n');
@@ -150,9 +158,10 @@ async function seedDatabase() {
     const createdUsers = [];
     for (const userData of testUsers) {
       const hashedPassword = await bcrypt.hash(userData.password, 10);
+      const { password, ...safeUserData } = userData;
       const user = await User.create({
-        ...userData,
-        password: hashedPassword
+        ...safeUserData,
+        password_hash: hashedPassword
       });
       createdUsers.push(user);
       console.log(`   ✓ Created ${user.role}: ${user.email}`);
@@ -163,7 +172,10 @@ async function seedDatabase() {
     console.log('📦 Creating products...');
     const createdProducts = [];
     for (const productData of testProducts) {
-      const product = await Product.create(productData);
+      const product = await Product.create({
+        ...productData,
+        slug: productData.slug || slugify(productData.name)
+      });
       createdProducts.push(product);
       console.log(`   ✓ Created: ${product.name} ($${product.price})`);
     }

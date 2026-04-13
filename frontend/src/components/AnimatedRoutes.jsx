@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,7 +52,7 @@ const NotFound = lazy(() => import('../pages/NotFound'));
 const AnimatedRoutes = () => {
   const location = useLocation();
   const { isDarkMode } = useTheme();
-  const { user, isAuthenticated } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
 
   // Simple loading component
   const loadingComponent = (
@@ -67,6 +67,19 @@ const AnimatedRoutes = () => {
       {children}
     </div>
   );
+
+  const ProtectedRoute = ({ children }) => {
+    if (loading) return loadingComponent;
+    if (!user) return <Navigate to="/auth" replace />;
+    return children;
+  };
+
+  const AdminRoute = ({ children }) => {
+    if (loading) return loadingComponent;
+    if (!user) return <Navigate to="/auth" replace />;
+    if (!isAdmin) return <Navigate to="/" replace />;
+    return children;
+  };
 
   return (
     <div className="w-full min-h-screen">
@@ -180,9 +193,11 @@ const AnimatedRoutes = () => {
 
             {/* Profile Routes */}
             <Route path="/profile" element={
-              <RouteWrapper routeType="profile">
-                <ProfileLayout />
-              </RouteWrapper>
+              <ProtectedRoute>
+                <RouteWrapper routeType="profile">
+                  <ProfileLayout />
+                </RouteWrapper>
+              </ProtectedRoute>
             }>
               <Route index element={<ProfileDashboard />} />
               <Route path="account" element={<Profile />} />
@@ -220,40 +235,52 @@ const AnimatedRoutes = () => {
             
             {/* Admin Routes */}
             <Route path="/admin" element={
-              <RouteWrapper routeType="admin">
-                <AdminDashboard />
-              </RouteWrapper>
+              <AdminRoute>
+                <RouteWrapper routeType="admin">
+                  <AdminDashboard />
+                </RouteWrapper>
+              </AdminRoute>
             } />
             
             <Route path="/admin/products" element={
-              <RouteWrapper routeType="admin">
-                <AdminProducts />
-              </RouteWrapper>
+              <AdminRoute>
+                <RouteWrapper routeType="admin">
+                  <AdminProducts />
+                </RouteWrapper>
+              </AdminRoute>
             } />
             <Route path="/admin/orders" element={
-              <RouteWrapper routeType="admin">
-                <AdminOrders />
-              </RouteWrapper>
+              <AdminRoute>
+                <RouteWrapper routeType="admin">
+                  <AdminOrders />
+                </RouteWrapper>
+              </AdminRoute>
             } />
             <Route path="/admin/users" element={
-              <RouteWrapper routeType="admin">
-                <AdminUsers />
-              </RouteWrapper>
+              <AdminRoute>
+                <RouteWrapper routeType="admin">
+                  <AdminUsers />
+                </RouteWrapper>
+              </AdminRoute>
             } />
             <Route path="/admin/reviews" element={
-              <RouteWrapper routeType="admin">
-                <Suspense fallback={loadingComponent}>
-                  <AdminReviews />
-                </Suspense>
-              </RouteWrapper>
+              <AdminRoute>
+                <RouteWrapper routeType="admin">
+                  <Suspense fallback={loadingComponent}>
+                    <AdminReviews />
+                  </Suspense>
+                </RouteWrapper>
+              </AdminRoute>
             } />
 
               <Route path="/admin/contact-messages" element={
-                <RouteWrapper routeType="admin">
-                  <Suspense fallback={loadingComponent}>
-                    {React.createElement(lazy(() => import('../pages/AdminContactMessages')))}
-                  </Suspense>
-                </RouteWrapper>
+                <AdminRoute>
+                  <RouteWrapper routeType="admin">
+                    <Suspense fallback={loadingComponent}>
+                      {React.createElement(lazy(() => import('../pages/AdminContactMessages')))}
+                    </Suspense>
+                  </RouteWrapper>
+                </AdminRoute>
               } />
             
             {/* 404 Route */}
