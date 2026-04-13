@@ -9,7 +9,10 @@ router.post('/emergency-promote-admin', async (req, res) => {
     const { email, secret } = req.body;
     
     // Simple security check - use a secret key
-    const EMERGENCY_SECRET = process.env.EMERGENCY_ADMIN_SECRET || 'capsule-emergency-2025';
+    const EMERGENCY_SECRET = process.env.EMERGENCY_ADMIN_SECRET;
+    if (!EMERGENCY_SECRET) {
+      return res.status(503).json({ error: 'Emergency promotion is disabled' });
+    }
     
     if (secret !== EMERGENCY_SECRET) {
       return res.status(403).json({ error: 'Invalid secret' });

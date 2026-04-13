@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 class AuthService {
   constructor() {
-    this.jwtSecret = process.env.JWT_SECRET || 'capsule-corp-secret-key';
+    this.jwtSecret = process.env.JWT_SECRET;
     this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
     this.saltRounds = 12;
   }
