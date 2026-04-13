@@ -159,6 +159,12 @@ const AnimatedRoutes = () => {
               </RouteWrapper>
             } />
 
+            <Route path="/login" element={
+              <RouteWrapper routeType="auth">
+                <AuthPage />
+              </RouteWrapper>
+            } />
+
             <Route path="/reset-password" element={
               <RouteWrapper routeType="auth">
                 <ResetPassword />
