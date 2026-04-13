@@ -315,21 +315,17 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
 
 // --- Order Management ---
 router.get('/orders', requireAdmin, async (req, res) => {
-  const orders = await OrderModel.findAll();
-  res.json({ orders });
+  const result = await OrderModel.findAll();
+  res.json({ orders: result.orders || [], pagination: result.pagination });
 });
 
 // Admin dashboard stats
 router.get('/orders/stats', requireAdmin, async (req, res) => {
   try {
-    const orders = await OrderModel.findAll();
-    const total_orders = orders.length;
-    const total_revenue = orders.reduce((sum, order) => {
-      return sum + (parseFloat(order.total_amount) || 0);
-    }, 0);
+    const stats = await OrderModel.getStatistics();
     res.json({ 
-      total_orders, 
-      total_revenue: total_revenue.toFixed(2)
+      total_orders: stats.total_orders || 0,
+      total_revenue: Number(stats.total_revenue || 0).toFixed(2)
     });
   } catch (e) {
     res.status(500).json({ error: e.message });

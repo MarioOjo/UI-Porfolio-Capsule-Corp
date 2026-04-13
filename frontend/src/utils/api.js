@@ -130,6 +130,7 @@ async function withRetry(fn, maxRetries = DEFAULT_CONFIG.maxRetries, retryDelay 
         error.status === 401 || // Unauthorized
         error.status === 403 || // Forbidden
         error.status === 404 || // Not Found
+        error.status === 429 || // Too Many Requests
         error.status >= 500 && error.status < 600 // Server errors (retry these actually)
       )) {
         // For server errors, we do want to retry, but not for client errors

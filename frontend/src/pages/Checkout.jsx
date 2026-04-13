@@ -71,11 +71,6 @@ function Checkout() {
   const [paymentVerified, setPaymentVerified] = useState(false);
   const [connectingPayment, setConnectingPayment] = useState(false);
 
-  // Reset verification when payment method changes
-  useEffect(() => {
-    setPaymentVerified(false);
-  }, [formData.paymentMethod]);
-
   const handleConnectPayment = async () => {
     setConnectingPayment(true);
     // Simulate API handshake
@@ -118,6 +113,11 @@ function Checkout() {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  // Reset verification when payment method changes
+  useEffect(() => {
+    setPaymentVerified(false);
+  }, [formData.paymentMethod]);
 
   // Theme classes for consistent theming
   const themeClasses = {
