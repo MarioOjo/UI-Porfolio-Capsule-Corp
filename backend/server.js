@@ -46,6 +46,8 @@ app.use(morgan('dev'));
 app.use(compression());
 
 // CORS: Allow localhost and production origins
+const normalizeOrigin = (value) => String(value || '').trim().replace(/\/$/, '');
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173', // Vite dev server
@@ -53,7 +55,7 @@ const allowedOrigins = [
   'https://www.capsulecorps.dev',
   ...(process.env.FRONTEND_ORIGIN ? process.env.FRONTEND_ORIGIN.split(',').map(o => o.trim()) : []),
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [])
-].filter(Boolean);
+].filter(Boolean).map(normalizeOrigin);
 
 console.log('🔐 CORS allowed origins:', allowedOrigins);
 
@@ -61,13 +63,29 @@ app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
+
+    const normalizedOrigin = normalizeOrigin(origin);
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // Allow Render frontends by host pattern to avoid brittle env mismatches.
+    try {
+      const parsed = new URL(normalizedOrigin);
+      if (parsed.protocol === 'https:' && parsed.hostname.endsWith('.onrender.com')) {
+        return callback(null, true);
+      }
+    } catch (_) {
+      // ignore malformed origins and continue to rejection
+    }
+
+    if (normalizedOrigin === 'https://porfolio-app-ub7q.onrender.com') {
       return callback(null, true);
     }
     
     // Log rejected origins for debugging
-    console.warn('⚠️  CORS blocked origin:', origin);
+    console.warn('⚠️  CORS blocked origin:', normalizedOrigin);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
