@@ -20,6 +20,7 @@ function Breadcrumb({
   const getDisplayName = (name) => {
     const nameMap = {
       'products': 'LEGENDARY GEAR',
+      'product': 'LEGENDARY GEAR',
       'battle-gear': 'BATTLE EQUIPMENT',
       'capsules': 'CAPSULE TECHNOLOGY',
       'training': 'TRAINING GROUNDS',
@@ -75,7 +76,8 @@ function Breadcrumb({
 
           {/* Dynamic Path Items */}
           {pathnames.map((name, idx) => {
-            const routeTo = `/${pathnames.slice(0, idx + 1).join("/")}`;
+            const rawRouteTo = `/${pathnames.slice(0, idx + 1).join("/")}`;
+            const routeTo = name === 'product' && idx === 0 ? '/products' : rawRouteTo;
             const isLast = idx === pathnames.length - 1;
             const displayName = getDisplayName(name);
 

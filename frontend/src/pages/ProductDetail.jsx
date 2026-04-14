@@ -63,16 +63,29 @@ function ProductDetail() {
         
         // Try to fetch from API first (for database products)
         try {
-          const data = await apiFetch(`/api/products/slug/${slug}`);
-          if (data && data.id) {
-            setProduct(data);
-            
-            // Get related products from same category
-            const relatedData = await apiFetch(`/api/products?category=${encodeURIComponent(data.category)}`);
-            const related = (relatedData || [])
-              .filter(p => p.id !== data.id)
-              .slice(0, 4);
-            setRelatedProducts(related);
+          const response = await apiFetch(`/api/products/slug/${slug}`);
+          const apiProduct = response?.product ?? response;
+
+          if (apiProduct && apiProduct.id) {
+            setProduct(apiProduct);
+
+            // Get related products from same category and support wrapped list responses
+            try {
+              const relatedResponse = await apiFetch(`/api/products?category=${encodeURIComponent(apiProduct.category)}`);
+              const relatedList = Array.isArray(relatedResponse)
+                ? relatedResponse
+                : (relatedResponse?.products || []);
+
+              const related = relatedList
+                .filter(p => p && p.id !== apiProduct.id)
+                .slice(0, 4);
+
+              setRelatedProducts(related);
+            } catch (relatedError) {
+              console.warn('Related products fetch failed:', relatedError);
+              setRelatedProducts([]);
+            }
+
             setLoading(false);
             return; // Successfully loaded from API
           }
