@@ -51,7 +51,7 @@ function Products() {
       { value: "all", label: "All Categories" },
       { value: "Battle Gear", label: "⚔️ Battle Gear" },
       { value: "Training", label: "💪 Training" },
-      { value: "Tech", label: "📡 Tech" },
+      { value: "Technology", label: "📡 Tech" },
       { value: "Capsules", label: "🏠 Capsules" },
       { value: "Consumables", label: "🍃 Consumables" }
     ];

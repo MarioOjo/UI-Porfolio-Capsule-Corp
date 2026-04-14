@@ -1,5 +1,17 @@
 const { body, param, query } = require('express-validator');
 
+const ALLOWED_CATEGORIES = [
+  'Battle Gear',
+  'Training',
+  'Capsules',
+  'Technology',
+  'Accessories',
+  'Weapons',
+  'Vehicles',
+  'Consumables',
+  'Transportation'
+];
+
 /**
  * Validation rules for product routes
  */
@@ -40,7 +52,7 @@ const createProductValidation = [
     .trim()
     .notEmpty()
     .withMessage('Category is required')
-    .isIn(['Battle Gear', 'Training', 'Capsules', 'Technology', 'Accessories', 'Weapons'])
+    .isIn(ALLOWED_CATEGORIES)
     .withMessage('Invalid category'),
   
   body('stock')
@@ -169,7 +181,7 @@ const updateProductValidation = [
   body('category')
     .optional()
     .trim()
-    .isIn(['Battle Gear', 'Training', 'Capsules', 'Technology', 'Accessories', 'Weapons'])
+    .isIn(ALLOWED_CATEGORIES)
     .withMessage('Invalid category'),
   
   body('stock')
@@ -200,7 +212,19 @@ const productQueryValidation = [
   query('category')
     .optional()
     .trim()
-    .isIn(['Battle Gear', 'Training', 'Capsules', 'Technology', 'Accessories', 'Weapons', 'battle-gear', 'training', 'capsules', 'technology', 'accessories', 'weapons'])
+    .isIn([
+      ...ALLOWED_CATEGORIES,
+      'Tech',
+      'battle-gear',
+      'training',
+      'capsules',
+      'technology',
+      'accessories',
+      'weapons',
+      'vehicles',
+      'consumables',
+      'transportation'
+    ])
     .withMessage('Invalid category'),
   
   query('search')
