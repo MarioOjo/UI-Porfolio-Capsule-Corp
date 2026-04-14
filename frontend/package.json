@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "audit:catalog": "node scripts/product_catalog_parity.js"
   },
   "engines": {
     "node": ">=18.0.0"

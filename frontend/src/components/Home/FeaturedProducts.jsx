@@ -1,59 +1,16 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
-import { useCart } from "../../contexts/CartContext";
-import { useWishlist } from "../../contexts/WishlistContext";
-import { featuredProducts as localFeaturedProducts } from "../../data/products";
-import { FaHeart, FaShoppingCart, FaBolt, FaDragon, FaStar, FaShieldAlt, FaFire } from "react-icons/fa";
-import Price from '../Price';
+import { useFeaturedProducts } from "../../hooks/useProducts";
+import { FaBolt, FaDragon, FaStar, FaShieldAlt, FaFire } from "react-icons/fa";
 import './FeaturedProducts.css';
 import ProductCard from "../Product/ProductCard";
 
 function FeaturedProducts() {
-  const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
+  const { data: apiFeaturedProducts = [], isLoading: loading, error } = useFeaturedProducts();
 
-  const { user, isAuthenticated } = useAuth();
-  const { addToCart, getItemQuantity } = useCart();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { isDarkMode } = useTheme();
-
-  useEffect(() => {
-    const loadFeaturedProducts = () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Use local product data instead of API
-        const enhancedProducts = localFeaturedProducts.slice(0, 6).map(product => {
-          // Ensure price is always a valid number
-          const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
-          
-          return {
-            ...product,
-            price: validPrice,
-            powerLevel: product.powerLevel || Math.floor(Math.random() * 9000) + 1000,
-            rarity: getRarityLevel(validPrice),
-            category: product.category || 'Battle Gear',
-            features: getProductFeatures(product.category)
-          };
-        });
-        
-        setFeaturedProducts(enhancedProducts);
-      } catch (err) {
-        console.error('Error loading featured products:', err);
-        setError('Failed to load legendary equipment');
-        setFeaturedProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFeaturedProducts();
-  }, []);
 
   const getRarityLevel = (price) => {
     const priceValue = parseFloat(price) || 0;
@@ -74,17 +31,41 @@ function FeaturedProducts() {
     return features[category?.toLowerCase()] || ['Power Boost', 'Enhanced Performance', 'Unique Ability'];
   };
 
+  const featuredProducts = useMemo(() => {
+    return (apiFeaturedProducts || []).slice(0, 6).map((product) => {
+      const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
+      return {
+        ...product,
+        id: product.id || product._id,
+        price: validPrice,
+        powerLevel: product.powerLevel || Math.floor(Math.random() * 9000) + 1000,
+        category: product.category || 'Battle Gear',
+        rarity: getRarityLevel(validPrice),
+        features: getProductFeatures(product.category)
+      };
+    });
+  }, [apiFeaturedProducts]);
+
+  const normalizeCategoryKey = (value) => String(value || '').toLowerCase().replace(/\s+/g, '-');
+
   const filteredProducts = featuredProducts.filter(product => {
     if (activeFilter === 'all') return true;
-    return product.category?.toLowerCase() === activeFilter.toLowerCase();
+    return normalizeCategoryKey(product.category) === activeFilter;
   });
+
+  const categoryCounts = featuredProducts.reduce((acc, product) => {
+    const key = normalizeCategoryKey(product.category) || 'other';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
 
   const categories = [
     { key: 'all', name: 'ALL GEAR', count: featuredProducts.length },
-    { key: 'battle-gear', name: 'BATTLE GEAR', count: featuredProducts.filter(p => p.category === 'battle-gear').length },
-    { key: 'capsules', name: 'CAPSULES', count: featuredProducts.filter(p => p.category === 'capsules').length },
-    { key: 'training', name: 'TRAINING', count: featuredProducts.filter(p => p.category === 'training').length },
-    { key: 'weapons', name: 'WEAPONS', count: featuredProducts.filter(p => p.category === 'weapons').length }
+    ...Object.entries(categoryCounts).map(([key, count]) => ({
+      key,
+      name: key.replace(/-/g, ' ').toUpperCase(),
+      count
+    }))
   ];
 
   if (loading) {
@@ -202,7 +183,7 @@ function FeaturedProducts() {
           <div className="featured-grid">
             {filteredProducts.map((product, index) => (
               <div 
-                key={product.id} 
+                key={product.id || product.slug || `${product.name}-${index}`} 
                 className="featured-product-card"
                 data-aos="fade-up"
                 data-aos-delay={index * 100}

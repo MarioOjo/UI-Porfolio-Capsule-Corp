@@ -1,20 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { FaShoppingCart, FaHeart, FaStar, FaChevronLeft, FaChevronRight, FaBolt, FaShieldAlt, FaFire } from "react-icons/fa";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
 import { useWishlist } from "../../contexts/WishlistContext";
-import { products as localProducts } from "../../data/products";
+import { useFeaturedProducts } from "../../hooks/useProducts";
 import Price from "../../components/Price";
 import "./ProductCarousel.css";
 
 function ProductCarousel() {
-  const [products, setProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { data: apiFeaturedProducts = [], isLoading: loading, error } = useFeaturedProducts();
 
   const { isDarkMode } = useTheme();
   const { user } = useAuth();
@@ -69,46 +67,6 @@ function ProductCarousel() {
     }
   }, []);
 
-  // Fetch products with enhanced error handling
-  useEffect(() => {
-    const loadCarouselProducts = () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Use local product data, filter for featured items
-        const featuredProducts = localProducts.filter(p => p.featured).slice(0, 6);
-        
-        if (featuredProducts.length > 0) {
-          const enhancedProducts = featuredProducts.map(product => {
-            // Ensure price is always a valid number
-            const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
-            
-            return {
-              ...product,
-              price: validPrice,
-              powerLevel: Math.floor(Math.random() * 9000) + 1000, // DBZ-themed power level
-              rarity: getRarityLevel(validPrice),
-              features: getDBZFeatures(product.category)
-            };
-          });
-          setProducts(enhancedProducts);
-        } else {
-          setProducts([]);
-          setError('No legendary gear found');
-        }
-      } catch (err) {
-        console.error('Error loading carousel products:', err);
-        setError('Failed to load legendary equipment');
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCarouselProducts();
-  }, []);
-
   // DBZ-themed product enhancements
   const getRarityLevel = (price) => {
     if (price > 1000) return { level: 'ULTRA RARE', color: '#FF6B00', icon: <FaFire /> };
@@ -128,6 +86,20 @@ function ProductCarousel() {
     return features[category?.toLowerCase()] || ['Power Boost', 'Enhanced Durability', 'Special Ability'];
   };
 
+  const featuredProducts = useMemo(() => {
+    return (apiFeaturedProducts || []).slice(0, 6).map((product) => {
+      const validPrice = parseFloat(product.price) || parseFloat(product.originalPrice) || 99.99;
+      return {
+        ...product,
+        id: product.id || product._id,
+        price: validPrice,
+        powerLevel: product.powerLevel || Math.floor(Math.random() * 9000) + 1000,
+        rarity: getRarityLevel(validPrice),
+        features: getDBZFeatures(product.category)
+      };
+    });
+  }, [apiFeaturedProducts]);
+
   // Enhanced carousel navigation with animations
   const navigateSlide = useCallback((direction) => {
     if (isAnimating) return;
@@ -135,17 +107,17 @@ function ProductCarousel() {
     setIsAnimating(true);
     setCurrentSlide(prev => {
       const newSlide = direction === 'next' 
-        ? (prev + 1) % products.length
-        : (prev - 1 + products.length) % products.length;
+        ? (prev + 1) % featuredProducts.length
+        : (prev - 1 + featuredProducts.length) % featuredProducts.length;
       return newSlide;
     });
     
     setTimeout(() => setIsAnimating(false), 500);
-  }, [isAnimating, products.length]);
+  }, [isAnimating, featuredProducts.length]);
 
   // Auto-advance with pause on hover
   useEffect(() => {
-    if (products.length <= 1) return;
+    if (featuredProducts.length <= 1) return;
     
     const timer = setInterval(() => {
       if (!isAnimating) {
@@ -154,7 +126,13 @@ function ProductCarousel() {
     }, 6000);
     
     return () => clearInterval(timer);
-  }, [products.length, isAnimating, navigateSlide]);
+  }, [featuredProducts.length, isAnimating, navigateSlide]);
+
+  useEffect(() => {
+    if (currentSlide >= featuredProducts.length) {
+      setCurrentSlide(0);
+    }
+  }, [featuredProducts.length, currentSlide]);
 
   const nextSlide = () => navigateSlide('next');
   const prevSlide = () => navigateSlide('prev');
@@ -235,7 +213,7 @@ function ProductCarousel() {
   }
 
   // Error state with retry functionality
-  if (error || products.length === 0) {
+  if (error || featuredProducts.length === 0) {
     return (
       <div className={`product-carousel-section ${themeClass}`}>
         <div className="carousel-error-state">
@@ -263,7 +241,7 @@ function ProductCarousel() {
     );
   }
 
-  const currentProduct = products[currentSlide];
+  const currentProduct = featuredProducts[currentSlide];
   const cartQuantity = getItemQuantity(currentProduct.id);
 
   return (
@@ -293,7 +271,7 @@ function ProductCarousel() {
         {/* Main Carousel */}
         <div className="carousel-container">
           {/* Navigation Arrows */}
-          {products.length > 1 && (
+          {featuredProducts.length > 1 && (
             <>
               <button 
                 onClick={prevSlide}
@@ -458,9 +436,9 @@ function ProductCarousel() {
           </div>
 
           {/* Slide Indicators */}
-          {products.length > 1 && (
+          {featuredProducts.length > 1 && (
             <div className="carousel-indicators">
-              {products.map((_, index) => (
+              {featuredProducts.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
@@ -477,12 +455,12 @@ function ProductCarousel() {
         </div>
 
         {/* Thumbnail Navigation */}
-        {products.length > 1 && (
+        {featuredProducts.length > 1 && (
           <div className="carousel-thumbnails">
             <div className="carousel-thumbnails-container">
-              {products.map((product, index) => (
+              {featuredProducts.map((product, index) => (
                 <button
-                  key={product.id}
+                  key={product.id || product.slug || `${product.name}-${index}`}
                   onClick={() => goToSlide(index)}
                   className={`carousel-thumbnail ${
                     index === currentSlide ? 'active' : 'inactive'
