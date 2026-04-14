@@ -6,12 +6,13 @@ import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import ProductCard from "../components/Product/ProductCard";
 import ImageCover from "../components/ImageCover";
-import resolveImageSrc, { CLOUDINARY_BASE } from '../utils/images';
+import { getDefaultImage, resolveImageSrc } from '../utils/images';
 import Price from "../components/Price";
 import Breadcrumb from "../components/Breadcrumb";
 import { useTheme } from "../contexts/ThemeContext";
 import ReviewDisplay from "../components/ReviewSystem";
 import { apiFetch } from "../utils/api";
+import { hydrateProductMedia } from "../hooks/useProducts";
 import { products as localProducts } from "../data/products";
 import ProductSchema from "../components/SEO/ProductSchema";
 
@@ -58,13 +59,17 @@ function ProductDetail() {
   useEffect(() => {
     const loadProductAndRelated = async () => {
       try {
+        // Reset stale state when navigating between product slugs
+        setProduct(null);
+        setSelectedImage(0);
+        setRelatedProducts([]);
         setLoading(true);
         setError(null);
         
         // Try to fetch from API first (for database products)
         try {
           const response = await apiFetch(`/api/products/slug/${slug}`);
-          const apiProduct = response?.product ?? response;
+          const apiProduct = hydrateProductMedia(response?.product ?? response);
 
           if (apiProduct && apiProduct.id) {
             setProduct(apiProduct);
@@ -78,6 +83,7 @@ function ProductDetail() {
 
               const related = relatedList
                 .filter(p => p && p.id !== apiProduct.id)
+                .map(hydrateProductMedia)
                 .slice(0, 4);
 
               setRelatedProducts(related);
@@ -121,7 +127,7 @@ function ProductDetail() {
   // Preload selected image and update imageLoaded when ready
   useEffect(() => {
     if (!product) return;
-    const raw = product.gallery?.[selectedImage] ?? product.image;
+    const raw = product.gallery?.[selectedImage] || product.gallery?.[0] || product.image;
     const url = resolveImageSrc(raw, 800);
     setImageLoaded(false);
     const img = new Image();
@@ -222,6 +228,7 @@ function ProductDetail() {
               {product && (
                 <ImageCover
                   src={resolveImageSrc(product.gallery?.[selectedImage] ?? product.image, 800)}
+                  fallbackSrc={getDefaultImage(800)}
                   alt={product.name}
                   className="aspect-square shadow-xl"
                   overlayText={product.name}
@@ -261,7 +268,7 @@ function ProductDetail() {
                       className="w-full h-full object-cover"
                       loading="lazy"
                       onError={(e) => {
-                        e.target.src = `${CLOUDINARY_BASE}/c_fill,w_80,h_80,g_center/v1759096629/d3_xdolmn.jpg`;
+                        e.target.src = getDefaultImage(80);
                       }}
                     />
                   </button>

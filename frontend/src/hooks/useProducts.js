@@ -13,7 +13,7 @@ const SLUG_IMAGE_ALIASES = {
   'capsule-house-5': 'house-capsule-pro',
 };
 
-function hydrateProductMedia(product) {
+export function hydrateProductMedia(product) {
   if (!product) return product;
 
   const localMatch = localProducts.find((p) =>
@@ -94,7 +94,7 @@ export function useProductBySlug(slug, options = {}) {
     queryKey: productKeys.slug(slug),
     queryFn: async () => {
       const body = await apiFetch(`/api/products/slug/${slug}`);
-      return body?.product ?? null;
+      return hydrateProductMedia(body?.product ?? null);
     },
     enabled: !!slug,
     ...options,
