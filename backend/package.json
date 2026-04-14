@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seed_test_data.js",
     "test:api": "node scripts/test_api_endpoints.js",
+    "perf:products": "node scripts/perf_products_report.js",
     "normalize:products": "node scripts/normalize_product_catalog.js",
     "normalize:products:apply": "node scripts/normalize_product_catalog.js --apply",
     "catalog:normalize": "node scripts/normalize_product_catalog.js",

@@ -29,11 +29,33 @@ const upload = multer({ dest: os.tmpdir() });
 // Utility async wrapper
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+function applyProductsCacheHeaders(req, res, mode = 'list') {
+  // Never cache authenticated responses.
+  if (req.headers.authorization) {
+    res.set('Cache-Control', 'private, no-store');
+    return;
+  }
+
+  if (mode === 'detail') {
+    res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
+    return;
+  }
+
+  if (req.query.search) {
+    // Search results change frequently; keep TTL short.
+    res.set('Cache-Control', 'public, max-age=20, stale-while-revalidate=60');
+    return;
+  }
+
+  res.set('Cache-Control', 'public, max-age=45, stale-while-revalidate=180');
+}
+
 // GET /api/products
 router.get('/',
   productQueryValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
+  applyProductsCacheHeaders(req, res, 'list');
   const { category, search, featured, page, limit, sortBy, sortOrder } = req.query;
     if (!productReader) return res.status(501).json({ error: 'Mongo product reader not available' });
     try {
@@ -69,6 +91,7 @@ router.get('/slug/:slug',
   productSlugValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
+  applyProductsCacheHeaders(req, res, 'detail');
   if (!productReader || !productReader.findBySlug) return res.status(501).json({ error: 'Mongo product reader not available' });
   try {
     const p = await productReader.findBySlug(req.params.slug);
@@ -85,6 +108,7 @@ router.get('/:id',
   productIdValidation,
   ValidationMiddleware.handleValidationErrors,
   asyncHandler(async (req, res) => {
+  applyProductsCacheHeaders(req, res, 'detail');
   if (!productReader || !productReader.findById) return res.status(501).json({ error: 'Mongo product reader not available' });
   try {
     const p = await productReader.findById(req.params.id);
