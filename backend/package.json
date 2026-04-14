@@ -9,7 +9,9 @@
     "seed": "node scripts/seed_test_data.js",
     "test:api": "node scripts/test_api_endpoints.js",
     "normalize:products": "node scripts/normalize_product_catalog.js",
-    "normalize:products:apply": "node scripts/normalize_product_catalog.js --apply"
+    "normalize:products:apply": "node scripts/normalize_product_catalog.js --apply",
+    "catalog:normalize": "node scripts/normalize_product_catalog.js",
+    "catalog:normalize:apply": "node scripts/normalize_product_catalog.js --apply"
   },
   "type": "commonjs",
   "engines": {

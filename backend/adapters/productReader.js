@@ -1,6 +1,30 @@
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
+const SLUG_ALIASES = {
+  'senzu-bean-pack-10': 'senzu-bean-pack',
+  'gravity-training-room': 'gravity-chamber-personal',
+  'weighted-training-gi': 'weighted-training-clothes',
+  'power-level-scouter': 'power-scouter-elite',
+  'storage-capsule-1': 'laboratory-capsule',
+  'vehicle-capsule-3': 'vehicle-capsule-set',
+  'capsule-house-5': 'house-capsule-pro',
+};
+
+function buildSlugCandidates(slug) {
+  const candidates = [slug];
+  const canonical = SLUG_ALIASES[slug];
+  if (canonical) candidates.push(canonical);
+
+  for (const [legacySlug, canonicalSlug] of Object.entries(SLUG_ALIASES)) {
+    if (canonicalSlug === slug) {
+      candidates.push(legacySlug);
+    }
+  }
+
+  return [...new Set(candidates)];
+}
+
 function normalize(doc) {
   if (!doc) return null;
   const obj = doc.toObject ? doc.toObject() : doc;
@@ -46,7 +70,9 @@ async function findById(id) {
 
 async function findBySlug(slug) {
   if (!Product) throw new Error('Mongo Product model not available');
-  const doc = await Product.findOne({ slug }).lean();
+  const candidates = buildSlugCandidates(slug);
+  const docs = await Product.find({ slug: { $in: candidates } }).lean();
+  const doc = candidates.map((candidate) => docs.find((d) => d.slug === candidate)).find(Boolean) || null;
   return normalize(doc);
 }
 
