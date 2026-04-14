@@ -22,17 +22,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files from the dist directory with cache headers
-app.use(express.static(path.join(__dirname, 'dist'), {
-  maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
-  etag: true,
-  lastModified: true
-}));
-
-// Serve dynamic env.json with environment variables
+// Serve dynamic env.json with environment variables.
+// Keep this route BEFORE static middleware so it isn't shadowed by dist/env.json.
 app.get('/env.json', (req, res) => {
   const config = {
-    VITE_API_BASE: process.env.VITE_API_BASE || process.env.API_URL || 'http://localhost:5000',
+    VITE_API_BASE: process.env.VITE_API_BASE || process.env.API_URL || 'https://capsule-corp-backend.onrender.com',
     VITE_GA_ID: process.env.VITE_GA_ID || '',
     VITE_FIREBASE_API_KEY: process.env.VITE_FIREBASE_API_KEY || '',
     VITE_FIREBASE_AUTH_DOMAIN: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
@@ -47,6 +41,13 @@ app.get('/env.json', (req, res) => {
   res.json(config);
 });
 
+// Serve static files from the dist directory with cache headers
+app.use(express.static(path.join(__dirname, 'dist'), {
+  maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
+  etag: true,
+  lastModified: true
+}));
+
 // For SPA routing, serve index.html for any unknown path
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
@@ -54,5 +55,5 @@ app.use((req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Static server running on port ${PORT}`);
-  console.log(`API Base: ${process.env.VITE_API_BASE || process.env.API_URL || 'http://localhost:5000'}`);
+  console.log(`API Base: ${process.env.VITE_API_BASE || process.env.API_URL || 'https://capsule-corp-backend.onrender.com'}`);
 });
