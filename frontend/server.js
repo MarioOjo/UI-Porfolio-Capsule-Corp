@@ -4,6 +4,7 @@ const compression = require('compression');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+const API_BASE = process.env.VITE_API_BASE || process.env.API_URL || 'https://capsule-corp-backend.onrender.com';
 
 // Enable gzip compression
 app.use(compression());
@@ -53,7 +54,31 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
+async function logBackendReachability() {
+  if (!API_BASE) return;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(`${API_BASE}/health`, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: { Accept: 'application/json' }
+    });
+    if (!response.ok) {
+      console.warn(`[startup] API health probe returned ${response.status} from ${API_BASE}/health`);
+    } else {
+      console.log(`[startup] API health probe OK: ${API_BASE}`);
+    }
+  } catch (error) {
+    console.warn(`[startup] API health probe failed for ${API_BASE}: ${error.message || error}`);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Static server running on port ${PORT}`);
-  console.log(`API Base: ${process.env.VITE_API_BASE || process.env.API_URL || 'https://capsule-corp-backend.onrender.com'}`);
+  console.log(`API Base: ${API_BASE}`);
+  void logBackendReachability();
 });
