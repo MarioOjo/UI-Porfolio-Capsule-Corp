@@ -46,7 +46,7 @@ router.get('/',
       
       let result;
       if (featured === 'true') {
-        const products = await productReader.getFeatured();
+        const products = await productReader.getFeatured(options);
         result = { products };
       } else if (category) {
         result = await productReader.findByCategory(category, options);

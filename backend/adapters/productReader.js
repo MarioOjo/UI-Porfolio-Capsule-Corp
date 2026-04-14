@@ -49,6 +49,23 @@ function normalize(doc) {
   };
 }
 
+function buildListOptions(options = {}) {
+  const page = Math.max(1, Number.parseInt(options.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, Number.parseInt(options.limit, 10) || 20));
+  const sortBy = options.sortBy || 'created_at';
+  const sortOrder = options.sortOrder === 1 || options.sortOrder === 'asc' ? 1 : -1;
+  return {
+    page,
+    limit,
+    skip: (page - 1) * limit,
+    sort: { [sortBy]: sortOrder }
+  };
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function findById(id) {
   if (!Product) throw new Error('Mongo Product model not available');
   // Try numeric legacyId first
@@ -76,28 +93,64 @@ async function findBySlug(slug) {
   return normalize(doc);
 }
 
-async function findAll() {
+async function findAll(options = {}) {
   if (!Product) throw new Error('Mongo Product model not available');
-  const docs = await Product.find({}).sort({ created_at: -1 }).lean();
+  const list = buildListOptions(options);
+  const docs = await Product.find({})
+    .sort(list.sort)
+    .skip(list.skip)
+    .limit(list.limit)
+    .lean();
   return docs.map(normalize);
 }
 
-async function findByCategory(category) {
+async function findByCategory(category, options = {}) {
   if (!Product) throw new Error('Mongo Product model not available');
-  const docs = await Product.find({ category }).sort({ created_at: -1 }).lean();
+  const list = buildListOptions(options);
+  const docs = await Product.find({ category })
+    .sort(list.sort)
+    .skip(list.skip)
+    .limit(list.limit)
+    .lean();
   return docs.map(normalize);
 }
 
-async function getFeatured() {
+async function getFeatured(options = {}) {
   if (!Product) throw new Error('Mongo Product model not available');
-  const docs = await Product.find({ featured: true }).sort({ created_at: -1 }).lean();
+  const list = buildListOptions(options);
+  const docs = await Product.find({ featured: true })
+    .sort(list.sort)
+    .skip(list.skip)
+    .limit(list.limit)
+    .lean();
   return docs.map(normalize);
 }
 
-async function search(term) {
+async function search(term, options = {}) {
   if (!Product) throw new Error('Mongo Product model not available');
-  const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  // search name, description, category, tags
+  const queryText = String(term || '').trim();
+  if (!queryText) {
+    return findAll(options);
+  }
+
+  const list = buildListOptions(options);
+
+  // Try indexed text search first for significantly better latency.
+  const textDocs = await Product.find(
+    { $text: { $search: queryText } },
+    { score: { $meta: 'textScore' } }
+  )
+    .sort({ score: { $meta: 'textScore' }, created_at: -1 })
+    .skip(list.skip)
+    .limit(list.limit)
+    .lean();
+
+  if (textDocs.length > 0) {
+    return textDocs.map(normalize);
+  }
+
+  // Fallback for terms that don't hit the text index.
+  const re = new RegExp(escapeRegex(queryText), 'i');
   const docs = await Product.find({
     $or: [
       { name: re },
@@ -105,7 +158,11 @@ async function search(term) {
       { category: re },
       { tags: re }
     ]
-  }).lean();
+  })
+    .sort(list.sort)
+    .skip(list.skip)
+    .limit(list.limit)
+    .lean();
   return docs.map(normalize);
 }
 

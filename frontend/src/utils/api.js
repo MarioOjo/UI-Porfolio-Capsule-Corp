@@ -38,8 +38,8 @@ export class TimeoutError extends Error {
 // Configuration
 const DEFAULT_CONFIG = {
   timeout: 10000,
-  maxRetries: 2,
-  retryDelay: 1000,
+  maxRetries: 1,
+  retryDelay: 500,
   baseUrl: '',
   enableLogging: import.meta.env.MODE === 'development',
   enableMetrics: true
@@ -115,7 +115,12 @@ class RequestMetrics {
 const metrics = new RequestMetrics();
 
 // Retry logic with exponential backoff
-async function withRetry(fn, maxRetries = DEFAULT_CONFIG.maxRetries, retryDelay = DEFAULT_CONFIG.retryDelay) {
+async function withRetry(
+  fn,
+  maxRetries = DEFAULT_CONFIG.maxRetries,
+  retryDelay = DEFAULT_CONFIG.retryDelay,
+  shouldRetry = () => true
+) {
   let lastError;
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -124,28 +129,7 @@ async function withRetry(fn, maxRetries = DEFAULT_CONFIG.maxRetries, retryDelay 
     } catch (error) {
       lastError = error;
       
-      // Don't retry on these errors
-      if (error.isApiError && (
-        error.status === 400 || // Bad Request
-        error.status === 401 || // Unauthorized
-        error.status === 403 || // Forbidden
-        error.status === 404 || // Not Found
-        error.status === 429 || // Too Many Requests
-        error.status >= 500 && error.status < 600 // Server errors (retry these actually)
-      )) {
-        // For server errors, we do want to retry, but not for client errors
-        if (error.status >= 400 && error.status < 500) {
-          break;
-        }
-      }
-      
-      // Don't retry on timeout errors (they're usually network issues)
-      if (error.isTimeoutError) {
-        break;
-      }
-      
-      // Don't retry on abort errors
-      if (error.name === 'AbortError') {
+      if (!shouldRetry(error, attempt)) {
         break;
       }
       
@@ -206,6 +190,7 @@ export async function apiFetch(path, options = {}) {
   
   const base = getApiBase();
   const url = base + path;
+  const method = (config.method || 'GET').toUpperCase();
 
   // Start metrics tracking
   metrics.startRequest(requestId, url);
@@ -326,8 +311,22 @@ export async function apiFetch(path, options = {}) {
       }
     };
 
+    const shouldRetry = (error) => {
+      // Never retry non-idempotent requests.
+      if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) return false;
+
+      if (error.isApiError) {
+        // Retry only transient HTTP failures.
+        return [408, 429, 500, 502, 503, 504].includes(error.status);
+      }
+
+      if (error.isTimeoutError || error.isNetworkError) return true;
+      if (error.name === 'AbortError') return false;
+      return true;
+    };
+
     // Execute with retry logic
-    return await withRetry(executeRequest, config.maxRetries, config.retryDelay);
+    return await withRetry(executeRequest, config.maxRetries, config.retryDelay, shouldRetry);
 
   } catch (error) {
     metrics.endRequest(requestId, 'error', error);
