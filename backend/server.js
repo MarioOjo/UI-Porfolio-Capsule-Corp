@@ -93,12 +93,6 @@ app.use((req, res, next) => {
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// Apply rate limiting to all routes
-app.use(SecurityMiddleware.strictRateLimit);
-
-// Add response formatter to all routes
-app.use(ResponseFormatter.middleware());
-
 // -------------------
 // Cloudinary Configuration
 // -------------------
@@ -134,6 +128,13 @@ app.get('/env.json', (req, res) => {
   res.set('Cache-Control', 'public, max-age=60');
   res.json(publicConfig);
 });
+
+// Apply rate limiting after health and runtime config endpoints so platform
+// probes do not get blocked and trigger false-negative restarts.
+app.use(SecurityMiddleware.strictRateLimit);
+
+// Add response formatter to all routes
+app.use(ResponseFormatter.middleware());
 
 // -------------------
 // API Routes
