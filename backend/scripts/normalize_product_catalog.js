@@ -338,8 +338,8 @@ const CANONICAL_UPSERTS = [
     stock: 8,
     featured: true,
     tags: ['BULMA DESIGNED', 'QUANTUM ENHANCED'],
-    image: 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1759608406/scouter_noike1.jpg',
-    gallery: ['https://res.cloudinary.com/dx8wt3el4/image/upload/v1759608406/scouter_noike1.jpg'],
+    image: 'https://res.cloudinary.com/dx8wt3el4/image/upload/v1762763377/Unoriginal_Entertainer_make_a_realsitc_version_of_this_scouter_from_dragon_ball_z_db298d55-5ed1-4b29-a8e6-7eed6d75a36e_zqyhoh.jpg',
+    gallery: ['https://res.cloudinary.com/dx8wt3el4/image/upload/v1762763377/Unoriginal_Entertainer_make_a_realsitc_version_of_this_scouter_from_dragon_ball_z_db298d55-5ed1-4b29-a8e6-7eed6d75a36e_zqyhoh.jpg'],
     in_stock: true,
   },
 ];
