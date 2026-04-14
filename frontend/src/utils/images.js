@@ -3,8 +3,8 @@ export const CLOUDINARY_BASE = 'https://res.cloudinary.com/dx8wt3el4/image/uploa
 
 // Helper to get default/fallback image with proper sizing
 export const getDefaultImage = (size = 300) => {
-  // Use a default Capsule Corp image with proper sizing
-  return `${CLOUDINARY_BASE}/c_fill,w_${size},h_${size},f_auto,q_auto/v1759096629/d3_xdolmn.jpg`;
+  // Use a known-good Capsule Corp fallback image with proper sizing
+  return `${CLOUDINARY_BASE}/c_fill,w_${size},h_${size},f_auto,q_auto,g_center/v1759608406/scouter_noike1.jpg`;
 };
 
 // Helper to resize Cloudinary images

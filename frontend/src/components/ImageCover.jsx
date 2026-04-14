@@ -1,36 +1,52 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { getDefaultImage } from '../utils/images';
 
-export default function ImageCover({ src, alt, className = '', overlayText = '' }) {
+export default function ImageCover({ src, alt, className = '', overlayText = '', fallbackSrc }) {
   const [loaded, setLoaded] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src || '');
+  const safeFallback = fallbackSrc || getDefaultImage(300);
 
   useEffect(() => {
-    if (!src) {
+    const nextSrc = src || safeFallback;
+    if (!nextSrc) {
       setLoaded(false);
+      setCurrentSrc('');
       return;
     }
+
+    setCurrentSrc(nextSrc);
     setLoaded(false);
     const img = new Image();
-    img.src = src;
+    img.src = nextSrc;
     img.onload = () => setLoaded(true);
     img.onerror = () => setLoaded(false);
     return () => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [src]);
+  }, [src, safeFallback]);
+
+  const handleError = () => {
+    if (currentSrc !== safeFallback) {
+      setCurrentSrc(safeFallback);
+      setLoaded(false);
+      return;
+    }
+    setLoaded(false);
+  };
 
   return (
     <div className={`${className} bg-center bg-cover rounded-2xl overflow-hidden relative`} aria-label={alt}>
       {/* Real <img> tag ensures reliable rendering and gives the browser a direct element to layout. */}
-      {src ? (
+      {currentSrc ? (
         <img
-          src={src}
+          src={currentSrc}
           alt={alt}
           className="w-full h-full object-contain"
           loading="lazy"
           onLoad={() => setLoaded(true)}
-          onError={() => setLoaded(false)}
+          onError={handleError}
           style={{ display: loaded ? 'block' : 'none' }}
         />
       ) : null}
@@ -52,4 +68,5 @@ ImageCover.propTypes = {
   alt: PropTypes.string,
   className: PropTypes.string,
   overlayText: PropTypes.string,
+  fallbackSrc: PropTypes.string,
 };
