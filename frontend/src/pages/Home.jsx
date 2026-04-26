@@ -18,7 +18,7 @@ function Home() {
     title: "Capsule Corp - Premium Dragon Ball Z Tech & Gear",
     description: "Official Capsule Corporation store. Shop premium Dragon Ball Z technology, battle gear, training equipment, and capsules. Powered by Bulma's genius inventions!",
     keywords: "Dragon Ball Z, Capsule Corp, anime merchandise, battle gear, training equipment, tech gadgets, DBZ, Bulma, Vegeta, Goku, Saiyan gear",
-    image: "/assets/images/capsule-corp-og.jpg",
+    image: `${window.location.origin}/capsule-logo.png`,
     url: window.location.href,
     type: "website"
   });
@@ -50,8 +50,8 @@ function Home() {
   // Performance optimization: Preload critical images
   useEffect(() => {
     const preloadImages = [
-      '/assets/images/hero-background.jpg',
-      '/assets/images/capsule-corp-logo.png'
+      'https://res.cloudinary.com/dx8wt3el4/image/upload/v1761211841/Firefly_-photorealistic_shot_of_the_Capsule_Corporation_headquarters_from_Dragon_Ball_Z_a_ma_554083_eoqshv.jpg',
+      '/capsule-logo.png'
     ];
     
     preloadImages.forEach(src => {

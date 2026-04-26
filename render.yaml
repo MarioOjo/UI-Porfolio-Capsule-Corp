@@ -36,7 +36,9 @@ services:
       - key: EMAIL_PASS
         sync: false
       - key: FRONTEND_ORIGIN
-        value: https://capsule-corp-frontend.onrender.com
+        value: https://porfolio-app-ub7q.onrender.com,https://capsule-corp-frontend.onrender.com,https://capsulecorps.dev,https://www.capsulecorps.dev
+      - key: FRONTEND_URL
+        value: https://porfolio-app-ub7q.onrender.com,https://capsule-corp-frontend.onrender.com,https://capsulecorps.dev,https://www.capsulecorps.dev
 
   # Frontend Static Site
   - type: web

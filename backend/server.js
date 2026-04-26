@@ -48,11 +48,17 @@ app.use(compression());
 // CORS: Allow localhost and production origins
 const normalizeOrigin = (value) => String(value || '').trim().replace(/\/$/, '');
 
+const defaultProductionOrigins = [
+  'https://porfolio-app-ub7q.onrender.com',
+  'https://capsule-corp-frontend.onrender.com',
+  'https://capsulecorps.dev',
+  'https://www.capsulecorps.dev'
+];
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173', // Vite dev server
-  'https://capsulecorps.dev',
-  'https://www.capsulecorps.dev',
+  ...defaultProductionOrigins,
   ...(process.env.FRONTEND_ORIGIN ? process.env.FRONTEND_ORIGIN.split(',').map(o => o.trim()) : []),
   ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [])
 ].filter(Boolean).map(normalizeOrigin);
@@ -80,13 +86,11 @@ app.use(cors({
       // ignore malformed origins and continue to rejection
     }
 
-    if (normalizedOrigin === 'https://porfolio-app-ub7q.onrender.com') {
-      return callback(null, true);
-    }
-    
     // Log rejected origins for debugging
     console.warn('⚠️  CORS blocked origin:', normalizedOrigin);
-    callback(new Error('Not allowed by CORS'));
+    // Return false instead of throwing so browser sees a normal CORS rejection,
+    // not a backend 500 response.
+    callback(null, false);
   },
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Request-ID', 'x-user-email', 'x-user-id'],
