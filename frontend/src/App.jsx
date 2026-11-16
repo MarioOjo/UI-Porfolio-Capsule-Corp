@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer";
 import RouteTracker from "./components/RouteTracker";
 import AnalyticsConsent from "./components/AnalyticsConsent/AnalyticsConsent";
+import ServerWakeNotice from "./components/ServerWakeNotice";
 
 function App() {
   const { handleRedirectResult } = useGoogleAuth();
@@ -53,6 +54,7 @@ function App() {
       <div className="app-root">
         <Navbar />
         <AnalyticsConsent />
+        <ServerWakeNotice />
         <RouteTracker />
         <main className="app-main">
           <AnimatedRoutes />
